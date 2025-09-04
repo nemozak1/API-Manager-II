@@ -1,0 +1,86 @@
+@import '@skeletonlabs/skeleton/themes/theme-skeleton.css';
+@import '@skeletonlabs/skeleton/styles/skeleton.css';
+@import '@tailwindcss/base';
+@import '@tailwindcss/components';
+@import '@tailwindcss/utilities';
+
+/* Custom styles for API Manager II */
+html, body {
+	@apply h-full overflow-hidden;
+}
+
+/* Custom component styles */
+.api-manager-card {
+	@apply card p-6 shadow-lg;
+}
+
+.api-manager-btn-primary {
+	@apply btn variant-filled-primary;
+}
+
+.api-manager-btn-secondary {
+	@apply btn variant-outline-secondary;
+}
+
+.api-manager-input {
+	@apply input;
+}
+
+.api-manager-table {
+	@apply table table-hover;
+}
+
+/* Dashboard specific styles */
+.dashboard-grid {
+	@apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+}
+
+.metric-card {
+	@apply card p-4 bg-surface-100-800-token;
+}
+
+.metric-value {
+	@apply text-2xl font-bold text-primary-500;
+}
+
+.metric-label {
+	@apply text-sm text-surface-600-300-token;
+}
+
+/* Navigation styles */
+.nav-item {
+	@apply flex items-center space-x-3 px-4 py-2 rounded-lg hover:bg-surface-hover-token transition-colors;
+}
+
+.nav-item.active {
+	@apply bg-primary-active-token text-on-primary-token;
+}
+
+/* Form styles */
+.form-group {
+	@apply space-y-2;
+}
+
+.form-label {
+	@apply label;
+}
+
+.form-error {
+	@apply text-error-500 text-sm;
+}
+
+/* Loading states */
+.loading-skeleton {
+	@apply animate-pulse bg-surface-300-600-token rounded;
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+	.dashboard-grid {
+		@apply grid-cols-1;
+	}
+	
+	.metric-card {
+		@apply p-3;
+	}
+}

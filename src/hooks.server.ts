@@ -86,8 +86,11 @@ async function fetchWellKnownUris(): Promise<WellKnownUri[]> {
     const response = await obp_requests.get("/obp/v5.1.0/well-known");
     return response.well_known_uris;
   } catch (error) {
-    logger.error("Failed to fetch well-known URIs:", error);
-    throw error;
+    logger.warn(
+      "Failed to fetch well-known URIs, will use manual configuration:",
+      error,
+    );
+    return [];
   }
 }
 
@@ -95,13 +98,28 @@ async function initOauth2Providers() {
   let providers = [];
   try {
     const wellKnownUris: WellKnownUri[] = await fetchWellKnownUris();
-    logger.debug("Well-known URIs fetched successfully:", wellKnownUris);
 
-    for (const providerUri of wellKnownUris) {
-      const oauth2Client =
-        await oauth2ProviderFactory.initializeProvider(providerUri);
-      if (oauth2Client) {
-        providers.push(providerUri);
+    if (wellKnownUris.length > 0) {
+      logger.debug("Well-known URIs fetched successfully:", wellKnownUris);
+
+      for (const providerUri of wellKnownUris) {
+        const oauth2Client =
+          await oauth2ProviderFactory.initializeProvider(providerUri);
+        if (oauth2Client) {
+          providers.push(providerUri);
+        }
+      }
+    } else {
+      logger.info(
+        "No well-known URIs found, attempting manual provider initialization",
+      );
+
+      // Try to manually initialize OBP OIDC provider
+      const manualClient =
+        await oauth2ProviderFactory.initializeProviderManually("obp-oidc");
+      if (manualClient) {
+        providers.push({ provider: "obp-oidc", url: "manual" });
+        logger.info("Successfully initialized OBP OIDC provider manually");
       }
     }
 
@@ -120,6 +138,10 @@ async function initOauth2Providers() {
       );
       return;
     }
+
+    logger.info(
+      `Successfully initialized ${providers.length} OAuth2 provider(s): ${providers.map((p) => p.provider).join(", ")}`,
+    );
   } catch (error) {
     logger.error("Failed to init OAuth2 providers: ", error);
     throw error;

@@ -215,9 +215,12 @@ body {
 
 /* Transitions */
 .transition-all {
-  @apply transition-all duration-200 ease-in-out;
+  transition: all 200ms ease-in-out;
 }
 
 .transition-colors {
-  @apply transition-colors duration-200 ease-in-out;
+  transition:
+    color 200ms ease-in-out,
+    background-color 200ms ease-in-out,
+    border-color 200ms ease-in-out;
 }

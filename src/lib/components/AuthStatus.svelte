@@ -1,10 +1,18 @@
 <script lang="ts">
-  export let user: any;
-  export let authInfo: any;
+  import type { User, AuthInfo } from "$lib/types";
+
+  export let user: User | null;
+  export let authInfo: AuthInfo | null;
 
   $: isFullAccess = authInfo?.source === "obp_api";
   $: isFallbackMode = authInfo?.source === "oidc_fallback";
   $: hasWarning = !!authInfo?.warning;
+  $: userInitials =
+    user?.username?.charAt(0)?.toUpperCase() ||
+    user?.email?.charAt(0)?.toUpperCase() ||
+    "U";
+  $: displayName = user?.username || "User";
+  $: displayEmail = user?.email || "No email";
 </script>
 
 <div class="auth-status-container">
@@ -12,14 +20,12 @@
   <div class="user-info">
     <div class="user-avatar">
       <div class="avatar-circle">
-        <span class="avatar-text">
-          {user?.username?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "U"}
-        </span>
+        <span class="avatar-text">{userInitials}</span>
       </div>
     </div>
     <div class="user-details">
-      <h3 class="user-name">{user?.username || "User"}</h3>
-      <p class="user-email">{user?.email || "No email"}</p>
+      <h3 class="user-name">{displayName}</h3>
+      <p class="user-email">{displayEmail}</p>
     </div>
   </div>
 
@@ -28,12 +34,17 @@
     {#if isFullAccess}
       <div class="status-badge status-success">
         <svg class="status-icon" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+          <path
+            fill-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+            clip-rule="evenodd"
+          />
         </svg>
         <span class="status-text">Full OBP Access</span>
       </div>
       <p class="status-description">
-        Connected to OBP API Server - Full banking data and user profile available
+        Connected to OBP API Server - Full banking data and user profile
+        available
       </p>
       <div class="capabilities">
         <span class="capability-tag">Banking Data</span>
@@ -45,12 +56,17 @@
     {#if isFallbackMode}
       <div class="status-badge status-warning">
         <svg class="status-icon" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+          <path
+            fill-rule="evenodd"
+            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+            clip-rule="evenodd"
+          />
         </svg>
         <span class="status-text">Limited Access (Fallback)</span>
       </div>
       <p class="status-description">
-        {authInfo?.warning || "Using OIDC authentication only - Limited functionality available"}
+        {authInfo?.warning ||
+          "Using OIDC authentication only - Limited functionality available"}
       </p>
       <div class="capabilities">
         <span class="capability-tag limited">Basic Auth</span>
@@ -60,11 +76,18 @@
       <!-- Warning message -->
       <div class="warning-message">
         <svg class="warning-icon" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+          <path
+            fill-rule="evenodd"
+            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+            clip-rule="evenodd"
+          />
         </svg>
         <div class="warning-content">
           <strong>Reduced Functionality</strong>
-          <p>OBP API server is not accessible. Some features may be unavailable. Contact your administrator if you need full banking data access.</p>
+          <p>
+            OBP API server is not accessible. Some features may be unavailable.
+            Contact your administrator if you need full banking data access.
+          </p>
         </div>
       </div>
     {/if}
@@ -76,7 +99,9 @@
     <div class="details-content">
       <div class="detail-row">
         <span class="detail-label">Authentication Source:</span>
-        <span class="detail-value">{authInfo?.sourceDescription || "Unknown"}</span>
+        <span class="detail-value"
+          >{authInfo?.sourceDescription || "Unknown"}</span
+        >
       </div>
       <div class="detail-row">
         <span class="detail-label">User ID:</span>
@@ -88,7 +113,9 @@
       </div>
       <div class="detail-row">
         <span class="detail-label">Full Profile:</span>
-        <span class="detail-value">{authInfo?.hasFullProfile ? "Yes" : "No"}</span>
+        <span class="detail-value"
+          >{authInfo?.hasFullProfile ? "Yes" : "No"}</span
+        >
       </div>
     </div>
   </details>

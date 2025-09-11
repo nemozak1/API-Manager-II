@@ -2,47 +2,67 @@
   import { page } from "$app/stores";
   import { goto } from "$app/navigation";
 
-  // Props from layout
-  export let user: any = null;
-  export let authInfo: any = null;
+  // Props from layout with better typing
+  export let user: {
+    username?: string;
+    email?: string;
+    user_id?: string;
+  } | null = null;
+  export let authInfo: {
+    source?: "obp_api" | "oidc_fallback";
+    sourceDescription?: string;
+  } | null = null;
 
+  // Reactive statements for better state management
   $: isAuthenticated = !!user;
+  $: isLimitedAccess = authInfo?.source === "oidc_fallback";
+  $: userDisplayName = user?.username || user?.email || "User";
+
   let isMobileMenuOpen = false;
 
-  // Navigation items for authenticated users
-  const navigationItems = [
-    { href: "/", label: "Home", icon: "🏠" },
-    { href: "/management", label: "Management", icon: "⚙️" },
-    { href: "/management/api", label: "API", icon: "🔌" },
-    { href: "/management/metrics", label: "Metrics", icon: "📊" },
-  ];
+  // Navigation items for authenticated users - computed based on access level
+  $: navigationItems = isAuthenticated
+    ? [
+        { href: "/", label: "Home", icon: "🏠", available: true },
+        {
+          href: "/management",
+          label: "Management",
+          icon: "⚙️",
+          available: !isLimitedAccess,
+        },
+        {
+          href: "/management/api",
+          label: "API",
+          icon: "🔌",
+          available: !isLimitedAccess,
+        },
+        {
+          href: "/management/metrics",
+          label: "Metrics",
+          icon: "📊",
+          available: !isLimitedAccess,
+        },
+      ].filter((item) => item.available)
+    : [];
 
-  // Check if current route is active
-  function isActiveRoute(href: string): boolean {
+  // Reactive check for active route
+  $: isActiveRoute = (href: string): boolean => {
     if (href === "/") {
       return $page.url.pathname === "/";
     }
     return $page.url.pathname.startsWith(href);
-  }
+  };
 
-  function toggleMobileMenu() {
-    isMobileMenuOpen = !isMobileMenuOpen;
-  }
-
-  function handleNavigation(path: string) {
-    goto(path);
-    isMobileMenuOpen = false; // Close mobile menu after navigation
-  }
-
-  function handleLogout() {
-    goto("/logout");
-    isMobileMenuOpen = false;
-  }
-
-  function handleLogin() {
-    goto("/login");
-    isMobileMenuOpen = false;
-  }
+  // Event handlers with better encapsulation
+  const handlers = {
+    toggleMobileMenu: () => (isMobileMenuOpen = !isMobileMenuOpen),
+    navigate: (path: string) => {
+      goto(path);
+      isMobileMenuOpen = false;
+    },
+    logout: () => handlers.navigate("/logout"),
+    login: () => handlers.navigate("/login"),
+  };
 </script>
 
 <!-- Navigation Bar -->
@@ -76,21 +96,23 @@
       {#if isAuthenticated}
         <!-- User Info -->
         <div class="user-info desktop-only">
-          <span class="user-name">{user.username || user.email}</span>
-          {#if authInfo?.source === "oidc_fallback"}
-            <span class="auth-status limited">Limited</span>
-          {:else}
-            <span class="auth-status full">Full Access</span>
-          {/if}
+          <span class="user-name">{userDisplayName}</span>
+          <span
+            class="auth-status"
+            class:limited={isLimitedAccess}
+            class:full={!isLimitedAccess}
+          >
+            {isLimitedAccess ? "Limited" : "Full Access"}
+          </span>
         </div>
 
         <!-- Logout Button -->
-        <button class="btn btn-logout desktop-only" on:click={handleLogout}>
+        <button class="btn btn-logout desktop-only" on:click={handlers.logout}>
           Logout
         </button>
       {:else}
         <!-- Login Button -->
-        <button class="btn btn-login desktop-only" on:click={handleLogin}>
+        <button class="btn btn-login desktop-only" on:click={handlers.login}>
           Login
         </button>
       {/if}
@@ -99,7 +121,7 @@
       <button
         class="hamburger mobile-only"
         class:open={isMobileMenuOpen}
-        on:click={toggleMobileMenu}
+        on:click={handlers.toggleMobileMenu}
         aria-label="Toggle menu"
       >
         <span></span>
@@ -115,13 +137,15 @@
       {#if isAuthenticated}
         <!-- User Info in Mobile -->
         <div class="mobile-user-info">
-          <div class="mobile-user-name">{user.username || user.email}</div>
+          <div class="mobile-user-name">{userDisplayName}</div>
           <div class="mobile-auth-status">
-            {#if authInfo?.source === "oidc_fallback"}
-              <span class="auth-status limited">Limited Access</span>
-            {:else}
-              <span class="auth-status full">Full Access</span>
-            {/if}
+            <span
+              class="auth-status"
+              class:limited={isLimitedAccess}
+              class:full={!isLimitedAccess}
+            >
+              {isLimitedAccess ? "Limited Access" : "Full Access"}
+            </span>
           </div>
         </div>
 
@@ -131,7 +155,7 @@
             <button
               class="mobile-nav-link"
               class:active={isActiveRoute(item.href)}
-              on:click={() => handleNavigation(item.href)}
+              on:click={() => handlers.navigate(item.href)}
             >
               <span class="nav-icon">{item.icon}</span>
               {item.label}
@@ -140,12 +164,12 @@
         </div>
 
         <!-- Logout Button -->
-        <button class="mobile-logout-btn" on:click={handleLogout}>
+        <button class="mobile-logout-btn" on:click={handlers.logout}>
           Logout
         </button>
       {:else}
         <!-- Login Button for Mobile -->
-        <button class="mobile-login-btn" on:click={handleLogin}>
+        <button class="mobile-login-btn" on:click={handlers.login}>
           Login with OBP
         </button>
       {/if}

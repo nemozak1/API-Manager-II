@@ -8,7 +8,7 @@ echo "Setting up API Manager II environment configuration..."
 # Create .env file with the OBP OAuth credentials
 cat > .env << EOF
 # OBP API Configuration
-PUBLIC_OBP_BASE_URL=http://127.0.0.1:9000
+PUBLIC_OBP_BASE_URL=http://127.0.0.1:8080
 
 # OAuth Client Configuration (OBP OIDC)
 OBP_OAUTH_CLIENT_ID=39fb9d38-cd0e-44e7-9da5-556d0673e40d
@@ -33,23 +33,29 @@ EOF
 echo "✅ .env file created successfully!"
 echo ""
 echo "Configuration Summary:"
-echo "  - OBP Base URL: http://127.0.0.1:9000"
+echo "  - OBP API Base URL: http://127.0.0.1:8080"
+echo "  - OBP OIDC Server: http://127.0.0.1:9000"
 echo "  - OAuth Client ID: 39fb9d38-cd0e-44e7-9da5-556d0673e40d"
 echo "  - Callback URL: http://localhost:3003/login/obp/callback"
 echo "  - Server Port: 3003"
 echo ""
-echo "Available OAuth Endpoints:"
+echo "Available OAuth Endpoints (OIDC Server on port 9000):"
 echo "  - Discovery: http://127.0.0.1:9000/obp-oidc/.well-known/openid-configuration"
 echo "  - Authorization: http://127.0.0.1:9000/obp-oidc/auth"
 echo "  - Token: http://127.0.0.1:9000/obp-oidc/token"
 echo "  - UserInfo: http://127.0.0.1:9000/obp-oidc/userinfo"
 echo "  - JWKS: http://127.0.0.1:9000/obp-oidc/jwks"
 echo ""
+echo "Available OBP API Endpoints (API Server on port 8080):"
+echo "  - Current User: http://127.0.0.1:8080/obp/v5.1.0/users/current"
+echo "  - Banks: http://127.0.0.1:8080/obp/v5.1.0/banks"
+echo ""
 echo "Next Steps:"
 echo "1. Make sure Redis is running on localhost:6379"
-echo "2. Make sure your OBP server is running on http://127.0.0.1:9000"
-echo "3. Run: npm run dev"
-echo "4. Visit: http://localhost:3003/login"
+echo "2. Make sure your OBP OIDC server is running on http://127.0.0.1:9000"
+echo "3. Make sure your OBP API server is running on http://127.0.0.1:8080"
+echo "4. Run: npm run dev"
+echo "5. Visit: http://localhost:3003/login"
 echo ""
 echo "Note: The callback URL is configured for http://localhost:3003/login/obp/callback"
 echo "Make sure this matches your OBP client configuration."

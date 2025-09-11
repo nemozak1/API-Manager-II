@@ -83,14 +83,21 @@ if (!env.REDIS_HOST || !env.REDIS_PORT) {
 
 async function fetchWellKnownUris(): Promise<WellKnownUri[]> {
   try {
+    // Try to fetch well-known URIs from OBP API server (port 8080)
     const response = await obp_requests.get("/obp/v5.1.0/well-known");
     return response.well_known_uris;
   } catch (error) {
     logger.warn(
-      "Failed to fetch well-known URIs, will use manual configuration:",
+      "Failed to fetch well-known URIs from OBP API, will use manual OIDC configuration:",
       error,
     );
-    return [];
+    // Return manual OIDC configuration since we know the OIDC server is on port 9000
+    return [
+      {
+        provider: "obp-oidc",
+        url: "http://127.0.0.1:9000/obp-oidc/.well-known/openid-configuration",
+      },
+    ];
   }
 }
 
@@ -277,6 +284,13 @@ declare module "svelte-kit-sessions" {
       access_token: string;
       refresh_token?: string;
       provider: string;
+    };
+    authInfo?: {
+      source: "obp_api" | "oidc_fallback";
+      sourceDescription: string;
+      hasFullProfile: boolean;
+      capabilities: string[];
+      warning?: string;
     };
   }
 }

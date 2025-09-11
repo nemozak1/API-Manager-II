@@ -1,34 +1,55 @@
-@import "@skeletonlabs/skeleton/themes/theme-skeleton.css";
-@import "@skeletonlabs/skeleton/styles/skeleton.css";
-@import "@tailwindcss/base";
-@import "@tailwindcss/components";
-@import "@tailwindcss/utilities";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* Custom styles for API Manager II */
-html,
-body {
-  @apply h-full;
+/* Reset and base styles */
+* {
+  box-sizing: border-box;
 }
 
-/* Custom component styles */
+html {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+    Cantarell, sans-serif;
+  line-height: 1.6;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #f9fafb;
+  color: #1f2937;
+  height: 100%;
+}
+
+/* Custom component styles for API Manager II */
 .api-manager-card {
-  @apply card p-6 shadow-lg;
+  @apply bg-white rounded-lg shadow-md p-6;
 }
 
 .api-manager-btn-primary {
-  @apply btn variant-filled-primary;
+  @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors;
 }
 
 .api-manager-btn-secondary {
-  @apply btn variant-outline-secondary;
+  @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-md transition-colors;
 }
 
 .api-manager-input {
-  @apply input;
+  @apply block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
 }
 
 .api-manager-table {
-  @apply table table-hover;
+  @apply min-w-full divide-y divide-gray-200;
+}
+
+.api-manager-table th {
+  @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50;
+}
+
+.api-manager-table td {
+  @apply px-6 py-4 whitespace-nowrap text-sm text-gray-900;
 }
 
 /* Dashboard specific styles */
@@ -37,24 +58,24 @@ body {
 }
 
 .metric-card {
-  @apply card p-4 bg-surface-100-800-token;
+  @apply bg-white rounded-lg shadow-md p-4;
 }
 
 .metric-value {
-  @apply text-2xl font-bold text-primary-500;
+  @apply text-2xl font-bold text-blue-600;
 }
 
 .metric-label {
-  @apply text-sm text-surface-600-300-token;
+  @apply text-sm text-gray-600;
 }
 
 /* Navigation styles */
 .nav-item {
-  @apply flex items-center space-x-3 px-4 py-2 rounded-lg hover:bg-surface-hover-token transition-colors;
+  @apply flex items-center space-x-3 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors;
 }
 
 .nav-item.active {
-  @apply bg-primary-active-token text-on-primary-token;
+  @apply bg-blue-100 text-blue-800;
 }
 
 /* Form styles */
@@ -63,16 +84,113 @@ body {
 }
 
 .form-label {
-  @apply label;
+  @apply block text-sm font-medium text-gray-700;
 }
 
 .form-error {
-  @apply text-error-500 text-sm;
+  @apply text-red-500 text-sm;
+}
+
+/* Button variants */
+.btn {
+  @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.btn-primary {
+  @apply bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500;
+}
+
+.btn-secondary {
+  @apply bg-gray-200 hover:bg-gray-300 text-gray-800 focus:ring-gray-500;
+}
+
+.btn-danger {
+  @apply bg-red-600 hover:bg-red-700 text-white focus:ring-red-500;
+}
+
+.btn-success {
+  @apply bg-green-600 hover:bg-green-700 text-white focus:ring-green-500;
+}
+
+/* Card components */
+.card {
+  @apply bg-white overflow-hidden shadow-sm rounded-lg;
+}
+
+.card-header {
+  @apply px-6 py-4 border-b border-gray-200;
+}
+
+.card-body {
+  @apply px-6 py-4;
+}
+
+.card-footer {
+  @apply px-6 py-4 bg-gray-50 border-t border-gray-200;
+}
+
+/* Alert components */
+.alert {
+  @apply px-4 py-3 rounded-md border;
+}
+
+.alert-info {
+  @apply bg-blue-50 border-blue-200 text-blue-800;
+}
+
+.alert-success {
+  @apply bg-green-50 border-green-200 text-green-800;
+}
+
+.alert-warning {
+  @apply bg-yellow-50 border-yellow-200 text-yellow-800;
+}
+
+.alert-error {
+  @apply bg-red-50 border-red-200 text-red-800;
 }
 
 /* Loading states */
 .loading-skeleton {
-  @apply animate-pulse bg-surface-300-600-token rounded;
+  @apply animate-pulse bg-gray-300 rounded;
+}
+
+.loading-spinner {
+  @apply animate-spin rounded-full border-2 border-gray-300 border-t-blue-600;
+}
+
+/* Status badges */
+.status-badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.status-online {
+  @apply bg-green-100 text-green-800;
+}
+
+.status-offline {
+  @apply bg-red-100 text-red-800;
+}
+
+.status-warning {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+/* Utility classes */
+.container {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* Responsive utilities */
@@ -84,4 +202,22 @@ body {
   .metric-card {
     @apply p-3;
   }
+
+  .container {
+    @apply px-4;
+  }
+}
+
+/* Focus styles for accessibility */
+.focus-visible:focus {
+  @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+}
+
+/* Transitions */
+.transition-all {
+  @apply transition-all duration-200 ease-in-out;
+}
+
+.transition-colors {
+  @apply transition-colors duration-200 ease-in-out;
 }

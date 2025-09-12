@@ -13,7 +13,10 @@
   $: error = data.error;
 
   let refreshInterval: NodeJS.Timeout;
+  let countdownInterval: NodeJS.Timeout;
   let currentTime = new Date().toLocaleString();
+  let countdown = 5;
+  let isCountingDown = false;
 
   // Configuration information
   $: obpInfo = configHelpers.getObpConnectionInfo();
@@ -39,11 +42,7 @@
   };
 
   onMount(() => {
-    // Auto-refresh every 5 seconds for real-time panel
-    refreshInterval = setInterval(() => {
-      refreshRecentMetrics();
-      currentTime = new Date().toLocaleString();
-    }, 5000);
+    startAutoRefresh();
 
     // Update current time every second
     setInterval(() => {
@@ -54,6 +53,9 @@
   onDestroy(() => {
     if (refreshInterval) {
       clearInterval(refreshInterval);
+    }
+    if (countdownInterval) {
+      clearInterval(countdownInterval);
     }
   });
 
@@ -151,6 +153,39 @@
     params.set("direction", queryForm.direction);
 
     return params.toString();
+  }
+
+  function startAutoRefresh() {
+    // Start 5-second auto-refresh cycle
+    countdown = 5;
+    isCountingDown = true;
+
+    if (refreshInterval) clearInterval(refreshInterval);
+    if (countdownInterval) clearInterval(countdownInterval);
+
+    countdownInterval = setInterval(() => {
+      countdown--;
+      if (countdown <= 0) {
+        refreshRecentMetrics();
+        countdown = 5;
+      }
+    }, 1000);
+  }
+
+  function handleFieldChange() {
+    // Reset countdown to 3 seconds when field changes
+    countdown = 3;
+    isCountingDown = true;
+
+    if (countdownInterval) clearInterval(countdownInterval);
+
+    countdownInterval = setInterval(() => {
+      countdown--;
+      if (countdown <= 0) {
+        refreshRecentMetrics();
+        startAutoRefresh(); // Resume normal 5-second cycle
+      }
+    }, 1000);
   }
 
   function clearQuery() {
@@ -255,6 +290,7 @@
                 type="datetime-local"
                 id="from_date"
                 bind:value={queryForm.from_date}
+                on:blur={handleFieldChange}
                 class="form-input"
               />
             </div>
@@ -264,6 +300,7 @@
                 type="datetime-local"
                 id="to_date"
                 bind:value={queryForm.to_date}
+                on:blur={handleFieldChange}
                 class="form-input"
               />
             </div>
@@ -275,6 +312,7 @@
                 bind:value={queryForm.limit}
                 min="1"
                 max="10000"
+                on:blur={handleFieldChange}
                 class="form-input"
               />
             </div>
@@ -285,6 +323,7 @@
                 id="offset"
                 bind:value={queryForm.offset}
                 min="0"
+                on:blur={handleFieldChange}
                 class="form-input"
               />
             </div>
@@ -293,6 +332,7 @@
               <select
                 id="sort_by"
                 bind:value={queryForm.sort_by}
+                on:change={handleFieldChange}
                 class="form-input"
               >
                 <option value="date">Date</option>
@@ -308,6 +348,7 @@
               <select
                 id="direction"
                 bind:value={queryForm.direction}
+                on:change={handleFieldChange}
                 class="form-input"
               >
                 <option value="desc">Descending</option>
@@ -318,7 +359,12 @@
           <div class="form-row">
             <div class="form-field">
               <label for="verb">HTTP Method</label>
-              <select id="verb" bind:value={queryForm.verb} class="form-input">
+              <select
+                id="verb"
+                bind:value={queryForm.verb}
+                on:change={handleFieldChange}
+                class="form-input"
+              >
                 <option value="">All Methods</option>
                 <option value="GET">GET</option>
                 <option value="POST">POST</option>
@@ -334,6 +380,7 @@
                 id="app_name"
                 bind:value={queryForm.app_name}
                 placeholder="Filter by app name"
+                on:blur={handleFieldChange}
                 class="form-input"
               />
             </div>
@@ -344,6 +391,7 @@
                 id="user_name"
                 bind:value={queryForm.user_name}
                 placeholder="Filter by user"
+                on:blur={handleFieldChange}
                 class="form-input"
               />
             </div>
@@ -354,6 +402,7 @@
                 id="url"
                 bind:value={queryForm.url}
                 placeholder="Filter by URL"
+                on:blur={handleFieldChange}
                 class="form-input"
               />
             </div>
@@ -364,12 +413,18 @@
                 id="consumer_id"
                 bind:value={queryForm.consumer_id}
                 placeholder="Filter by consumer ID"
+                on:blur={handleFieldChange}
                 class="form-input"
               />
             </div>
             <div class="form-field">
               <label for="anon">Anonymous</label>
-              <select id="anon" bind:value={queryForm.anon} class="form-input">
+              <select
+                id="anon"
+                bind:value={queryForm.anon}
+                on:change={handleFieldChange}
+                class="form-input"
+              >
                 <option value="">All Users</option>
                 <option value="true">Anonymous Only</option>
                 <option value="false">Authenticated Only</option>
@@ -457,9 +512,12 @@
     <div class="panel-header">
       <h2 class="panel-title">Recent API Calls</h2>
       <div class="panel-subtitle">
-        URL: {obpInfo.apiUrl}/management/metrics?{getCurrentQueryString()} • Last
-        updated:
-        {currentTime}
+        URL: {obpInfo.apiUrl}/management/metrics?{getCurrentQueryString()} •
+        {#if isCountingDown}
+          <span class="countdown">Refreshing in {countdown}s</span>
+        {:else}
+          Last updated: {currentTime}
+        {/if}
       </div>
       <button
         class="refresh-btn"
@@ -820,6 +878,22 @@
   .table-wrapper {
     overflow-x: auto;
     margin: -1px;
+  }
+
+  .countdown {
+    color: #f59e0b;
+    font-weight: 600;
+    animation: pulse 1s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.6;
+    }
   }
 
   .metrics-summary {

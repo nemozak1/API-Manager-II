@@ -176,378 +176,365 @@
     </div>
 
     <div class="panel-content">
-        <!-- Query Form -->
-        <form on:submit|preventDefault={submitQuery} class="query-form">
-          <div class="form-section">
-            <h3 class="form-section-title">Date Range</h3>
-            <div class="form-row">
-              <div class="form-field">
-                <label for="from_date">From Date</label>
-                <input
-                  type="datetime-local"
-                  id="from_date"
-                  bind:value={queryForm.from_date}
-                  class="form-input"
-                />
-              </div>
-              <div class="form-field">
-                <label for="to_date">To Date</label>
-                <input
-                  type="datetime-local"
-                  id="to_date"
-                  bind:value={queryForm.to_date}
-                  class="form-input"
-                />
-              </div>
+      <!-- Query Form -->
+      <form on:submit|preventDefault={submitQuery} class="query-form">
+        <div class="form-section">
+          <h3 class="form-section-title">Date Range</h3>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="from_date">From Date</label>
+              <input
+                type="datetime-local"
+                id="from_date"
+                bind:value={queryForm.from_date}
+                class="form-input"
+              />
+            </div>
+            <div class="form-field">
+              <label for="to_date">To Date</label>
+              <input
+                type="datetime-local"
+                id="to_date"
+                bind:value={queryForm.to_date}
+                class="form-input"
+              />
             </div>
           </div>
+        </div>
 
-          <div class="form-section">
-            <h3 class="form-section-title">Pagination & Sorting</h3>
-            <div class="form-row">
-              <div class="form-field">
-                <label for="limit">Limit</label>
-                <input
-                  type="number"
-                  id="limit"
-                  bind:value={queryForm.limit}
-                  min="1"
-                  max="10000"
-                  class="form-input"
-                />
-              </div>
-              <div class="form-field">
-                <label for="offset">Offset</label>
-                <input
-                  type="number"
-                  id="offset"
-                  bind:value={queryForm.offset}
-                  min="0"
-                  class="form-input"
-                />
-              </div>
-              <div class="form-field">
-                <label for="sort_by">Sort By</label>
-                <select
-                  id="sort_by"
-                  bind:value={queryForm.sort_by}
-                  class="form-input"
-                >
-                  <option value="date">Date</option>
-                  <option value="url">URL</option>
-                  <option value="user_name">User Name</option>
-                  <option value="app_name">App Name</option>
-                  <option value="verb">HTTP Method</option>
-                  <option value="duration">Duration</option>
-                </select>
-              </div>
-              <div class="form-field">
-                <label for="direction">Direction</label>
-                <select
-                  id="direction"
-                  bind:value={queryForm.direction}
-                  class="form-input"
-                >
-                  <option value="desc">Descending</option>
-                  <option value="asc">Ascending</option>
-                </select>
-              </div>
+        <div class="form-section">
+          <h3 class="form-section-title">Pagination & Sorting</h3>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="limit">Limit</label>
+              <input
+                type="number"
+                id="limit"
+                bind:value={queryForm.limit}
+                min="1"
+                max="10000"
+                class="form-input"
+              />
+            </div>
+            <div class="form-field">
+              <label for="offset">Offset</label>
+              <input
+                type="number"
+                id="offset"
+                bind:value={queryForm.offset}
+                min="0"
+                class="form-input"
+              />
+            </div>
+            <div class="form-field">
+              <label for="sort_by">Sort By</label>
+              <select
+                id="sort_by"
+                bind:value={queryForm.sort_by}
+                class="form-input"
+              >
+                <option value="date">Date</option>
+                <option value="url">URL</option>
+                <option value="user_name">User Name</option>
+                <option value="app_name">App Name</option>
+                <option value="verb">HTTP Method</option>
+                <option value="duration">Duration</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="direction">Direction</label>
+              <select
+                id="direction"
+                bind:value={queryForm.direction}
+                class="form-input"
+              >
+                <option value="desc">Descending</option>
+                <option value="asc">Ascending</option>
+              </select>
             </div>
           </div>
+        </div>
 
-          <div class="form-section">
-            <h3 class="form-section-title">Filters</h3>
-            <div class="form-row">
-              <div class="form-field">
-                <label for="verb">HTTP Method</label>
-                <select
-                  id="verb"
-                  bind:value={queryForm.verb}
-                  class="form-input"
-                >
-                  <option value="">All Methods</option>
-                  <option value="GET">GET</option>
-                  <option value="POST">POST</option>
-                  <option value="PUT">PUT</option>
-                  <option value="DELETE">DELETE</option>
-                  <option value="PATCH">PATCH</option>
-                </select>
-              </div>
-              <div class="form-field">
-                <label for="app_name">App Name</label>
-                <input
-                  type="text"
-                  id="app_name"
-                  bind:value={queryForm.app_name}
-                  placeholder="Filter by app name"
-                  class="form-input"
-                />
-              </div>
-              <div class="form-field">
-                <label for="user_name">User</label>
-                <input
-                  type="text"
-                  id="user_name"
-                  bind:value={queryForm.user_name}
-                  placeholder="Filter by user"
-                  class="form-input"
-                />
-              </div>
+        <div class="form-section">
+          <h3 class="form-section-title">Filters</h3>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="verb">HTTP Method</label>
+              <select id="verb" bind:value={queryForm.verb} class="form-input">
+                <option value="">All Methods</option>
+                <option value="GET">GET</option>
+                <option value="POST">POST</option>
+                <option value="PUT">PUT</option>
+                <option value="DELETE">DELETE</option>
+                <option value="PATCH">PATCH</option>
+              </select>
             </div>
-            <div class="form-row">
-              <div class="form-field">
-                <label for="url">URL Contains</label>
-                <input
-                  type="text"
-                  id="url"
-                  bind:value={queryForm.url}
-                  placeholder="Filter by URL"
-                  class="form-input"
-                />
-              </div>
-              <div class="form-field">
-                <label for="consumer_id">Consumer ID</label>
-                <input
-                  type="text"
-                  id="consumer_id"
-                  bind:value={queryForm.consumer_id}
-                  placeholder="Filter by consumer ID"
-                  class="form-input"
-                />
-              </div>
-              <div class="form-field">
-                <label for="anon">Anonymous</label>
-                <select
-                  id="anon"
-                  bind:value={queryForm.anon}
-                  class="form-input"
-                >
-                  <option value="">All Users</option>
-                  <option value="true">Anonymous Only</option>
-                  <option value="false">Authenticated Only</option>
-                </select>
-              </div>
+            <div class="form-field">
+              <label for="app_name">App Name</label>
+              <input
+                type="text"
+                id="app_name"
+                bind:value={queryForm.app_name}
+                placeholder="Filter by app name"
+                class="form-input"
+              />
+            </div>
+            <div class="form-field">
+              <label for="user_name">User</label>
+              <input
+                type="text"
+                id="user_name"
+                bind:value={queryForm.user_name}
+                placeholder="Filter by user"
+                class="form-input"
+              />
             </div>
           </div>
-
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary">
-              🔍 Query Metrics
-            </button>
-            <button
-              type="button"
-              class="btn btn-secondary"
-              on:click={clearQuery}
-            >
-              🗑️ Clear Form
-            </button>
-          </div>
-        </form>
-
-        <!-- Query Results -->
-        {#if queryMetrics}
-          <div class="query-results">
-            <div class="results-header">
-              <h3>Query Results</h3>
-              <span class="results-count">
-                {queryMetrics.count} results found
-              </span>
+          <div class="form-row">
+            <div class="form-field">
+              <label for="url">URL Contains</label>
+              <input
+                type="text"
+                id="url"
+                bind:value={queryForm.url}
+                placeholder="Filter by URL"
+                class="form-input"
+              />
             </div>
+            <div class="form-field">
+              <label for="consumer_id">Consumer ID</label>
+              <input
+                type="text"
+                id="consumer_id"
+                bind:value={queryForm.consumer_id}
+                placeholder="Filter by consumer ID"
+                class="form-input"
+              />
+            </div>
+            <div class="form-field">
+              <label for="anon">Anonymous</label>
+              <select id="anon" bind:value={queryForm.anon} class="form-input">
+                <option value="">All Users</option>
+                <option value="true">Anonymous Only</option>
+                <option value="false">Authenticated Only</option>
+              </select>
+            </div>
+          </div>
+        </div>
 
-            {#if queryMetrics.metrics && queryMetrics.metrics.length > 0}
-              <div class="metrics-table-container">
-                <table class="metrics-table">
-                  <thead>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">
+            🔍 Query Metrics
+          </button>
+          <button type="button" class="btn btn-secondary" on:click={clearQuery}>
+            🗑️ Clear Form
+          </button>
+        </div>
+      </form>
+
+      <!-- Query Results -->
+      {#if queryMetrics}
+        <div class="query-results">
+          <div class="results-header">
+            <h3>Query Results</h3>
+            <span class="results-count">
+              {queryMetrics.count} results found
+            </span>
+          </div>
+
+          {#if queryMetrics.metrics && queryMetrics.metrics.length > 0}
+            <div class="metrics-table-container">
+              <table class="metrics-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Method</th>
+                    <th>URL</th>
+                    <th>User</th>
+                    <th>App</th>
+                    <th>Duration</th>
+                    <th>Version</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {#each queryMetrics.metrics as metric}
                     <tr>
-                      <th>Date</th>
-                      <th>Method</th>
-                      <th>URL</th>
-                      <th>User</th>
-                      <th>App</th>
-                      <th>Duration</th>
-                      <th>Version</th>
+                      <td class="time-cell">
+                        {formatDate(metric.date)}
+                      </td>
+                      <td>
+                        <span class="verb-badge {getVerbColor(metric.verb)}">
+                          {metric.verb}
+                        </span>
+                      </td>
+                      <td class="url-cell" title={metric.url}>
+                        {metric.url.length > 50
+                          ? metric.url.substring(0, 50) + "..."
+                          : metric.url}
+                      </td>
+                      <td class="user-cell">
+                        {metric.user_name || "Anonymous"}
+                      </td>
+                      <td class="app-cell">
+                        {metric.app_name || "N/A"}
+                      </td>
+                      <td class="duration-cell">
+                        {formatDuration(metric.duration)}
+                      </td>
+                      <td class="version-cell">
+                        {metric.implemented_in_version || "N/A"}
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {#each queryMetrics.metrics as metric}
-                      <tr>
-                        <td class="time-cell">
-                          {formatDate(metric.date)}
-                        </td>
-                        <td>
-                          <span class="verb-badge {getVerbColor(metric.verb)}">
-                            {metric.verb}
-                          </span>
-                        </td>
-                        <td class="url-cell" title={metric.url}>
-                          {metric.url.length > 50
-                            ? metric.url.substring(0, 50) + "..."
-                            : metric.url}
-                        </td>
-                        <td class="user-cell">
-                          {metric.user_name || "Anonymous"}
-                        </td>
-                        <td class="app-cell">
-                          {metric.app_name || "N/A"}
-                        </td>
-                        <td class="duration-cell">
-                          {formatDuration(metric.duration)}
-                        </td>
-                        <td class="version-cell">
-                          {metric.implemented_in_version || "N/A"}
-                        </td>
-                      </tr>
-                    {/each}
-                  </tbody>
-                </table>
-              </div>
-            {:else}
-              <div class="empty-state">
-                <p>
-                  No results found for your query. Try adjusting the filters.
-                </p>
-              </div>
-            {/if}
-          </div>
-        {/if}
+                  {/each}
+                </tbody>
+              </table>
+            </div>
+          {:else}
+            <div class="empty-state">
+              <p>No results found for your query. Try adjusting the filters.</p>
+            </div>
+          {/if}
+        </div>
+      {/if}
+    </div>
+  </div>
+
+  <!-- Panel 2: Real-time Recent API Calls -->
+  <div class="panel full-width-panel">
+    <div class="panel-header">
+      <h2 class="panel-title">Recent API Calls</h2>
+      <div class="panel-subtitle">
+        Last 50 API calls • Target: {obpInfo.displayName} • Last updated:
+        {currentTime}
       </div>
+      <button
+        class="refresh-btn"
+        on:click={refreshRecentMetrics}
+        title="Manual refresh"
+      >
+        🔄
+      </button>
     </div>
 
-    <!-- Panel 2: Real-time Recent API Calls -->
-    <div class="panel full-width-panel">
-      <div class="panel-header">
-        <h2 class="panel-title">Recent API Calls</h2>
-        <div class="panel-subtitle">
-          Last 50 API calls • Target: {obpInfo.displayName} • Last updated:
-          {currentTime}
-        </div>
-        <button
-          class="refresh-btn"
-          on:click={refreshRecentMetrics}
-          title="Manual refresh"
-        >
-          🔄
-        </button>
-      </div>
-
-      <div class="panel-content">
-        {#if recentMetrics?.metrics && recentMetrics.metrics.length > 0}
-          <div class="table-wrapper">
-            <table class="metrics-table">
-              <thead>
+    <div class="panel-content">
+      {#if recentMetrics?.metrics && recentMetrics.metrics.length > 0}
+        <div class="table-wrapper">
+          <table class="metrics-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>User</th>
+                <th>App</th>
+                <th>Method</th>
+                <th>Endpoint</th>
+                <th>Duration</th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each recentMetrics.metrics as metric}
                 <tr>
-                  <th>Date</th>
-                  <th>User</th>
-                  <th>App</th>
-                  <th>Method</th>
-                  <th>Endpoint</th>
-                  <th>Duration</th>
+                  <td class="date-cell">
+                    {new Date(metric.date).toLocaleString()}
+                  </td>
+                  <td class="user-cell">
+                    {metric.user_name || "Anonymous"}
+                  </td>
+                  <td class="app-cell">
+                    {metric.app_name || "Unknown"}
+                  </td>
+                  <td class="method-cell">
+                    <span
+                      class="method-badge method-{metric.verb.toLowerCase()}"
+                    >
+                      {metric.verb}
+                    </span>
+                  </td>
+                  <td class="endpoint-cell">
+                    <code class="endpoint-path">{metric.url}</code>
+                  </td>
+                  <td class="duration-cell">
+                    <span
+                      class="duration-badge"
+                      class:duration-fast={metric.duration < 100}
+                      class:duration-medium={metric.duration >= 100 &&
+                        metric.duration < 500}
+                      class:duration-slow={metric.duration >= 500}
+                    >
+                      {metric.duration}ms
+                    </span>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {#each recentMetrics.metrics as metric}
-                  <tr>
-                    <td class="date-cell">
-                      {new Date(metric.date).toLocaleString()}
-                    </td>
-                    <td class="user-cell">
-                      {metric.user_name || "Anonymous"}
-                    </td>
-                    <td class="app-cell">
-                      {metric.app_name || "Unknown"}
-                    </td>
-                    <td class="method-cell">
-                      <span class="method-badge method-{metric.verb.toLowerCase()}">
-                        {metric.verb}
-                      </span>
-                    </td>
-                    <td class="endpoint-cell">
-                      <code class="endpoint-path">{metric.url}</code>
-                    </td>
-                    <td class="duration-cell">
-                      <span
-                        class="duration-badge"
-                        class:duration-fast={metric.duration < 100}
-                        class:duration-medium={metric.duration >= 100 &&
-                          metric.duration < 500}
-                        class:duration-slow={metric.duration >= 500}
-                      >
-                        {metric.duration}ms
-                      </span>
-                    </td>
-                  </tr>
-                {/each}
-              </tbody>
-            </table>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+        <div class="metrics-summary">
+          Showing {recentMetrics.count} recent API calls (last 50 records) from
+          {obpInfo.displayName}
+        </div>
+      {:else if hasApiAccess}
+        <div class="empty-state">
+          <div
+            style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; text-align: center;"
+          >
+            📡
           </div>
-          <div class="metrics-summary">
-            Showing {recentMetrics.count} recent API calls (last 50 records) from
-            {obpInfo.displayName}
-          </div>
-        {:else if hasApiAccess}
-          <div class="empty-state">
+          <h4
+            style="color: #4a5568; margin-bottom: 0.5rem; font-size: 1.125rem; text-align: center;"
+          >
+            No Recent API Calls
+          </h4>
+          <p style="text-align: center; margin-bottom: 1.5rem;">
+            No recent API requests found for <strong
+              >{obpInfo.displayName}</strong
+            >.
+          </p>
+          <div
+            style="background: #f7fafc; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; text-align: left;"
+          >
+            <h5
+              style="color: #2d3748; margin-bottom: 0.5rem; font-size: 0.875rem;"
+            >
+              Server Configuration:
+            </h5>
             <div
-              style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; text-align: center;"
+              style="font-family: monospace; font-size: 0.75rem; color: #4a5568;"
             >
-              📡
+              <div>• Base URL: {obpInfo.baseUrl}</div>
+              <div>• API URL: {obpInfo.apiUrl}</div>
+              <div>• OIDC URL: {obpInfo.oidcUrl}</div>
             </div>
-            <h4
-              style="color: #4a5568; margin-bottom: 0.5rem; font-size: 1.125rem; text-align: center;"
-            >
-              No Recent API Calls
-            </h4>
-            <p style="text-align: center; margin-bottom: 1.5rem;">
-              No recent API requests found for <strong
-                >{obpInfo.displayName}</strong
-              >.
-            </p>
-            <div
-              style="background: #f7fafc; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; text-align: left;"
-            >
-              <h5
-                style="color: #2d3748; margin-bottom: 0.5rem; font-size: 0.875rem;"
-              >
-                Server Configuration:
-              </h5>
-              <div
-                style="font-family: monospace; font-size: 0.75rem; color: #4a5568;"
-              >
-                <div>• Base URL: {obpInfo.baseUrl}</div>
-                <div>• API URL: {obpInfo.apiUrl}</div>
-                <div>• OIDC URL: {obpInfo.oidcUrl}</div>
-              </div>
-            </div>
-            <button
-              class="refresh-btn"
-              on:click={refreshRecentMetrics}
-              style="display: block; margin: 0 auto;"
-            >
-              🔄 Refresh Data
-            </button>
           </div>
-        {:else}
-          <div class="empty-state">
-            <div
-              style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; text-align: center;"
-            >
-              🔒
-            </div>
-            <h4
-              style="color: #e53e3e; margin-bottom: 0.5rem; font-size: 1.125rem; text-align: center;"
-            >
-              API Access Unavailable
-            </h4>
-            <p style="text-align: center; margin-bottom: 1rem;">
-              Cannot connect to OBP server at <strong
-                >{obpInfo.displayName}</strong
-              >
-            </p>
-            <p style="text-align: center; font-size: 0.875rem; color: #718096;">
-              Please check your authentication or server configuration.
-            </p>
+          <button
+            class="refresh-btn"
+            on:click={refreshRecentMetrics}
+            style="display: block; margin: 0 auto;"
+          >
+            🔄 Refresh Data
+          </button>
+        </div>
+      {:else}
+        <div class="empty-state">
+          <div
+            style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; text-align: center;"
+          >
+            🔒
           </div>
-        {/if}
-      </div>
+          <h4
+            style="color: #e53e3e; margin-bottom: 0.5rem; font-size: 1.125rem; text-align: center;"
+          >
+            API Access Unavailable
+          </h4>
+          <p style="text-align: center; margin-bottom: 1rem;">
+            Cannot connect to OBP server at <strong
+              >{obpInfo.displayName}</strong
+            >
+          </p>
+          <p style="text-align: center; font-size: 0.875rem; color: #718096;">
+            Please check your authentication or server configuration.
+          </p>
+        </div>
+      {/if}
     </div>
   </div>
 </div>

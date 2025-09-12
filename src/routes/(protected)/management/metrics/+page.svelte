@@ -15,8 +15,10 @@
   let refreshInterval: NodeJS.Timeout;
   let countdownInterval: NodeJS.Timeout;
   let currentTime = new Date().toLocaleString();
+  let lastRefreshTime = new Date().toLocaleString();
   let countdown = 5;
   let isCountingDown = false;
+  let timestampColorIndex = 0;
 
   // Configuration information
   $: obpInfo = configHelpers.getObpConnectionInfo();
@@ -60,6 +62,10 @@
   });
 
   function refreshRecentMetrics() {
+    // Update last refresh timestamp and alternate color
+    lastRefreshTime = new Date().toLocaleString();
+    timestampColorIndex = (timestampColorIndex + 1) % 2;
+
     // Update URL with Query Metrics form parameters without navigation
     const params = new URLSearchParams();
 
@@ -512,11 +518,16 @@
     <div class="panel-header">
       <h2 class="panel-title">Recent API Calls</h2>
       <div class="panel-subtitle">
-        URL: {obpInfo.apiUrl}/management/metrics?{getCurrentQueryString()} •
+        URL: {obpInfo.apiUrl}/management/metrics?{getCurrentQueryString()} • Last
+        updated:
+        <span class="timestamp-color-{timestampColorIndex}"
+          >{lastRefreshTime}</span
+        >
+        •
         {#if isCountingDown}
           <span class="countdown">Refreshing in {countdown}s</span>
         {:else}
-          Last updated: {currentTime}
+          <span class="countdown-idle">Next refresh in {countdown}s</span>
         {/if}
       </div>
       <button
@@ -884,6 +895,23 @@
     color: #f59e0b;
     font-weight: 600;
     animation: pulse 1s ease-in-out infinite;
+  }
+
+  .countdown-idle {
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  .timestamp-color-0 {
+    color: #3b82f6;
+    font-weight: 600;
+    transition: color 0.3s ease-in-out;
+  }
+
+  .timestamp-color-1 {
+    color: #10b981;
+    font-weight: 600;
+    transition: color 0.3s ease-in-out;
   }
 
   @keyframes pulse {

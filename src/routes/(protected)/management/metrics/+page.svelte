@@ -211,9 +211,9 @@
       <!-- Query Form -->
       <form on:submit|preventDefault={submitQuery} class="query-form">
         <div class="form-section">
-          <h3 class="form-section-title">Date Range</h3>
+          <h3 class="form-section-title">Query Parameters</h3>
           <div class="form-row">
-            <div class="form-field">
+            <div class="form-field date-field">
               <label for="from_date">From Date</label>
               <input
                 type="datetime-local"
@@ -222,7 +222,7 @@
                 class="form-input"
               />
             </div>
-            <div class="form-field">
+            <div class="form-field date-field">
               <label for="to_date">To Date</label>
               <input
                 type="datetime-local"
@@ -231,13 +231,7 @@
                 class="form-input"
               />
             </div>
-          </div>
-        </div>
-
-        <div class="form-section">
-          <h3 class="form-section-title">Pagination & Sorting</h3>
-          <div class="form-row">
-            <div class="form-field">
+            <div class="form-field narrow-field">
               <label for="limit">Limit</label>
               <input
                 type="number"
@@ -248,7 +242,7 @@
                 class="form-input"
               />
             </div>
-            <div class="form-field">
+            <div class="form-field narrow-field">
               <label for="offset">Offset</label>
               <input
                 type="number"
@@ -273,7 +267,7 @@
                 <option value="duration">Duration</option>
               </select>
             </div>
-            <div class="form-field">
+            <div class="form-field narrow-field">
               <label for="direction">Direction</label>
               <select
                 id="direction"
@@ -285,10 +279,6 @@
               </select>
             </div>
           </div>
-        </div>
-
-        <div class="form-section">
-          <h3 class="form-section-title">Filters</h3>
           <div class="form-row">
             <div class="form-field">
               <label for="verb">HTTP Method</label>
@@ -321,8 +311,6 @@
                 class="form-input"
               />
             </div>
-          </div>
-          <div class="form-row">
             <div class="form-field">
               <label for="url">URL Contains</label>
               <input
@@ -836,9 +824,21 @@
     margin-bottom: 1rem;
   }
 
+  .form-row.compact {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+
   .form-field {
     display: flex;
     flex-direction: column;
+  }
+
+  .form-field.date-field {
+    max-width: 200px;
+  }
+
+  .form-field.narrow-field {
+    max-width: 120px;
   }
 
   .form-field label {

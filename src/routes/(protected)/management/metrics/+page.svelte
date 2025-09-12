@@ -355,9 +355,6 @@
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="btn btn-primary">
-            🔍 Query Metrics
-          </button>
           <button type="button" class="btn btn-secondary" on:click={clearQuery}>
             🗑️ Clear Form
           </button>

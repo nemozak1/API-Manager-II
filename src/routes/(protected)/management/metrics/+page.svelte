@@ -172,7 +172,7 @@
       <div class="panel-header">
         <h2 class="panel-title">Recent API Calls</h2>
         <div class="panel-subtitle">
-          Auto-refreshes every 5 seconds • Target: {obpInfo.displayName} • Last updated:
+          Last 50 API calls • Target: {obpInfo.displayName} • Last updated:
           {currentTime}
         </div>
         <button
@@ -229,7 +229,7 @@
             </table>
           </div>
           <div class="metrics-summary">
-            Showing {recentMetrics.count} recent API calls (last 5 minutes) from
+            Showing {recentMetrics.count} recent API calls (last 50 records) from
             {obpInfo.displayName}
           </div>
         {:else if hasApiAccess}
@@ -245,9 +245,9 @@
               No Recent API Calls
             </h4>
             <p style="text-align: center; margin-bottom: 1.5rem;">
-              No API requests have been made to <strong
+              No recent API requests found for <strong
                 >{obpInfo.displayName}</strong
-              > in the last 5 minutes.
+              >.
             </p>
             <div
               style="background: #f7fafc; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; text-align: left;"

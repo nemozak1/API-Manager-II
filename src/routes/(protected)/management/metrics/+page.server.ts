@@ -48,55 +48,87 @@ export const load: PageServerLoad = async ({ locals, url }) => {
   }
 
   try {
-    // Fetch recent metrics for real-time panel (last 5 minutes)
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-    const now = new Date(Date.now() + 1000).toISOString(); // +1 second to avoid cache issues
+    // Fetch recent metrics for real-time panel (last 50 records)
+    logger.info("=== RECENT API CALLS DEBUG ===");
+    logger.info(`Fetching recent metrics (last 50 records):`);
+    logger.info(`  Access token available: ${!!accessToken}`);
+    logger.info(
+      `  Access token length: ${accessToken ? accessToken.length : 0}`,
+    );
 
     const recentMetricsData = await fetchMetrics(accessToken, {
-      from_date: fiveMinutesAgo,
-      to_date: now,
       limit: 50,
       sort_by: "date",
-      direction: "desc"
+      direction: "desc",
     });
+
+    logger.info(`Recent metrics result:`);
+    logger.info(`  Metrics count: ${recentMetricsData?.count || 0}`);
+    logger.info(`  Has error: ${!!recentMetricsData?.error}`);
+    if (recentMetricsData?.error) {
+      logger.error(`  Error details: ${recentMetricsData.error}`);
+    }
+    if (recentMetricsData?.metrics && recentMetricsData.metrics.length > 0) {
+      logger.info(
+        `  First metric: ${JSON.stringify(recentMetricsData.metrics[0], null, 2)}`,
+      );
+    }
+    logger.info("=== END RECENT API CALLS DEBUG ===");
 
     // If there are query parameters, also fetch filtered metrics
     let queryMetricsData = null;
     const searchParams = url.searchParams;
 
-    if (searchParams.has('from_date') || searchParams.has('to_date') ||
-        searchParams.has('user_name') || searchParams.has('app_name') ||
-        searchParams.has('verb') || searchParams.has('url')) {
-
+    if (
+      searchParams.has("from_date") ||
+      searchParams.has("to_date") ||
+      searchParams.has("user_name") ||
+      searchParams.has("app_name") ||
+      searchParams.has("verb") ||
+      searchParams.has("url")
+    ) {
       const queryParams: Record<string, string> = {};
 
       // Date filters
-      if (searchParams.has('from_date')) queryParams.from_date = searchParams.get('from_date')!;
-      if (searchParams.has('to_date')) queryParams.to_date = searchParams.get('to_date')!;
+      if (searchParams.has("from_date"))
+        queryParams.from_date = searchParams.get("from_date")!;
+      if (searchParams.has("to_date"))
+        queryParams.to_date = searchParams.get("to_date")!;
 
       // Pagination
-      queryParams.limit = searchParams.get('limit') || '100';
-      queryParams.offset = searchParams.get('offset') || '0';
+      queryParams.limit = searchParams.get("limit") || "100";
+      queryParams.offset = searchParams.get("offset") || "0";
 
       // Sorting
-      queryParams.sort_by = searchParams.get('sort_by') || 'date';
-      queryParams.direction = searchParams.get('direction') || 'desc';
+      queryParams.sort_by = searchParams.get("sort_by") || "date";
+      queryParams.direction = searchParams.get("direction") || "desc";
 
       // Filters
-      if (searchParams.has('consumer_id')) queryParams.consumer_id = searchParams.get('consumer_id')!;
-      if (searchParams.has('user_id')) queryParams.user_id = searchParams.get('user_id')!;
-      if (searchParams.has('anon')) queryParams.anon = searchParams.get('anon')!;
-      if (searchParams.has('url')) queryParams.url = searchParams.get('url')!;
-      if (searchParams.has('app_name')) queryParams.app_name = searchParams.get('app_name')!;
-      if (searchParams.has('implemented_by_partial_function')) {
-        queryParams.implemented_by_partial_function = searchParams.get('implemented_by_partial_function')!;
+      if (searchParams.has("consumer_id"))
+        queryParams.consumer_id = searchParams.get("consumer_id")!;
+      if (searchParams.has("user_id"))
+        queryParams.user_id = searchParams.get("user_id")!;
+      if (searchParams.has("anon"))
+        queryParams.anon = searchParams.get("anon")!;
+      if (searchParams.has("url")) queryParams.url = searchParams.get("url")!;
+      if (searchParams.has("app_name"))
+        queryParams.app_name = searchParams.get("app_name")!;
+      if (searchParams.has("implemented_by_partial_function")) {
+        queryParams.implemented_by_partial_function = searchParams.get(
+          "implemented_by_partial_function",
+        )!;
       }
-      if (searchParams.has('implemented_in_version')) {
-        queryParams.implemented_in_version = searchParams.get('implemented_in_version')!;
+      if (searchParams.has("implemented_in_version")) {
+        queryParams.implemented_in_version = searchParams.get(
+          "implemented_in_version",
+        )!;
       }
-      if (searchParams.has('verb')) queryParams.verb = searchParams.get('verb')!;
-      if (searchParams.has('correlation_id')) queryParams.correlation_id = searchParams.get('correlation_id')!;
-      if (searchParams.has('duration')) queryParams.duration = searchParams.get('duration')!;
+      if (searchParams.has("verb"))
+        queryParams.verb = searchParams.get("verb")!;
+      if (searchParams.has("correlation_id"))
+        queryParams.correlation_id = searchParams.get("correlation_id")!;
+      if (searchParams.has("duration"))
+        queryParams.duration = searchParams.get("duration")!;
 
       queryMetricsData = await fetchMetrics(accessToken, queryParams);
     }
@@ -107,7 +139,6 @@ export const load: PageServerLoad = async ({ locals, url }) => {
       hasApiAccess: true,
       lastUpdated: new Date().toISOString(),
     };
-
   } catch (err) {
     logger.error("Error loading metrics:", err);
 
@@ -122,38 +153,68 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 async function fetchMetrics(
   accessToken: string,
-  params: Record<string, string>
+  params: Record<string, string>,
 ): Promise<MetricsResponse> {
   try {
     // Build query string
     const queryParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
-      if (value && value.trim() !== '') {
-        queryParams.append(key, value);
+      if (value && String(value).trim() !== "") {
+        queryParams.append(key, String(value));
       }
     });
 
     const endpoint = `/obp/v5.1.0/management/metrics?${queryParams.toString()}`;
-    logger.debug("Fetching metrics from:", endpoint);
+    logger.info(`📡 METRICS API CALL START`);
+    logger.info(`  Endpoint: ${endpoint}`);
+    logger.info(`  Parameters: ${JSON.stringify(params, null, 2)}`);
+    logger.info(`  Query string: ${queryParams.toString()}`);
+    logger.info(
+      `  Access token: ${accessToken ? `${accessToken.substring(0, 20)}...` : "MISSING"}`,
+    );
 
     const response = await obp_requests.get(endpoint, accessToken);
 
+    logger.info(`📡 METRICS API RESPONSE`);
+    logger.info(`  Response type: ${typeof response}`);
+    logger.info(
+      `  Response keys: ${response ? Object.keys(response) : "null/undefined"}`,
+    );
+    logger.info(
+      `  Has metrics property: ${response?.hasOwnProperty("metrics")}`,
+    );
+    logger.info(`  Metrics is array: ${Array.isArray(response?.metrics)}`);
+    logger.info(`  Raw response: ${JSON.stringify(response, null, 2)}`);
+
     if (response?.metrics) {
+      logger.info(`✅ METRICS FOUND: ${response.metrics.length} records`);
+      if (response.metrics.length > 0) {
+        logger.info(
+          `  Sample metric: ${JSON.stringify(response.metrics[0], null, 2)}`,
+        );
+      }
       return {
         metrics: response.metrics,
         count: response.metrics.length,
       };
     } else {
-      logger.warn("No metrics data in response:", response);
+      logger.warn("❌ NO METRICS DATA IN RESPONSE");
+      logger.warn(`  Response structure: ${JSON.stringify(response, null, 2)}`);
       return {
         metrics: [],
         count: 0,
-        error: "No metrics data found",
+        error: "No metrics data found in API response",
       };
     }
-
   } catch (err) {
-    logger.error("Error fetching metrics:", err);
+    logger.error("🚨 ERROR FETCHING METRICS:");
+    logger.error(`  Error type: ${err?.constructor?.name}`);
+    logger.error(
+      `  Error message: ${err instanceof Error ? err.message : String(err)}`,
+    );
+    logger.error(
+      `  Error stack: ${err instanceof Error ? err.stack : "No stack trace"}`,
+    );
 
     return {
       metrics: [],

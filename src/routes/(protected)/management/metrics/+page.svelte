@@ -39,12 +39,6 @@
   };
 
   onMount(() => {
-    // Set default date range (last hour)
-    const now = new Date();
-    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-    queryForm.from_date = oneHourAgo.toISOString().slice(0, 19);
-    queryForm.to_date = now.toISOString().slice(0, 19);
-
     // Auto-refresh every 5 seconds for real-time panel
     refreshInterval = setInterval(() => {
       refreshRecentMetrics();

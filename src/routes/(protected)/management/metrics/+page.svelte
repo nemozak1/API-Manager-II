@@ -175,145 +175,7 @@
       </div>
     </div>
 
-    <div class="panel-content"></div>
-  </div>
-
-  <!-- Panel 2: Real-time Recent API Calls -->
-  <div class="panel full-width-panel">
-    <div class="panel-header">
-      <h2 class="panel-title">Recent API Calls</h2>
-      <div class="panel-subtitle">
-        Last 50 API calls • Target: {obpInfo.displayName} • Last updated:
-        {currentTime}
-      </div>
-      <button
-        class="refresh-btn"
-        on:click={refreshRecentMetrics}
-        title="Manual refresh"
-      >
-        🔄
-      </button>
-    </div>
-
     <div class="panel-content">
-      {#if recentMetrics?.metrics && recentMetrics.metrics.length > 0}
-        <div class="table-wrapper">
-          <table class="metrics-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>User</th>
-                <th>App</th>
-                <th>Method</th>
-                <th>Endpoint</th>
-                <th>Duration</th>
-              </tr>
-            </thead>
-            <tbody>
-              {#each recentMetrics.metrics as metric}
-                <tr>
-                  <td class="date-cell">
-                    {new Date(metric.date).toLocaleString()}
-                  </td>
-                  <td class="user-cell">
-                    {metric.user_name || "Anonymous"}
-                  </td>
-                  <td class="app-cell">
-                    {metric.app_name || "Unknown"}
-                  </td>
-                  <td class="method-cell">
-                    <span class="method-badge method-{metric.verb.toLowerCase()}">
-                      {metric.verb}
-                    </span>
-                  </td>
-                  <td class="endpoint-cell">
-                    <code class="endpoint-path">{metric.url}</code>
-                  </td>
-                  <td class="duration-cell">
-                    <span
-                      class="duration-badge"
-                      class:duration-fast={metric.duration < 100}
-                      class:duration-medium={metric.duration >= 100 &&
-                        metric.duration < 500}
-                      class:duration-slow={metric.duration >= 500}
-                    >
-                      {metric.duration}ms
-                    </span>
-                  </td>
-                </tr>
-              {/each}
-            </tbody>
-          </table>
-        </div>
-        <div class="metrics-summary">
-          Showing {recentMetrics.count} recent API calls (last 50 records) from
-          {obpInfo.displayName}
-        </div>
-      {:else if hasApiAccess}
-        <div class="empty-state">
-          <div
-            style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; text-align: center;"
-          >
-            📡
-          </div>
-          <h4
-            style="color: #4a5568; margin-bottom: 0.5rem; font-size: 1.125rem; text-align: center;"
-          >
-            No Recent API Calls
-          </h4>
-          <p style="text-align: center; margin-bottom: 1.5rem;">
-            No recent API requests found for <strong
-              >{obpInfo.displayName}</strong
-            >.
-          </p>
-          <div
-            style="background: #f7fafc; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; text-align: left;"
-          >
-            <h5
-              style="color: #2d3748; margin-bottom: 0.5rem; font-size: 0.875rem;"
-            >
-              Server Configuration:
-            </h5>
-            <div
-              style="font-family: monospace; font-size: 0.75rem; color: #4a5568;"
-            >
-              <div>• Base URL: {obpInfo.baseUrl}</div>
-              <div>• API URL: {obpInfo.apiUrl}</div>
-              <div>• OIDC URL: {obpInfo.oidcUrl}</div>
-            </div>
-          </div>
-          <button
-            class="refresh-btn"
-            on:click={refreshRecentMetrics}
-            style="display: block; margin: 0 auto;"
-          >
-            🔄 Refresh Data
-          </button>
-        </div>
-      {:else}
-        <div class="empty-state">
-          <div
-            style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; text-align: center;"
-          >
-            🔒
-          </div>
-          <h4
-            style="color: #e53e3e; margin-bottom: 0.5rem; font-size: 1.125rem; text-align: center;"
-          >
-            API Access Unavailable
-          </h4>
-          <p style="text-align: center; margin-bottom: 1rem;">
-            Cannot connect to OBP server at <strong
-              >{obpInfo.displayName}</strong
-            >
-          </p>
-          <p style="text-align: center; font-size: 0.875rem; color: #718096;">
-            Please check your authentication or server configuration.
-          </p>
-        </div>
-      {/if}
-    </div>
-  </div>
         <!-- Query Form -->
         <form on:submit|preventDefault={submitQuery} class="query-form">
           <div class="form-section">
@@ -546,6 +408,143 @@
                 </p>
               </div>
             {/if}
+          </div>
+        {/if}
+      </div>
+    </div>
+
+    <!-- Panel 2: Real-time Recent API Calls -->
+    <div class="panel full-width-panel">
+      <div class="panel-header">
+        <h2 class="panel-title">Recent API Calls</h2>
+        <div class="panel-subtitle">
+          Last 50 API calls • Target: {obpInfo.displayName} • Last updated:
+          {currentTime}
+        </div>
+        <button
+          class="refresh-btn"
+          on:click={refreshRecentMetrics}
+          title="Manual refresh"
+        >
+          🔄
+        </button>
+      </div>
+
+      <div class="panel-content">
+        {#if recentMetrics?.metrics && recentMetrics.metrics.length > 0}
+          <div class="table-wrapper">
+            <table class="metrics-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>User</th>
+                  <th>App</th>
+                  <th>Method</th>
+                  <th>Endpoint</th>
+                  <th>Duration</th>
+                </tr>
+              </thead>
+              <tbody>
+                {#each recentMetrics.metrics as metric}
+                  <tr>
+                    <td class="date-cell">
+                      {new Date(metric.date).toLocaleString()}
+                    </td>
+                    <td class="user-cell">
+                      {metric.user_name || "Anonymous"}
+                    </td>
+                    <td class="app-cell">
+                      {metric.app_name || "Unknown"}
+                    </td>
+                    <td class="method-cell">
+                      <span class="method-badge method-{metric.verb.toLowerCase()}">
+                        {metric.verb}
+                      </span>
+                    </td>
+                    <td class="endpoint-cell">
+                      <code class="endpoint-path">{metric.url}</code>
+                    </td>
+                    <td class="duration-cell">
+                      <span
+                        class="duration-badge"
+                        class:duration-fast={metric.duration < 100}
+                        class:duration-medium={metric.duration >= 100 &&
+                          metric.duration < 500}
+                        class:duration-slow={metric.duration >= 500}
+                      >
+                        {metric.duration}ms
+                      </span>
+                    </td>
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
+          </div>
+          <div class="metrics-summary">
+            Showing {recentMetrics.count} recent API calls (last 50 records) from
+            {obpInfo.displayName}
+          </div>
+        {:else if hasApiAccess}
+          <div class="empty-state">
+            <div
+              style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; text-align: center;"
+            >
+              📡
+            </div>
+            <h4
+              style="color: #4a5568; margin-bottom: 0.5rem; font-size: 1.125rem; text-align: center;"
+            >
+              No Recent API Calls
+            </h4>
+            <p style="text-align: center; margin-bottom: 1.5rem;">
+              No recent API requests found for <strong
+                >{obpInfo.displayName}</strong
+              >.
+            </p>
+            <div
+              style="background: #f7fafc; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; text-align: left;"
+            >
+              <h5
+                style="color: #2d3748; margin-bottom: 0.5rem; font-size: 0.875rem;"
+              >
+                Server Configuration:
+              </h5>
+              <div
+                style="font-family: monospace; font-size: 0.75rem; color: #4a5568;"
+              >
+                <div>• Base URL: {obpInfo.baseUrl}</div>
+                <div>• API URL: {obpInfo.apiUrl}</div>
+                <div>• OIDC URL: {obpInfo.oidcUrl}</div>
+              </div>
+            </div>
+            <button
+              class="refresh-btn"
+              on:click={refreshRecentMetrics}
+              style="display: block; margin: 0 auto;"
+            >
+              🔄 Refresh Data
+            </button>
+          </div>
+        {:else}
+          <div class="empty-state">
+            <div
+              style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; text-align: center;"
+            >
+              🔒
+            </div>
+            <h4
+              style="color: #e53e3e; margin-bottom: 0.5rem; font-size: 1.125rem; text-align: center;"
+            >
+              API Access Unavailable
+            </h4>
+            <p style="text-align: center; margin-bottom: 1rem;">
+              Cannot connect to OBP server at <strong
+                >{obpInfo.displayName}</strong
+              >
+            </p>
+            <p style="text-align: center; font-size: 0.875rem; color: #718096;">
+              Please check your authentication or server configuration.
+            </p>
           </div>
         {/if}
       </div>

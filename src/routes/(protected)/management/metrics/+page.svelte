@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
   import { goto } from "$app/navigation";
+  import { invalidate } from "$app/navigation";
   import type { PageData } from "./$types";
   import { configHelpers } from "$lib/config";
 
@@ -63,10 +64,8 @@
   });
 
   function refreshRecentMetrics() {
-    // Trigger a refresh by navigating to the same page
-    const url = new URL(window.location.href);
-    url.searchParams.set("refresh", Date.now().toString());
-    goto(url.pathname + url.search, { replaceState: true });
+    // Trigger a data refresh without navigation
+    invalidate("app:metrics");
   }
 
   function submitQuery() {

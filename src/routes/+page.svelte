@@ -48,31 +48,6 @@
   </header>
 
   <section class="mb-12">
-    <h2 class="text-2xl font-semibold text-gray-700 mb-6">
-      Available Features
-    </h2>
-
-    <!-- Full OBP Access Features -->
-    {#if authInfo?.source === "obp_api"}
-      <div class="mb-6 p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
-        <h3 class="text-lg font-semibold text-green-800 mb-2">
-          🏦 Full OBP API Access Active
-        </h3>
-        <p class="text-green-700 text-sm mb-4">
-          You have authenticated with the OBP API server and can access the
-          metrics dashboard.
-        </p>
-        <div class="mt-4">
-          <button
-            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-            on:click={() => goto("/metrics")}
-          >
-            Access Metrics
-          </button>
-        </div>
-      </div>
-    {/if}
-
     <!-- Limited Access Features -->
     {#if authInfo?.source === "oidc_fallback"}
       <div
@@ -125,39 +100,6 @@
           <div class="module-action">Click to access →</div>
         </div>
       </div>
-    </div>
-  </section>
-
-  <section class="bg-blue-50 rounded-lg p-6">
-    <h2 class="text-xl font-semibold text-blue-800 mb-4">Getting Started</h2>
-    <div class="text-blue-700">
-      <p class="mb-3">
-        Welcome to API Manager II! This application provides comprehensive API
-        management capabilities with secure OAuth 2.0 authentication through
-        Open Bank Project.
-      </p>
-      {#if !user}
-        <p class="mb-3">
-          <strong>Authentication System:</strong> Login functionality has been successfully
-          implemented. Please authenticate with your Open Bank Project credentials
-          to access protected features.
-        </p>
-      {:else}
-        <p class="mb-3">
-          <strong>Welcome back!</strong> You are successfully authenticated and can
-          access all available features.
-        </p>
-      {/if}
-      <ul class="list-disc list-inside space-y-2 ml-4 mb-4">
-        <li>OAuth 2.0/OIDC authentication with OBP</li>
-        <li>Session management with Redis</li>
-        <li>Secure token handling and refresh</li>
-        <li>Protected routes with automatic redirects</li>
-      </ul>
-      <p class="mt-4 text-sm">
-        <strong>Status:</strong> Authentication system is fully operational.
-        {user ? "You are logged in and ready to go!" : "Ready for login."}
-      </p>
     </div>
   </section>
 </div>

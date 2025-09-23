@@ -11,6 +11,7 @@ API Manager II is a modern reimplementation of the existing API Manager with a f
 - Don't add features without being asked explicilty by a human.
 - Don't add place holders or mocked data.
 - Don't repeat data already displayed on a page.
+- Don't tell the user what you have just done unless you experienced a problem. Be like a linux system where silence is golden.
 
 ### Target Portal Stack
 

@@ -74,6 +74,7 @@
     <div class="nav-brand">
       <a href="/" class="brand-link">
         <span class="brand-text">API Manager II</span>
+        <span class="brand-version">v0.0.1</span>
       </a>
     </div>
 
@@ -217,6 +218,13 @@
 
   .brand-text {
     color: #2563eb;
+  }
+
+  .brand-version {
+    color: #6b7280;
+    font-size: 0.75rem;
+    font-weight: 400;
+    margin-left: 0.5rem;
   }
 
   /* Desktop Navigation */
@@ -499,6 +507,11 @@
 
     .brand-text {
       font-size: 1.125rem;
+    }
+
+    .brand-version {
+      font-size: 0.6rem;
+      margin-left: 0.25rem;
     }
   }
 </style>

@@ -1,7 +1,6 @@
 <script lang="ts">
   import "../app.css";
   import Navigation from "$lib/components/Navigation.svelte";
-  import ObpStatusIndicator from "$lib/components/ObpStatusIndicator.svelte";
 
   // Get data from layout server
   export let data: any = {};
@@ -40,18 +39,6 @@
   <slot />
 </main>
 
-<!-- Footer with OBP Status -->
-<footer class="app-footer">
-  <div class="footer-content">
-    <div class="footer-left">
-      <span class="footer-text">API Manager II • Version 0.0.1</span>
-    </div>
-    <div class="footer-right">
-      <ObpStatusIndicator {hasApiAccess} size="small" inline={true} />
-    </div>
-  </div>
-</footer>
-
 <style>
   :global(html) {
     font-family:
@@ -65,25 +52,14 @@
     padding: 0;
     background-color: #f9fafb;
     color: #1f2937;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
   }
 
   .main-content {
-    min-height: calc(
-      100vh - 4rem - 3rem
-    ); /* Account for navigation and footer height */
     flex: 1;
-  }
-
-  :global(body) {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-  }
-
-  :global(#app) {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+    min-height: 0;
   }
 
   :global(*) {
@@ -112,50 +88,10 @@
     padding: 0 1rem;
   }
 
-  /* Footer Styles */
-  .app-footer {
-    background: #ffffff;
-    border-top: 1px solid #e5e7eb;
-    padding: 0.75rem 0;
-    margin-top: auto;
-  }
-
-  .footer-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 1rem;
-  }
-
-  .footer-text {
-    color: #6b7280;
-    font-size: 0.75rem;
-  }
-
-  .footer-left,
-  .footer-right {
-    display: flex;
-    align-items: center;
-  }
-
   /* Responsive breakpoints */
   @media (max-width: 768px) {
     :global(.container) {
       padding: 0 0.75rem;
-    }
-
-    .footer-content {
-      flex-direction: column;
-      gap: 0.5rem;
-      text-align: center;
-      padding: 0 0.75rem;
-    }
-
-    .footer-left,
-    .footer-right {
-      justify-content: center;
     }
   }
 </style>

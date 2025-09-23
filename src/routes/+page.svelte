@@ -32,11 +32,7 @@
 </script>
 
 <div class="container mx-auto px-4 py-8">
-  <header class="text-center mb-12">
-    <h1 class="text-4xl font-bold text-gray-800 mb-4">API Manager II</h1>
-    <p class="text-lg text-gray-600">
-      Comprehensive API management and monitoring platform
-    </p>
+  <header class="text-center mb-8">
     {#if user}
       <!-- Show notification for fallback authentication -->
       {#if authInfo?.source === "oidc_fallback"}
@@ -193,10 +189,6 @@
       </p>
     </div>
   </section>
-
-  <footer class="text-center mt-12 pt-8 border-t border-gray-200">
-    <p class="text-gray-500 text-sm">Built with SvelteKit • Version 0.0.1</p>
-  </footer>
 </div>
 
 <style>

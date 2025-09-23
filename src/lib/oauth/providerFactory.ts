@@ -69,26 +69,8 @@ class OBPOIDCStrategy implements OAuth2ProviderStrategy {
     try {
       await client.initOIDCConfig(config.url);
     } catch (error) {
-      logger.warn(`OIDC config failed, using manual endpoints: ${error}`);
-
-      // Fallback to manual OIDC configuration using known endpoints
-      const baseUrl = env.PUBLIC_OBP_BASE_URL || "http://127.0.0.1:9000";
-      client.OIDCConfig = {
-        authorization_endpoint: `${baseUrl}/obp-oidc/auth`,
-        token_endpoint: `${baseUrl}/obp-oidc/token`,
-        userinfo_endpoint: `${baseUrl}/obp-oidc/userinfo`,
-        jwks_uri: `${baseUrl}/obp-oidc/jwks`,
-        issuer: `${baseUrl}/obp-oidc`,
-        response_types_supported: ["code"],
-        grant_types_supported: ["authorization_code", "refresh_token"],
-        scopes_supported: ["openid", "profile", "email"],
-      };
-
-      logger.info("Using manual OIDC configuration with endpoints:", {
-        authorization: client.OIDCConfig.authorization_endpoint,
-        token: client.OIDCConfig.token_endpoint,
-        userinfo: client.OIDCConfig.userinfo_endpoint,
-      });
+      logger.error(`OIDC configuration failed: ${error}`);
+      throw new Error(`Failed to initialize OAuth provider: ${error}`);
     }
 
     return client;

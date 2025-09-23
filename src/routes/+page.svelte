@@ -13,25 +13,13 @@
 <div class="container mx-auto px-4 py-8">
   <header class="text-center mb-8">
     {#if user}
-      <!-- Show notification for fallback authentication -->
-      {#if authInfo?.source === "oidc_fallback"}
-        <AuthNotification
-          type="warning"
-          title="Limited Access Mode"
-          message="OBP API server is not accessible. Some features may be unavailable."
-          dismissible={true}
-        />
-      {/if}
-
-      {#if authInfo?.source === "obp_api"}
-        <AuthNotification
-          type="success"
-          title="Full OBP Access Active"
-          message="Connected to OBP API server with full banking data access."
-          autoClose={true}
-          duration={4000}
-        />
-      {/if}
+      <AuthNotification
+        type="success"
+        title="Welcome"
+        message="You are successfully authenticated and ready to use the API Manager."
+        autoClose={true}
+        duration={4000}
+      />
     {:else}
       <div class="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
         <p class="text-blue-800 mb-2">
@@ -48,25 +36,6 @@
   </header>
 
   <section class="mb-12">
-    <!-- Limited Access Features -->
-    {#if authInfo?.source === "oidc_fallback"}
-      <div
-        class="mb-6 p-4 bg-yellow-50 rounded-lg border-l-4 border-yellow-400"
-      >
-        <h3 class="text-lg font-semibold text-yellow-800 mb-2">
-          ⚠️ Limited Access Mode
-        </h3>
-        <p class="text-yellow-700 text-sm mb-4">
-          OBP API server is not accessible. You are authenticated via OIDC but
-          cannot access banking features.
-        </p>
-        <p class="text-yellow-700 text-sm">
-          Please check your OBP API server connection to access the metrics
-          dashboard.
-        </p>
-      </div>
-    {/if}
-
     <!-- API Metrics Panel -->
     <div class="modules-grid">
       <div

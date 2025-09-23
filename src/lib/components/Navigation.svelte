@@ -10,13 +10,11 @@
     user_id?: string;
   } | null = null;
   export let authInfo: {
-    source?: "obp_api" | "oidc_fallback";
-    sourceDescription?: string;
+    authenticated?: boolean;
   } | null = null;
 
   // Reactive statements for better state management
-  $: isAuthenticated = !!user;
-  $: isLimitedAccess = authInfo?.source === "oidc_fallback";
+  $: isAuthenticated = !!user && !!authInfo?.authenticated;
   $: userDisplayName = user?.username || user?.email || "User";
   $: obpInfo = configHelpers.getObpConnectionInfo();
 
@@ -31,7 +29,7 @@
           href: "/metrics",
           label: "Metrics",
           icon: "📊",
-          available: !isLimitedAccess,
+          available: true,
         },
       ].filter((item) => item.available)
     : [];

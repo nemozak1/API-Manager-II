@@ -94,10 +94,10 @@ Authorization: http://127.0.0.1:9000/auth
 Token: http://127.0.0.1:9000/token
 UserInfo: http://127.0.0.1:9000/userinfo
 JWKS: http://127.0.0.1:9000/jwks
-Discovery: http://127.0.0.1:9000/.well-known/openid-configuration (fallback)
+Discovery: http://127.0.0.1:9000/.well-known/openid-configuration
 ```
 
-The application will automatically fallback to manual endpoint configuration if the well-known discovery endpoint is not available.
+The application uses these OAuth endpoints for authentication.
 
 ## Step 4: Verify Prerequisites
 

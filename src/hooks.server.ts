@@ -286,11 +286,7 @@ declare module "svelte-kit-sessions" {
       provider: string;
     };
     authInfo?: {
-      source: "obp_api" | "oidc_fallback";
-      sourceDescription: string;
-      hasFullProfile: boolean;
-      capabilities: string[];
-      warning?: string;
+      authenticated: boolean;
     };
   }
 }

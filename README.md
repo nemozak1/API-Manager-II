@@ -147,7 +147,6 @@ src/
 - Multi-provider OAuth2/OIDC support
 - Secure session management with Redis
 - Automatic token refresh handling
-- Fallback authentication mechanisms
 
 ## Deployment
 

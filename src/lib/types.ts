@@ -9,11 +9,7 @@ export interface User {
 }
 
 export interface AuthInfo {
-  source: "obp_api" | "oidc_fallback";
-  sourceDescription: string;
-  hasFullProfile: boolean;
-  capabilities: string[];
-  warning?: string;
+  authenticated: boolean;
 }
 
 export interface OAuthData {
@@ -48,7 +44,10 @@ export interface WellKnownUri {
 
 export interface OAuth2Client {
   authorizeURL: (options: OAuth2AuthorizeOptions) => URL;
-  validateAuthorizationCode: (code: string, codeVerifier?: string) => Promise<OAuth2Token>;
+  validateAuthorizationCode: (
+    code: string,
+    codeVerifier?: string,
+  ) => Promise<OAuth2Token>;
   refreshAccessToken: (refreshToken: string) => Promise<OAuth2Token>;
   checkAccessTokenExpiration: (token: string) => Promise<boolean>;
 }
@@ -165,7 +164,8 @@ export type DeepPartial<T> = {
 
 export type RequiredFields<T, K extends keyof T> = T & Required<Pick<T, K>>;
 
-export type OptionalFields<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+export type OptionalFields<T, K extends keyof T> = Omit<T, K> &
+  Partial<Pick<T, K>>;
 
 // Form Types
 export interface FormField {

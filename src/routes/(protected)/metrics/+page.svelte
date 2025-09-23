@@ -268,8 +268,8 @@
   <!-- Error Alert -->
   {#if error && !hasApiAccess}
     <div class="alert alert-error mb-6">
-      <strong>API Access Limited:</strong>
-      {error} - No metrics data available in fallback mode.
+      <strong>Error:</strong>
+      {error} - Unable to fetch metrics data.
     </div>
   {/if}
 

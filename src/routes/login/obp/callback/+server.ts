@@ -88,10 +88,7 @@ export async function GET(event: RequestEvent): Promise<Response> {
           provider: provider,
         },
         authInfo: {
-          source: "obp_api",
-          sourceDescription: "OBP API Server",
-          hasFullProfile: true,
-          capabilities: ["full_user_data", "api_access", "banking_data"],
+          authenticated: true,
         },
       });
       await session.save();
@@ -109,82 +106,13 @@ export async function GET(event: RequestEvent): Promise<Response> {
       throw error(400, "Authentication failed - invalid user data");
     }
   } else {
-    // Fallback to OIDC userinfo endpoint
     const errorText = await obpUserResponse.text();
-    logger.warn(
+    logger.error(
       `OBP API current user request failed - Status: ${obpUserResponse.status}, Response: ${errorText}`,
     );
-    logger.info("Falling back to OIDC userinfo endpoint");
-
-    const userInfoEndpoint = oauthClient.OIDCConfig?.userinfo_endpoint;
-    if (!userInfoEndpoint) {
-      logger.error("UserInfo endpoint not found in OIDC configuration.");
-      throw error(500, "OAuth configuration error");
-    }
-
-    logger.info(
-      "Fetching current user from OIDC userinfo endpoint:",
-      userInfoEndpoint,
+    throw error(
+      500,
+      "Authentication failed - unable to fetch user data from OBP API",
     );
-    const oidcUserRequest = new Request(userInfoEndpoint);
-    oidcUserRequest.headers.set("Authorization", `Bearer ${obpAccessToken}`);
-    logger.debug("Making OIDC userinfo request with access token");
-
-    const oidcUserResponse = await fetch(oidcUserRequest);
-    if (!oidcUserResponse.ok) {
-      const oidcErrorText = await oidcUserResponse.text();
-      logger.error(
-        `OIDC userinfo request failed - Status: ${oidcUserResponse.status}, Response: ${oidcErrorText}`,
-      );
-      throw error(
-        500,
-        "Failed to fetch current user from both OBP API and OIDC",
-      );
-    }
-
-    const oidcUser = await oidcUserResponse.json();
-    logger.info(
-      `Successfully fetched current user from OIDC - Subject: ${oidcUser.sub}, Email: ${oidcUser.email || "N/A"}, Name: ${oidcUser.name || "N/A"}`,
-    );
-    logger.debug("Full OIDC user data:", oidcUser);
-
-    if (oidcUser.sub) {
-      // Store user data in session - map OIDC fields to expected format
-      const { session } = event.locals;
-      const userData = {
-        user_id: oidcUser.sub,
-        email: oidcUser.email || oidcUser.sub,
-        username: oidcUser.name || oidcUser.preferred_username || oidcUser.sub,
-      };
-
-      await session.setData({
-        user: userData,
-        oauth: {
-          access_token: obpAccessToken,
-          refresh_token: tokens.refreshToken(),
-          provider: provider,
-        },
-        authInfo: {
-          source: "oidc_fallback",
-          sourceDescription: "OIDC Provider (Fallback)",
-          hasFullProfile: false,
-          capabilities: ["basic_auth", "limited_profile"],
-          warning: "Limited functionality - OBP API server not accessible",
-        },
-      });
-      await session.save();
-      logger.debug("Session data set:", session.data);
-      return new Response(null, {
-        status: 302,
-        headers: {
-          Location: `/`,
-        },
-      });
-    } else {
-      logger.error(
-        "Invalid user data received from OIDC - missing subject (sub) claim",
-      );
-      throw error(400, "Authentication failed - invalid user data");
-    }
   }
 }

@@ -245,7 +245,7 @@
 		</Navigation>
 	</div>
 	<div
-		class="h-full bg-conic-250 from-30% via-40% to-50% dark:from-primary-950 dark:via-secondary-500/70 dark:to-primary-950"
+		class="h-full bg-conic-250 from-30% via-40% to-50% dark:from-primary-950 dark:via-tertiary-500/70 dark:to-primary-950"
 	>
 		<div class="flex flex-col backdrop-blur-2xl" style="height: calc(100vh - 80px);">
 			<div

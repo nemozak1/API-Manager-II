@@ -71,6 +71,11 @@
 				]
 			: []), // unpacks a conditional list so we can add menu items where we want
 		{
+			label: 'Consumers',
+			href: '/consumers',
+			iconComponent: KeyRound
+		},
+		{
 			label: 'Metrics',
 			href: '/metrics',
 			iconComponent: BarChart3

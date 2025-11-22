@@ -35,8 +35,8 @@
     });
   });
 
-  let refreshInterval = $state<NodeJS.Timeout | undefined>(undefined);
-  let countdownInterval = $state<NodeJS.Timeout | undefined>(undefined);
+  let refreshInterval: NodeJS.Timeout | undefined = undefined;
+  let countdownInterval: NodeJS.Timeout | undefined = undefined;
   let currentTime = $state(new Date().toLocaleString());
   let lastRefreshTime = $state(new Date().toLocaleString());
   let countdown = $state(5);
@@ -79,10 +79,14 @@
     duration: "",
   });
 
-  // Initialize on mount
+  // Initialize on mount - run only once
+  let initialized = $state(false);
+
   $effect(() => {
     // Initialize form values from URL parameters
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && !initialized) {
+      initialized = true;
+
       const urlParams = new URLSearchParams(window.location.search);
 
       // Set default from_date to 5 minutes ago
@@ -258,7 +262,7 @@
     if (countdownInterval) clearInterval(countdownInterval);
 
     countdownInterval = setInterval(() => {
-      countdown = countdown - 1;
+      countdown--;
       if (countdown <= 0) {
         refreshRecentMetrics();
         countdown = 5;
@@ -274,7 +278,7 @@
     if (countdownInterval) clearInterval(countdownInterval);
 
     countdownInterval = setInterval(() => {
-      countdown = countdown - 1;
+      countdown--;
       if (countdown <= 0) {
         refreshRecentMetrics();
         startAutoRefresh(); // Resume normal 5-second cycle

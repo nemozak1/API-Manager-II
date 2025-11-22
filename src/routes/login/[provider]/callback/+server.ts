@@ -1,5 +1,5 @@
 import { createLogger } from '$lib/utils/logger';
-const logger = createLogger('OBPLoginCallback');
+const logger = createLogger('ProviderLoginCallback');
 import { oauth2ProviderFactory } from '$lib/oauth/providerFactory';
 import type { OAuth2Tokens } from 'arctic';
 import type { RequestEvent } from '@sveltejs/kit';
@@ -7,6 +7,8 @@ import { error } from '@sveltejs/kit';
 import { env } from '$env/dynamic/public';
 
 export async function GET(event: RequestEvent): Promise<Response> {
+	const { provider: urlProvider } = event.params;
+
 	// Check for OAuth error responses first (e.g., invalid credentials)
 	const oauthError = event.url.searchParams.get('error');
 	const errorDescription = event.url.searchParams.get('error_description');
@@ -48,6 +50,16 @@ export async function GET(event: RequestEvent): Promise<Response> {
 	const storedState = event.cookies.get('obp_oauth_state');
 	const code = event.url.searchParams.get('code');
 	const recievedState = event.url.searchParams.get('state');
+
+	if (!urlProvider) {
+		logger.error('Provider not specified in URL');
+		return new Response(null, {
+			status: 302,
+			headers: {
+				Location: `/login?error=${encodeURIComponent('Invalid request. Please try again.')}`
+			}
+		});
+	}
 
 	if (storedState === null) {
 		logger.error('No stored state cookie found');
@@ -91,8 +103,8 @@ export async function GET(event: RequestEvent): Promise<Response> {
 
 	const [actualState, provider] = storedState.split(':');
 	logger.debug('Received state:', recievedState);
-	if (!provider) {
-		logger.error('Provider not found in state:', storedState);
+	if (!provider || provider !== urlProvider) {
+		logger.error('Provider mismatch or not found in state:', { stored: provider, url: urlProvider });
 		return new Response(null, {
 			status: 302,
 			headers: {
@@ -111,6 +123,8 @@ export async function GET(event: RequestEvent): Promise<Response> {
 			}
 		});
 	}
+
+	logger.debug(`Processing callback for provider: ${provider}`);
 
 	// Validate the authorization code and exchange it for tokens
 	const token_endpoint = oauthClient.OIDCConfig?.token_endpoint;

@@ -7,11 +7,7 @@ import { sveltekitSessionHandle } from "svelte-kit-sessions";
 import RedisStore from "svelte-kit-connect-redis";
 import { Redis } from "ioredis";
 import { env } from "$env/dynamic/private";
-import { obp_requests } from "$lib/obp/requests";
-import {
-  oauth2ProviderFactory,
-  type WellKnownUri,
-} from "$lib/oauth/providerFactory";
+import { oauth2ProviderManager } from "$lib/oauth/providerManager";
 import { SessionOAuthHelper } from "$lib/oauth/sessionHelper";
 
 // Constants
@@ -81,108 +77,8 @@ if (!env.REDIS_HOST || !env.REDIS_PORT) {
   client = new Redis(redisConfig);
 }
 
-async function fetchWellKnownUris(): Promise<WellKnownUri[]> {
-  try {
-    // Try to fetch well-known URIs from OBP API server (port 8080)
-    const response = await obp_requests.get("/obp/v5.1.0/well-known");
-    return response.well_known_uris;
-  } catch (error) {
-    logger.warn(
-      "Failed to fetch well-known URIs from OBP API, will use manual OIDC configuration:",
-      error,
-    );
-    // Return manual OIDC configuration since we know the OIDC server is on port 9000
-    return [
-      {
-        provider: "obp-oidc",
-        url: "http://127.0.0.1:9000/obp-oidc/.well-known/openid-configuration",
-      },
-    ];
-  }
-}
-
-async function initOauth2Providers() {
-  let providers = [];
-  try {
-    const wellKnownUris: WellKnownUri[] = await fetchWellKnownUris();
-
-    if (wellKnownUris.length > 0) {
-      logger.debug("Well-known URIs fetched successfully:", wellKnownUris);
-
-      for (const providerUri of wellKnownUris) {
-        const oauth2Client =
-          await oauth2ProviderFactory.initializeProvider(providerUri);
-        if (oauth2Client) {
-          providers.push(providerUri);
-        }
-      }
-    } else {
-      logger.info(
-        "No well-known URIs found, attempting manual provider initialization",
-      );
-
-      // Try to manually initialize OBP OIDC provider
-      const manualClient =
-        await oauth2ProviderFactory.initializeProviderManually("obp-oidc");
-      if (manualClient) {
-        providers.push({ provider: "obp-oidc", url: "manual" });
-        logger.info("Successfully initialized OBP OIDC provider manually");
-      }
-    }
-
-    for (const registeredStrategy of oauth2ProviderFactory.getSupportedProviders()) {
-      if (!providers.find((p) => p.provider === registeredStrategy)) {
-        logger.warn(
-          `No OAuth2 provider initialized for registered strategy: ${registeredStrategy}`,
-        );
-      }
-    }
-
-    // If no providers were found, log error and return
-    if (providers.length === 0) {
-      logger.error(
-        "Could not initialize any OAuth2 provider. Please check your OBP configuration.",
-      );
-      return;
-    }
-
-    logger.info(
-      `Successfully initialized ${providers.length} OAuth2 provider(s): ${providers.map((p) => p.provider).join(", ")}`,
-    );
-  } catch (error) {
-    logger.error("Failed to init OAuth2 providers: ", error);
-    throw error;
-  }
-}
-
-let oauth2Ready = false;
-let oauth2InitError: any = null;
-
-async function tryInitOauth2Providers() {
-  try {
-    await initOauth2Providers();
-    oauth2Ready = true;
-    oauth2InitError = null;
-    logger.info("OAuth2 providers initialized successfully.");
-  } catch (error) {
-    oauth2Ready = false;
-    oauth2InitError = error;
-    logger.error("Error initializing OAuth2 providers:", error);
-  }
-}
-
-// Attempt to initialize OAuth2 providers on startup
-await tryInitOauth2Providers();
-
-// Periodically retry init if it failed for whatever reason
-if (!oauth2Ready) {
-  setInterval(async () => {
-    if (!oauth2Ready) {
-      logger.info("Retrying OAuth2 providers initialization...");
-      await tryInitOauth2Providers();
-    }
-  }, 30000); // Retry every 30 seconds
-}
+// Start OAuth2 provider manager (handles initialization and retries automatically)
+await oauth2ProviderManager.start();
 
 function needsAuthorization(routeId: string): boolean {
   // protected routes are put in the /(protected)/ route group
@@ -196,8 +92,8 @@ const checkAuthorization: Handle = async ({ event, resolve }) => {
 
   if (!!routeId && needsAuthorization(routeId)) {
     logger.debug("Checking authorization for user route:", event.url.pathname);
-    if (!oauth2Ready) {
-      logger.warn("OAuth2 providers not ready:", oauth2InitError);
+    if (!oauth2ProviderManager.isReady()) {
+      logger.warn("OAuth2 providers not ready");
       throw error(503, "Service Unavailable. Please try again later.");
     }
     // Check token expiration

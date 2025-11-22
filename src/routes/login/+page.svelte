@@ -79,10 +79,69 @@
 
     {#if data.availableProviders.length === 0}
       <div class="text-center my-4">
-        <p class="text-red-500">
-          No authentication providers available. Please contact your
-          administrator.
-        </p>
+        <div class="mb-4 rounded-lg bg-red-500/20 border border-red-500/50 p-4">
+          <p class="text-red-300 font-semibold mb-2">
+            No authentication providers available
+          </p>
+
+          {#if data.diagnosticInfo}
+            <div class="bg-red-900/30 rounded p-3 mb-3 text-left">
+              <p class="text-red-200 text-xs font-semibold mb-2">
+                Diagnostic Information:
+              </p>
+              <div class="space-y-1 font-mono text-xs text-red-200">
+                <div class="flex justify-between">
+                  <span>OBP API URL:</span>
+                  <span class="text-red-100"
+                    >{data.diagnosticInfo.obpApiUrl}</span
+                  >
+                </div>
+                <div class="flex justify-between">
+                  <span>Well-known endpoint:</span>
+                  <button
+                    type="button"
+                    onclick={() =>
+                      copyToClipboard(data.diagnosticInfo.wellKnownEndpoint)}
+                    class="text-red-100 hover:text-white underline flex items-center gap-1"
+                    title="Copy endpoint URL"
+                  >
+                    {data.diagnosticInfo.wellKnownEndpoint}
+                    <Copy class="h-2 w-2" />
+                  </button>
+                </div>
+                <div class="flex justify-between">
+                  <span>Provider Manager Ready:</span>
+                  <span class="text-red-100"
+                    >{data.diagnosticInfo.managerReady ? "Yes" : "No"}</span
+                  >
+                </div>
+                <div class="flex justify-between">
+                  <span>Total Providers:</span>
+                  <span class="text-red-100"
+                    >{data.diagnosticInfo.totalProviders}</span
+                  >
+                </div>
+                <div class="flex justify-between">
+                  <span>Available:</span>
+                  <span class="text-red-100"
+                    >{data.diagnosticInfo.availableCount}</span
+                  >
+                </div>
+                <div class="flex justify-between">
+                  <span>Unavailable:</span>
+                  <span class="text-red-100"
+                    >{data.diagnosticInfo.unavailableCount}</span
+                  >
+                </div>
+              </div>
+            </div>
+          {/if}
+
+          <p class="text-red-200 text-xs">
+            Check the error messages below for each provider to diagnose the
+            issue.
+          </p>
+        </div>
 
         <!-- Show unavailable providers even when no available providers -->
         {#if data.unavailableProviders.length > 0}

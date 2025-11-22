@@ -19,8 +19,21 @@
         count: recentMetrics.count,
         metricsLength: recentMetrics.metrics?.length,
         timestamp: new Date().toLocaleTimeString(),
+        firstMetricDate: recentMetrics.metrics?.[0]?.date,
+        lastMetricDate:
+          recentMetrics.metrics?.[recentMetrics.metrics.length - 1]?.date,
       });
     }
+  }
+
+  // Debug data prop changes
+  $: {
+    console.log("📦 data prop updated:", {
+      hasRecentMetrics: !!data.recentMetrics,
+      recentMetricsCount: data.recentMetrics?.count,
+      lastUpdated: data.lastUpdated,
+      timestamp: new Date().toLocaleTimeString(),
+    });
   }
 
   let refreshInterval: NodeJS.Timeout;
@@ -44,6 +57,7 @@
     direction: "desc",
     consumer_id: "",
     user_id: "",
+    user_name: "",
     anon: "",
     url: "",
     app_name: "",
@@ -66,6 +80,7 @@
       direction: urlParams.get("direction") || "desc",
       consumer_id: urlParams.get("consumer_id") || "",
       user_id: urlParams.get("user_id") || "",
+      user_name: urlParams.get("user_name") || "",
       anon: urlParams.get("anon") || "",
       url: urlParams.get("url") || "",
       app_name: urlParams.get("app_name") || "",
@@ -95,8 +110,16 @@
   });
 
   function refreshRecentMetrics() {
-    console.log("🔄 refreshRecentMetrics called");
+    console.log(
+      "🔄 refreshRecentMetrics called at",
+      new Date().toLocaleTimeString(),
+    );
     console.log("Current queryForm.limit:", queryForm.limit);
+    console.log("Current recentMetrics count:", recentMetrics?.count);
+    console.log(
+      "Current recentMetrics length:",
+      recentMetrics?.metrics?.length,
+    );
 
     // Update last refresh timestamp and alternate color
     lastRefreshTime = new Date().toLocaleString();
@@ -145,7 +168,11 @@
     console.log("📋 Params being sent:", params.toString());
     window.history.replaceState({}, "", newUrl);
     console.log("🔄 Calling invalidate('app:metrics')");
-    invalidate("app:metrics");
+    invalidate("app:metrics").then(() => {
+      console.log("✅ invalidate completed");
+      console.log("New recentMetrics count:", recentMetrics?.count);
+      console.log("New recentMetrics length:", recentMetrics?.metrics?.length);
+    });
   }
 
   function submitQuery() {
@@ -243,6 +270,7 @@
       direction: "desc",
       consumer_id: "",
       user_id: "",
+      user_name: "",
       anon: "",
       url: "",
       app_name: "",
@@ -578,60 +606,62 @@
     <div class="panel-content">
       {#if recentMetrics?.metrics && recentMetrics.metrics.length > 0}
         <div class="table-wrapper">
-          <table class="metrics-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>User</th>
-                <th>App</th>
-                <th>Method</th>
-                <th>Endpoint</th>
-                <th>Duration</th>
-                <th>Correlation ID</th>
-              </tr>
-            </thead>
-            <tbody>
-              {#each recentMetrics.metrics as metric}
+          {#key data.lastUpdated}
+            <table class="metrics-table">
+              <thead>
                 <tr>
-                  <td class="date-cell">
-                    {new Date(metric.date).toLocaleString()}
-                  </td>
-                  <td class="user-cell">
-                    {metric.user_name || "Anonymous"}
-                  </td>
-                  <td class="app-cell">
-                    {metric.app_name || "Unknown"}
-                  </td>
-                  <td class="method-cell">
-                    <span
-                      class="method-badge method-{metric.verb.toLowerCase()}"
-                    >
-                      {metric.verb}
-                    </span>
-                  </td>
-                  <td class="endpoint-cell">
-                    <code class="endpoint-path">{metric.url}</code>
-                  </td>
-                  <td class="duration-cell">
-                    <span
-                      class="duration-badge"
-                      class:duration-fast={metric.duration < 100}
-                      class:duration-medium={metric.duration >= 100 &&
-                        metric.duration < 500}
-                      class:duration-slow={metric.duration >= 500}
-                    >
-                      {metric.duration}ms
-                    </span>
-                  </td>
-                  <td class="correlation-cell">
-                    <code class="correlation-id"
-                      >{metric.correlation_id || "N/A"}</code
-                    >
-                  </td>
+                  <th>Date</th>
+                  <th>User</th>
+                  <th>App</th>
+                  <th>Method</th>
+                  <th>Endpoint</th>
+                  <th>Duration</th>
+                  <th>Correlation ID</th>
                 </tr>
-              {/each}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {#each recentMetrics.metrics as metric}
+                  <tr>
+                    <td class="date-cell">
+                      {new Date(metric.date).toLocaleString()}
+                    </td>
+                    <td class="user-cell">
+                      {metric.user_name || "Anonymous"}
+                    </td>
+                    <td class="app-cell">
+                      {metric.app_name || "Unknown"}
+                    </td>
+                    <td class="method-cell">
+                      <span
+                        class="method-badge method-{metric.verb.toLowerCase()}"
+                      >
+                        {metric.verb}
+                      </span>
+                    </td>
+                    <td class="endpoint-cell">
+                      <code class="endpoint-path">{metric.url}</code>
+                    </td>
+                    <td class="duration-cell">
+                      <span
+                        class="duration-badge"
+                        class:duration-fast={metric.duration < 100}
+                        class:duration-medium={metric.duration >= 100 &&
+                          metric.duration < 500}
+                        class:duration-slow={metric.duration >= 500}
+                      >
+                        {metric.duration}ms
+                      </span>
+                    </td>
+                    <td class="correlation-cell">
+                      <code class="correlation-id"
+                        >{metric.correlation_id || "N/A"}</code
+                      >
+                    </td>
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
+          {/key}
         </div>
         <div class="metrics-summary">
           Showing {recentMetrics.count} recent API calls (last 50 records) from

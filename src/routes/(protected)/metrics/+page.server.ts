@@ -226,7 +226,7 @@ async function fetchMetrics(
       }
     });
 
-    const endpoint = `/obp/v5.1.0/management/metrics?${queryParams.toString()}`;
+    const endpoint = `/obp/v6.0.0/management/metrics?${queryParams.toString()}`;
     logger.info(`📡 METRICS API CALL START`);
     logger.info(`  Endpoint: ${endpoint}`);
     logger.info(`  Parameters: ${JSON.stringify(params, null, 2)}`);

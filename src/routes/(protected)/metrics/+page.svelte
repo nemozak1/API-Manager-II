@@ -616,7 +616,7 @@
     <div class="panel-header">
       <h2 class="panel-title">Recent API Calls</h2>
       <div class="panel-subtitle">
-        URL: {obpInfo.apiUrl}/obp/v5.1.0/management/metrics?{getCurrentQueryString()}
+        URL: {obpInfo.apiUrl}/obp/v6.0.0/management/metrics?{getCurrentQueryString()}
         <br />
         Last updated:
         <span class="timestamp-color-{timestampColorIndex}"

@@ -46,6 +46,18 @@
   // Configuration information
   let obpInfo = $derived(configHelpers.getObpConnectionInfo());
 
+  // Helper function to convert datetime-local format to OBP API format
+  function formatDateForAPI(dateString: string): string {
+    if (!dateString || dateString.trim() === "") return "";
+
+    // If it's already in ISO format with Z, return as is
+    if (dateString.endsWith("Z")) return dateString;
+
+    // Convert datetime-local format (yyyy-MM-ddTHH:mm) to OBP format
+    const date = new Date(dateString);
+    return date.toISOString(); // Returns yyyy-MM-ddTHH:mm:ss.sssZ
+  }
+
   // Form data for query panel
   let queryForm = $state({
     from_date: "",
@@ -72,8 +84,14 @@
     // Initialize form values from URL parameters
     if (typeof window !== "undefined") {
       const urlParams = new URLSearchParams(window.location.search);
+
+      // Set default from_date to 5 minutes ago
+      const fiveMinutesAgo = new Date();
+      fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
+      const defaultFromDate = fiveMinutesAgo.toISOString().slice(0, 16);
+
       queryForm = {
-        from_date: urlParams.get("from_date") || "",
+        from_date: urlParams.get("from_date") || defaultFromDate,
         to_date: urlParams.get("to_date") || "",
         limit: urlParams.get("limit") || "100",
         offset: urlParams.get("offset") || "0",
@@ -134,10 +152,10 @@
 
     // Add date filters only if they have values
     if (queryForm.from_date && queryForm.from_date.trim() !== "") {
-      params.set("from_date", queryForm.from_date);
+      params.set("from_date", formatDateForAPI(queryForm.from_date));
     }
     if (queryForm.to_date && queryForm.to_date.trim() !== "") {
-      params.set("to_date", queryForm.to_date);
+      params.set("to_date", formatDateForAPI(queryForm.to_date));
     }
 
     // Add other filters if they have values
@@ -196,10 +214,10 @@
 
     // Add date filters only if they have values
     if (queryForm.from_date && queryForm.from_date.trim() !== "") {
-      params.set("from_date", queryForm.from_date);
+      params.set("from_date", formatDateForAPI(queryForm.from_date));
     }
     if (queryForm.to_date && queryForm.to_date.trim() !== "") {
-      params.set("to_date", queryForm.to_date);
+      params.set("to_date", formatDateForAPI(queryForm.to_date));
     }
 
     // Add other filters if they have values
@@ -240,7 +258,7 @@
     if (countdownInterval) clearInterval(countdownInterval);
 
     countdownInterval = setInterval(() => {
-      countdown--;
+      countdown = countdown - 1;
       if (countdown <= 0) {
         refreshRecentMetrics();
         countdown = 5;
@@ -256,7 +274,7 @@
     if (countdownInterval) clearInterval(countdownInterval);
 
     countdownInterval = setInterval(() => {
-      countdown--;
+      countdown = countdown - 1;
       if (countdown <= 0) {
         refreshRecentMetrics();
         startAutoRefresh(); // Resume normal 5-second cycle

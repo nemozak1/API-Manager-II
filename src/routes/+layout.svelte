@@ -17,6 +17,7 @@
 		MessageCircleQuestion,
 		ShieldUser,
 		User,
+		Users,
 		ChevronDown,
 		ChevronRight,
 		Settings,
@@ -81,6 +82,11 @@
 					}
 				]
 			: []),
+		{
+			label: 'Users',
+			href: '/users',
+			iconComponent: Users
+		},
 		{
 			label: 'Consumers',
 			href: '/consumers',

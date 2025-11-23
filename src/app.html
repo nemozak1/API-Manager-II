@@ -31,6 +31,18 @@
     <!-- Favicon -->
     <link rel="apple-touch-icon" href="%sveltekit.assets%/favicon.png" />
 
+    <!-- Initialize dark mode from localStorage before page renders -->
+    <script>
+      (function () {
+        try {
+          const mode = localStorage.getItem("mode") || "dark";
+          document.documentElement.setAttribute("data-mode", mode);
+        } catch (e) {
+          document.documentElement.setAttribute("data-mode", "dark");
+        }
+      })();
+    </script>
+
     %sveltekit.head%
   </head>
 

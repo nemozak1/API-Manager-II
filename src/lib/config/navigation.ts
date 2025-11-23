@@ -4,6 +4,9 @@ import {
   KeyRound,
   IdCardLanyard,
   CreditCard,
+  Server,
+  Database,
+  GitBranch,
 } from "@lucide/svelte";
 import { env } from "$env/dynamic/public";
 
@@ -54,4 +57,32 @@ export function getActiveMenuItem(pathname: string) {
   });
 
   return found || myAccountItems[0]; // fallback to first item
+}
+
+// DevOps navigation items
+function buildDevOpsItems(): NavigationItem[] {
+  const items: NavigationItem[] = [
+    { href: "/devops/logcache", label: "LogCache", iconComponent: Database },
+    {
+      href: "/devops/migrations",
+      label: "Migrations",
+      iconComponent: GitBranch,
+    },
+  ];
+
+  return items;
+}
+
+export const devOpsItems = buildDevOpsItems();
+
+export function getActiveDevOpsMenuItem(pathname: string) {
+  const found = devOpsItems.find((item) => {
+    // Skip external links for active menu detection
+    if (item.external) {
+      return false;
+    }
+    return pathname.startsWith(item.href);
+  });
+
+  return found || devOpsItems[0]; // fallback to first item
 }

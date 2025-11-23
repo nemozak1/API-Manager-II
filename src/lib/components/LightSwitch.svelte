@@ -28,13 +28,6 @@
 	};
 </script>
 
-<svelte:head>
-	<script>
-		const initialMode = localStorage.getItem('mode') || 'dark';
-		document.documentElement.setAttribute('data-mode', initialMode);
-	</script>
-</svelte:head>
-
 <Tooltip openDelay={100}>
 	<Tooltip.Trigger>
 		<Switch {checked} {onCheckedChange}>

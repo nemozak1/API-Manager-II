@@ -30,8 +30,8 @@
 
 <svelte:head>
 	<script>
-		const storedMode = localStorage.getItem('mode') || 'dark';
-		document.documentElement.setAttribute('data-mode', storedMode);
+		const initialMode = localStorage.getItem('mode') || 'dark';
+		document.documentElement.setAttribute('data-mode', initialMode);
 	</script>
 </svelte:head>
 

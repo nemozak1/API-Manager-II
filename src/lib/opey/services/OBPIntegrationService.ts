@@ -63,7 +63,7 @@ export class DefaultOBPIntegrationService implements OBPIntegrationService {
     }
 
     try {
-      const response = await obp_requests.get('/obp/v5.1.0/my/consents', session.data.oauth.access_token);
+      const response = await obp_requests.get('/obp/v6.0.0/my/consents', session.data.oauth.access_token);
       const consents = response.consents || [];
 
 			logger.debug(`checkExistingOpeyConsent: Found ${consents.length} total consents`);
@@ -117,7 +117,7 @@ export class DefaultOBPIntegrationService implements OBPIntegrationService {
 			time_to_live: 3600
 		};
 
-		const consent = await obp_requests.post('/obp/v5.1.0/my/consents/IMPLICIT', body, accessToken);
+		const consent = await obp_requests.post('/obp/v6.0.0/my/consents/IMPLICIT', body, accessToken);
 		const userIdentifier = extractUsernameFromJWT(consent.jwt);
 		logger.info(
 			`createImplicitConsent says: Created implicit consent - Primary user: ${userIdentifier}`

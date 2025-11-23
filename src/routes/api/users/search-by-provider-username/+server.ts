@@ -30,7 +30,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
     }
 
     logger.info("=== USER SEARCH BY PROVIDER/USERNAME API CALL ===");
-    const endpoint = `/obp/v5.1.0/users/provider/${encodeURIComponent(provider)}/username/${encodeURIComponent(username)}`;
+    const endpoint = `/obp/v6.0.0/users/provider/${encodeURIComponent(provider)}/username/${encodeURIComponent(username)}`;
     logger.info(`Request: ${endpoint}`);
 
     const response = await obp_requests.get(endpoint, accessToken);

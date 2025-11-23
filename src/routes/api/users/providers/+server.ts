@@ -23,7 +23,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 
   try {
     logger.info("=== PROVIDERS API CALL ===");
-    const endpoint = `/obp/v5.1.0/providers`;
+    const endpoint = `/obp/v6.0.0/providers`;
     logger.info(`Request: ${endpoint}`);
 
     const response = await obp_requests.get(endpoint, accessToken);

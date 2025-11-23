@@ -418,7 +418,7 @@
 			{
 				toolCallId: 'batch-test-1',
 				toolName: 'obp_requests',
-				toolInput: { endpoint: '/obp/v5.1.0/banks/gh.29.uk/accounts', method: 'POST' },
+				toolInput: { endpoint: '/obp/v6.0.0/banks/gh.29.uk/accounts', method: 'POST' },
 				message: 'Create a new bank account',
 				riskLevel: 'moderate',
 				affectedResources: ['Bank gh.29.uk'],
@@ -431,7 +431,7 @@
 			{
 				toolCallId: 'batch-test-2',
 				toolName: 'obp_requests',
-				toolInput: { endpoint: '/obp/v5.1.0/accounts/123', method: 'DELETE' },
+				toolInput: { endpoint: '/obp/v6.0.0/accounts/123', method: 'DELETE' },
 				message: 'Delete an existing account',
 				riskLevel: 'dangerous',
 				affectedResources: ['Account 123', 'Associated Transactions'],
@@ -444,7 +444,7 @@
 			{
 				toolCallId: 'batch-test-3',
 				toolName: 'obp_requests',
-				toolInput: { endpoint: '/obp/v5.1.0/accounts', method: 'GET' },
+				toolInput: { endpoint: '/obp/v6.0.0/accounts', method: 'GET' },
 				message: 'Retrieve account list',
 				riskLevel: 'low',
 				affectedResources: [],

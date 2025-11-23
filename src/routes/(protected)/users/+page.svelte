@@ -212,22 +212,30 @@
                   <th>Email</th>
                   <th>User ID</th>
                   <th>Provider</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {#each searchResults as user}
-                  <tr
-                    class="cursor-pointer"
-                    onclick={() => {
-                      if (user.provider && user.username) {
-                        window.location.href = `/users/${encodeURIComponent(user.provider)}/${encodeURIComponent(user.username)}`;
-                      }
-                    }}
-                  >
+                  <tr>
                     <td>{user.username || "N/A"}</td>
                     <td>{user.email || "N/A"}</td>
                     <td class="font-mono text-sm">{user.user_id || "N/A"}</td>
                     <td>{user.provider || "N/A"}</td>
+                    <td>
+                      {#if user.provider && user.username}
+                        <a
+                          href="/users/{encodeURIComponent(
+                            user.provider,
+                          )}/{encodeURIComponent(user.username)}"
+                          class="text-blue-600 hover:text-blue-800 underline"
+                        >
+                          Details
+                        </a>
+                      {:else}
+                        <span class="text-gray-400">N/A</span>
+                      {/if}
+                    </td>
                   </tr>
                 {/each}
               </tbody>
@@ -260,22 +268,30 @@
                 <th>Email</th>
                 <th>User ID</th>
                 <th>Provider</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {#each users as user}
-                <tr
-                  class="cursor-pointer"
-                  onclick={() => {
-                    if (user.provider && user.username) {
-                      window.location.href = `/users/${encodeURIComponent(user.provider)}/${encodeURIComponent(user.username)}`;
-                    }
-                  }}
-                >
+                <tr>
                   <td class="font-medium">{user.username || "N/A"}</td>
                   <td>{user.email || "N/A"}</td>
                   <td class="font-mono text-sm">{user.user_id || "N/A"}</td>
                   <td>{user.provider || "N/A"}</td>
+                  <td>
+                    {#if user.provider && user.username}
+                      <a
+                        href="/users/{encodeURIComponent(
+                          user.provider,
+                        )}/{encodeURIComponent(user.username)}"
+                        class="text-blue-600 hover:text-blue-800 underline"
+                      >
+                        Details
+                      </a>
+                    {:else}
+                      <span class="text-gray-400">N/A</span>
+                    {/if}
+                  </td>
                 </tr>
               {/each}
             </tbody>
@@ -421,13 +437,22 @@
     background: rgb(var(--color-surface-700));
   }
 
-  .users-table tbody tr.cursor-pointer:hover {
-    background: #eff6ff;
-    cursor: pointer;
+  .users-table a {
+    color: #2563eb;
+    text-decoration: underline;
+    font-weight: 500;
   }
 
-  :global([data-mode="dark"]) .users-table tbody tr.cursor-pointer:hover {
-    background: rgb(var(--color-primary-900));
+  .users-table a:hover {
+    color: #1d4ed8;
+  }
+
+  :global([data-mode="dark"]) .users-table a {
+    color: rgb(var(--color-primary-400));
+  }
+
+  :global([data-mode="dark"]) .users-table a:hover {
+    color: rgb(var(--color-primary-300));
   }
 
   .entitlement-badge {

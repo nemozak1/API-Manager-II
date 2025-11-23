@@ -445,23 +445,36 @@
               />
             </div>
             <div class="form-field">
-              <label for="user_name">User</label>
+              <label for="user_name">User ID</label>
               <input
                 type="text"
                 id="user_name"
                 bind:value={queryForm.user_name}
-                placeholder="Filter by user"
+                placeholder="Filter by user ID"
                 on:blur={handleFieldChange}
                 class="form-input"
               />
             </div>
             <div class="form-field">
-              <label for="url">URL Contains</label>
+              <label for="implemented_by_partial_function"
+                >Partial Function</label
+              >
               <input
                 type="text"
-                id="url"
-                bind:value={queryForm.url}
-                placeholder="Filter by URL"
+                id="implemented_by_partial_function"
+                bind:value={queryForm.implemented_by_partial_function}
+                placeholder="Filter by partial function"
+                on:blur={handleFieldChange}
+                class="form-input"
+              />
+            </div>
+            <div class="form-field">
+              <label for="implemented_in_version">Version</label>
+              <input
+                type="text"
+                id="implemented_in_version"
+                bind:value={queryForm.implemented_in_version}
+                placeholder="Filter by version"
                 on:blur={handleFieldChange}
                 class="form-input"
               />
@@ -542,6 +555,8 @@
                   <th>Date</th>
                   <th>User</th>
                   <th>App</th>
+                  <th>Version</th>
+                  <th>Partial Function</th>
                   <th>Method</th>
                   <th>Endpoint</th>
                   <th>Duration</th>
@@ -559,6 +574,12 @@
                     </td>
                     <td class="app-cell">
                       {metric.app_name || "Unknown"}
+                    </td>
+                    <td class="version-cell">
+                      {metric.implemented_in_version || "N/A"}
+                    </td>
+                    <td class="partial-function-cell">
+                      {metric.implemented_by_partial_function || "N/A"}
                     </td>
                     <td class="method-cell">
                       <span

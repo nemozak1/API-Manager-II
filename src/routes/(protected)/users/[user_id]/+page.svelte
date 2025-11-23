@@ -1,0 +1,432 @@
+<script lang="ts">
+  import type { PageData } from "./$types";
+
+  let { data } = $props<{ data: PageData }>();
+
+  let user = $derived(data.user);
+  let hasApiAccess = $derived(data.hasApiAccess);
+  let error = $derived(data.error);
+
+  function formatDate(dateString: string): string {
+    if (!dateString) return "N/A";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      });
+    } catch {
+      return "N/A";
+    }
+  }
+</script>
+
+<svelte:head>
+  <title>User Details - {user?.username || data.user_id} - API Manager II</title
+  >
+</svelte:head>
+
+<div class="container mx-auto px-4 py-8">
+  <!-- Breadcrumb Navigation -->
+  <nav class="breadcrumb mb-6">
+    <a href="/users" class="breadcrumb-link">Users</a>
+    <span class="breadcrumb-separator">›</span>
+    <span class="breadcrumb-current">{user?.username || data.user_id}</span>
+  </nav>
+
+  <!-- Error Alert -->
+  {#if error}
+    <div class="alert alert-error mb-6">
+      <strong>Error:</strong>
+      {error}
+    </div>
+  {/if}
+
+  {#if user}
+    <!-- User Info Panel -->
+    <div class="panel mb-6">
+      <div class="panel-header">
+        <h1 class="text-2xl font-bold">{user.username || "Unknown User"}</h1>
+        <div class="text-sm text-gray-500 mt-1">
+          {user.provider || "Unknown"} Provider
+        </div>
+      </div>
+      <div class="panel-content">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">User ID</div>
+            <div class="info-value font-mono">{user.user_id || "N/A"}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Email</div>
+            <div class="info-value">{user.email || "N/A"}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Username</div>
+            <div class="info-value">{user.username || "N/A"}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Provider</div>
+            <div class="info-value">{user.provider || "N/A"}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Created Date</div>
+            <div class="info-value">{formatDate(user.created_date)}</div>
+          </div>
+          {#if user.last_login_date}
+            <div class="info-item">
+              <div class="info-label">Last Login</div>
+              <div class="info-value">{formatDate(user.last_login_date)}</div>
+            </div>
+          {/if}
+          <div class="info-item">
+            <div class="info-label">Is Locked</div>
+            <div class="info-value">
+              {#if user.is_locked}
+                <span class="badge badge-error">Yes</span>
+              {:else}
+                <span class="badge badge-success">No</span>
+              {/if}
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Is Deleted</div>
+            <div class="info-value">
+              {#if user.is_deleted}
+                <span class="badge badge-error">Yes</span>
+              {:else}
+                <span class="badge badge-success">No</span>
+              {/if}
+            </div>
+          </div>
+          {#if user.last_activity_date}
+            <div class="info-item">
+              <div class="info-label">Last Activity</div>
+              <div class="info-value">
+                {formatDate(user.last_activity_date)}
+              </div>
+            </div>
+          {/if}
+          {#if user.recent_operation_ids && user.recent_operation_ids.length > 0}
+            <div class="info-item">
+              <div class="info-label">Recent Operations</div>
+              <div class="info-value">
+                <div class="operations-compact">
+                  {#each user.recent_operation_ids.slice(0, 3) as operationId}
+                    <div class="operation-id-compact font-mono">
+                      {operationId}
+                    </div>
+                  {/each}
+                  {#if user.recent_operation_ids.length > 3}
+                    <div class="text-xs text-gray-500 mt-1">
+                      +{user.recent_operation_ids.length - 3} more
+                    </div>
+                  {/if}
+                </div>
+              </div>
+            </div>
+          {/if}
+        </div>
+      </div>
+    </div>
+
+    <!-- Entitlements Panel -->
+    <div class="panel mb-6">
+      <div class="panel-header">
+        <h2 class="panel-title">Entitlements</h2>
+        <div class="panel-subtitle">
+          Roles and permissions assigned to this user
+        </div>
+      </div>
+      <div class="panel-content">
+        {#if user.entitlements?.list && user.entitlements.list.length > 0}
+          <div class="entitlements-grid">
+            {#each user.entitlements.list as entitlement}
+              <div class="entitlement-card">
+                <div class="entitlement-name">
+                  {entitlement.role_name ||
+                    entitlement.entitlement_id ||
+                    "Unknown"}
+                </div>
+                {#if entitlement.bank_id}
+                  <div class="entitlement-detail">
+                    <span class="detail-label">Bank:</span>
+                    {entitlement.bank_id}
+                  </div>
+                {/if}
+                {#if entitlement.created_date}
+                  <div class="entitlement-detail">
+                    <span class="detail-label">Added:</span>
+                    {formatDate(entitlement.created_date)}
+                  </div>
+                {/if}
+              </div>
+            {/each}
+          </div>
+        {:else}
+          <div class="empty-state">
+            <p>No entitlements assigned to this user</p>
+          </div>
+        {/if}
+      </div>
+    </div>
+  {:else if !hasApiAccess}
+    <div class="empty-state">
+      <p>Unable to load user details. Please check your API access.</p>
+    </div>
+  {:else}
+    <div class="empty-state">
+      <p>User not found</p>
+    </div>
+  {/if}
+</div>
+
+<style>
+  .container {
+    max-width: 1400px;
+  }
+
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .breadcrumb-link {
+    color: #3b82f6;
+    text-decoration: none;
+  }
+
+  .breadcrumb-link:hover {
+    text-decoration: underline;
+  }
+
+  :global([data-mode="dark"]) .breadcrumb-link {
+    color: rgb(var(--color-primary-400));
+  }
+
+  .breadcrumb-separator {
+    color: #9ca3af;
+  }
+
+  :global([data-mode="dark"]) .breadcrumb-separator {
+    color: var(--color-surface-500);
+  }
+
+  .breadcrumb-current {
+    color: #6b7280;
+  }
+
+  :global([data-mode="dark"]) .breadcrumb-current {
+    color: var(--color-surface-400);
+  }
+
+  .panel {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+
+  :global([data-mode="dark"]) .panel {
+    background: rgb(var(--color-surface-800));
+  }
+
+  .panel-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  :global([data-mode="dark"]) .panel-header {
+    border-bottom-color: rgb(var(--color-surface-700));
+  }
+
+  .panel-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  :global([data-mode="dark"]) .panel-title {
+    color: var(--color-surface-100);
+  }
+
+  .panel-subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+  }
+
+  :global([data-mode="dark"]) .panel-subtitle {
+    color: var(--color-surface-400);
+  }
+
+  .panel-content {
+    padding: 1.5rem;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .info-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #6b7280;
+    letter-spacing: 0.05em;
+  }
+
+  :global([data-mode="dark"]) .info-label {
+    color: var(--color-surface-400);
+  }
+
+  .info-value {
+    font-size: 0.875rem;
+    color: #111827;
+  }
+
+  :global([data-mode="dark"]) .info-value {
+    color: var(--color-surface-100);
+  }
+
+  .entitlements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 1rem;
+  }
+
+  .entitlement-card {
+    padding: 1rem;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+  }
+
+  :global([data-mode="dark"]) .entitlement-card {
+    background: rgb(var(--color-surface-700));
+    border-color: rgb(var(--color-surface-600));
+  }
+
+  .entitlement-name {
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.5rem;
+  }
+
+  :global([data-mode="dark"]) .entitlement-name {
+    color: var(--color-surface-100);
+  }
+
+  .entitlement-detail {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+  }
+
+  :global([data-mode="dark"]) .entitlement-detail {
+    color: var(--color-surface-400);
+  }
+
+  .detail-label {
+    font-weight: 500;
+  }
+
+  .operations-compact {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .operation-id-compact {
+    font-size: 0.75rem;
+    color: #374151;
+    padding: 0.25rem 0.5rem;
+    background: #f3f4f6;
+    border-radius: 0.25rem;
+  }
+
+  :global([data-mode="dark"]) .operation-id-compact {
+    color: var(--color-surface-200);
+    background: rgb(var(--color-surface-700));
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .badge-success {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  :global([data-mode="dark"]) .badge-success {
+    background: rgb(var(--color-success-900));
+    color: rgb(var(--color-success-200));
+  }
+
+  .badge-default {
+    background: #f3f4f6;
+    color: #374151;
+  }
+
+  :global([data-mode="dark"]) .badge-default {
+    background: rgb(var(--color-surface-700));
+    color: var(--color-surface-300);
+  }
+
+  .badge-error {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  :global([data-mode="dark"]) .badge-error {
+    background: rgb(var(--color-error-900));
+    color: rgb(var(--color-error-200));
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #6b7280;
+  }
+
+  :global([data-mode="dark"]) .empty-state {
+    color: var(--color-surface-400);
+  }
+
+  .alert {
+    padding: 1rem;
+    border-radius: 0.375rem;
+    margin-bottom: 1rem;
+  }
+
+  .alert-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+  }
+
+  :global([data-mode="dark"]) .alert-error {
+    background: rgb(var(--color-error-900));
+    color: rgb(var(--color-error-200));
+    border-color: rgb(var(--color-error-800));
+  }
+</style>

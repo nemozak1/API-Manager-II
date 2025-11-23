@@ -29,7 +29,7 @@ export const GET: RequestHandler = async ({ url, locals }) => {
     }
 
     logger.info("=== USER SEARCH BY USER ID API CALL ===");
-    const endpoint = `/obp/v4.0.0/users/user_id/${encodeURIComponent(userId)}`;
+    const endpoint = `/obp/v6.0.0/users/user-id/${encodeURIComponent(userId)}`;
     logger.info(`Request: ${endpoint}`);
 
     const response = await obp_requests.get(endpoint, accessToken);
@@ -57,7 +57,9 @@ export const GET: RequestHandler = async ({ url, locals }) => {
       {
         user: null,
         error:
-          err instanceof Error ? err.message : "Failed to search user by user ID",
+          err instanceof Error
+            ? err.message
+            : "Failed to search user by user ID",
       },
       { status: 500 },
     );

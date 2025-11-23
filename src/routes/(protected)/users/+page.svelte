@@ -223,11 +223,9 @@
                     <td class="font-mono text-sm">{user.user_id || "N/A"}</td>
                     <td>{user.provider || "N/A"}</td>
                     <td>
-                      {#if user.provider && user.username}
+                      {#if user.user_id}
                         <a
-                          href="/users/{encodeURIComponent(
-                            user.provider,
-                          )}/{encodeURIComponent(user.username)}"
+                          href="/users/{encodeURIComponent(user.user_id)}"
                           class="text-blue-600 hover:text-blue-800 underline"
                         >
                           Details
@@ -253,10 +251,8 @@
   <!-- Users List Panel -->
   <div class="panel">
     <div class="panel-header">
-      <h2 class="panel-title">All Users</h2>
-      <div class="panel-subtitle">
-        Complete list of users and their entitlements
-      </div>
+      <h2 class="panel-title">Recent Users</h2>
+      <div class="panel-subtitle">Most recently created users (up to 100)</div>
     </div>
     <div class="panel-content">
       {#if users && users.length > 0}
@@ -279,11 +275,9 @@
                   <td class="font-mono text-sm">{user.user_id || "N/A"}</td>
                   <td>{user.provider || "N/A"}</td>
                   <td>
-                    {#if user.provider && user.username}
+                    {#if user.user_id}
                       <a
-                        href="/users/{encodeURIComponent(
-                          user.provider,
-                        )}/{encodeURIComponent(user.username)}"
+                        href="/users/{encodeURIComponent(user.user_id)}"
                         class="text-blue-600 hover:text-blue-800 underline"
                       >
                         Details

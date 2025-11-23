@@ -41,9 +41,9 @@ export const load: PageServerLoad = async ({ locals }) => {
   }
 
   try {
-    // Fetch users from OBP API
+    // Fetch users from OBP API - get recent users with pagination
     logger.info("=== USERS API CALL ===");
-    const endpoint = `/obp/v6.0.0/users`;
+    const endpoint = `/obp/v6.0.0/users?limit=100`;
     logger.info(`Request: ${endpoint}`);
 
     const response = await obp_requests.get(endpoint, accessToken);
@@ -57,8 +57,16 @@ export const load: PageServerLoad = async ({ locals }) => {
 
     if (response?.users) {
       logger.info(`Response: ${response.users.length} users`);
+
+      // Sort users by created_date descending (most recent first)
+      const sortedUsers = response.users.sort((a: User, b: User) => {
+        const dateA = new Date(a.created_date || 0).getTime();
+        const dateB = new Date(b.created_date || 0).getTime();
+        return dateB - dateA; // Descending order
+      });
+
       return {
-        users: response.users,
+        users: sortedUsers,
         hasApiAccess: true,
       };
     } else {

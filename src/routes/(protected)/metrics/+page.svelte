@@ -209,6 +209,9 @@
     if (queryForm.anon && queryForm.anon.trim() !== "") {
       params.set("anon", queryForm.anon);
     }
+    if (queryForm.duration && String(queryForm.duration).trim() !== "") {
+      params.set("duration", String(queryForm.duration));
+    }
 
     // Always include pagination and sorting
     params.set("limit", queryForm.limit);
@@ -502,6 +505,17 @@
                 <option value="true">Anonymous Only</option>
                 <option value="false">Authenticated Only</option>
               </select>
+            </div>
+            <div class="form-field">
+              <label for="duration">Min Duration ms</label>
+              <input
+                type="number"
+                id="duration"
+                bind:value={queryForm.duration}
+                placeholder="Filter by minimum duration"
+                on:blur={handleFieldChange}
+                class="form-input"
+              />
             </div>
           </div>
         </div>

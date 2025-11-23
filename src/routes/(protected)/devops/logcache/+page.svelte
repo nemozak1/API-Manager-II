@@ -44,6 +44,10 @@
       console.log("Is array:", Array.isArray(data));
       console.log("Data keys:", data ? Object.keys(data) : "null");
       console.log("Full data:", data);
+      if (data.entries && data.entries.length > 0) {
+        console.log("First entry keys:", Object.keys(data.entries[0]));
+        console.log("First entry sample:", data.entries[0]);
+      }
 
       if (data.error) {
         throw new Error(data.error);
@@ -95,6 +99,30 @@
     // Restart auto-refresh with new log level
     stopAutoRefresh();
     startAutoRefresh();
+  }
+
+  function parseLogMessage(message: string): {
+    timestamp: string;
+    source: string;
+    cleanMessage: string;
+  } {
+    // Parse format: [2025-11-23 16:37:53Z] [thread-name] [Source] message
+    const pattern = /^\[([^\]]+)\]\s*\[([^\]]+)\]\s*\[([^\]]+)\]\s*(.*)$/;
+    const match = message.match(pattern);
+
+    if (match) {
+      return {
+        timestamp: match[1],
+        source: match[3],
+        cleanMessage: match[4],
+      };
+    }
+
+    return {
+      timestamp: "",
+      source: "",
+      cleanMessage: message,
+    };
   }
 
   function formatTimestamp(timestamp: string): string {
@@ -202,9 +230,10 @@
               </thead>
               <tbody>
                 {#each logs as log}
+                  {@const parsed = parseLogMessage(log.message || "")}
                   <tr>
                     <td class="timestamp-cell">
-                      {formatTimestamp(log.timestamp || log.date)}
+                      {formatTimestamp(parsed.timestamp)}
                     </td>
                     <td>
                       <span
@@ -215,10 +244,8 @@
                         {log.level || log.log_level || "N/A"}
                       </span>
                     </td>
-                    <td class="message-cell">{log.message || "N/A"}</td>
-                    <td class="source-cell">
-                      {log.source || log.logger || "N/A"}
-                    </td>
+                    <td class="message-cell">{parsed.cleanMessage || "N/A"}</td>
+                    <td class="source-cell">{parsed.source || "N/A"}</td>
                   </tr>
                 {/each}
               </tbody>

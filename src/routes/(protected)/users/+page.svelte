@@ -7,88 +7,101 @@
   let hasApiAccess = $derived(data.hasApiAccess);
   let error = $derived(data.error);
 
-  let emailQuery = $state("");
-  let emailResults = $state<any[]>([]);
-  let isSearchingEmail = $state(false);
+  let providers = $state<string[]>([]);
+  let selectedProvider = $state("");
+  let searchQuery = $state("");
+  let searchResults = $state<any[]>([]);
+  let isSearching = $state(false);
+  let searchType = $state<"email" | "userid" | "username" | "">("");
 
-  let userIdQuery = $state("");
-  let userIdResult = $state<any | null>(null);
-  let isSearchingUserId = $state(false);
+  // Fetch providers on mount
+  $effect(() => {
+    async function fetchProviders() {
+      try {
+        const response = await fetch("/api/users/providers");
+        const result = await response.json();
+        if (result.providers) {
+          providers = result.providers;
+          if (providers.length > 0) {
+            selectedProvider = providers[0];
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching providers:", err);
+      }
+    }
+    fetchProviders();
+  });
 
-  let providerQuery = $state("");
-  let usernameQuery = $state("");
-  let providerUsernameResult = $state<any | null>(null);
-  let isSearchingProviderUsername = $state(false);
+  // Detect search type based on input
+  function detectSearchType(input: string): "email" | "userid" | "username" {
+    // Check if it's an email
+    if (input.includes("@") && input.includes(".")) {
+      return "email";
+    }
+    // Check if it's a UUID (user_id)
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (uuidRegex.test(input)) {
+      return "userid";
+    }
+    // Otherwise, it's a username
+    return "username";
+  }
 
-  async function searchByEmail() {
-    if (!emailQuery.trim()) {
-      emailResults = [];
+  async function handleSearch() {
+    if (!searchQuery.trim()) {
+      searchResults = [];
+      searchType = "";
       return;
     }
 
-    isSearchingEmail = true;
+    const type = detectSearchType(searchQuery.trim());
+    searchType = type;
+    isSearching = true;
+
     try {
-      const response = await fetch(
-        `/api/users/search-by-email?email=${encodeURIComponent(emailQuery)}`,
-      );
+      let response;
+
+      if (type === "email") {
+        // Search by email (OBPv4.0.0)
+        response = await fetch(
+          `/api/users/search-by-email?email=${encodeURIComponent(searchQuery)}`,
+        );
+      } else if (type === "userid") {
+        // Search by user ID (OBPv4.0.0)
+        response = await fetch(
+          `/api/users/search-by-userid?user_id=${encodeURIComponent(searchQuery)}`,
+        );
+      } else {
+        // Search by provider and username (OBPv5.1.0)
+        if (!selectedProvider) {
+          console.error("Provider is required for username search");
+          searchResults = [];
+          isSearching = false;
+          return;
+        }
+        response = await fetch(
+          `/api/users/search-by-provider-username?provider=${encodeURIComponent(selectedProvider)}&username=${encodeURIComponent(searchQuery)}`,
+        );
+      }
+
       const result = await response.json();
+
       if (result.users) {
-        emailResults = result.users;
-      }
-    } catch (err) {
-      console.error("Email search error:", err);
-    } finally {
-      isSearchingEmail = false;
-    }
-  }
-
-  async function searchByUserId() {
-    if (!userIdQuery.trim()) {
-      userIdResult = null;
-      return;
-    }
-
-    isSearchingUserId = true;
-    try {
-      const response = await fetch(
-        `/api/users/search-by-userid?user_id=${encodeURIComponent(userIdQuery)}`,
-      );
-      const result = await response.json();
-      if (result.user) {
-        userIdResult = result.user;
+        // Multiple results (email search)
+        searchResults = result.users;
+      } else if (result.user) {
+        // Single result (user ID or username search)
+        searchResults = [result.user];
       } else {
-        userIdResult = null;
+        searchResults = [];
       }
     } catch (err) {
-      console.error("User ID search error:", err);
-      userIdResult = null;
+      console.error("Search error:", err);
+      searchResults = [];
     } finally {
-      isSearchingUserId = false;
-    }
-  }
-
-  async function searchByProviderUsername() {
-    if (!providerQuery.trim() || !usernameQuery.trim()) {
-      providerUsernameResult = null;
-      return;
-    }
-
-    isSearchingProviderUsername = true;
-    try {
-      const response = await fetch(
-        `/api/users/search-by-provider-username?provider=${encodeURIComponent(providerQuery)}&username=${encodeURIComponent(usernameQuery)}`,
-      );
-      const result = await response.json();
-      if (result.user) {
-        providerUsernameResult = result.user;
-      } else {
-        providerUsernameResult = null;
-      }
-    } catch (err) {
-      console.error("Provider/Username search error:", err);
-      providerUsernameResult = null;
-    } finally {
-      isSearchingProviderUsername = false;
+      isSearching = false;
     }
   }
 
@@ -122,45 +135,74 @@
 
   <h1 class="text-3xl font-bold mb-6">Users</h1>
 
-  <!-- Search by Email Panel -->
+  <!-- Smart Search Panel -->
   <div class="panel mb-6">
     <div class="panel-header">
-      <h2 class="panel-title">Search by Email</h2>
-      <div class="panel-subtitle">Find users by email address (OBPv4.0.0)</div>
+      <h2 class="panel-title">Search Users</h2>
+      <div class="panel-subtitle">
+        Smart search: Enter email, user ID (UUID), or username
+        {#if searchType === "email"}
+          <span class="text-blue-600"> (Detected: Email)</span>
+        {:else if searchType === "userid"}
+          <span class="text-blue-600"> (Detected: User ID)</span>
+        {:else if searchType === "username"}
+          <span class="text-blue-600"> (Detected: Username)</span>
+        {/if}
+      </div>
     </div>
     <div class="panel-content">
       <form
         onsubmit={(e) => {
           e.preventDefault();
-          searchByEmail();
+          handleSearch();
         }}
         class="flex gap-4 items-end"
       >
+        <div style="flex: 0 0 300px;">
+          <label for="provider-select" class="block text-sm font-medium mb-2"
+            >Provider</label
+          >
+          <select
+            id="provider-select"
+            bind:value={selectedProvider}
+            class="form-input w-full"
+          >
+            {#if providers.length === 0}
+              <option value="">Loading providers...</option>
+            {:else}
+              {#each providers as provider}
+                <option value={provider}>{provider}</option>
+              {/each}
+            {/if}
+          </select>
+        </div>
         <div class="flex-1">
-          <label for="email-search" class="block text-sm font-medium mb-2"
-            >Email</label
+          <label for="search-input" class="block text-sm font-medium mb-2"
+            >Search</label
           >
           <input
-            type="email"
-            id="email-search"
-            bind:value={emailQuery}
-            placeholder="Enter email address"
+            type="text"
+            id="search-input"
+            bind:value={searchQuery}
+            placeholder="Enter email, user ID (UUID), or username"
             class="form-input w-full"
           />
         </div>
         <button
           type="submit"
           class="btn btn-primary"
-          disabled={isSearchingEmail || !emailQuery.trim()}
+          disabled={isSearching || !searchQuery.trim()}
         >
-          {isSearchingEmail ? "Searching..." : "Search"}
+          {isSearching ? "Searching..." : "Search"}
         </button>
       </form>
 
-      {#if emailResults.length > 0}
+      {#if searchResults.length > 0}
         <div class="mt-6">
           <h3 class="text-lg font-semibold mb-4">
-            Results ({emailResults.length})
+            {searchResults.length === 1
+              ? "Result"
+              : `Results (${searchResults.length})`}
           </h3>
           <div class="table-wrapper">
             <table class="users-table">
@@ -173,7 +215,7 @@
                 </tr>
               </thead>
               <tbody>
-                {#each emailResults as user}
+                {#each searchResults as user}
                   <tr
                     class="cursor-pointer"
                     onclick={() => {
@@ -192,180 +234,9 @@
             </table>
           </div>
         </div>
-      {:else if emailQuery.trim() && !isSearchingEmail}
+      {:else if searchQuery.trim() && !isSearching}
         <div class="mt-6 text-center text-gray-500">
-          No users found with email "{emailQuery}"
-        </div>
-      {/if}
-    </div>
-  </div>
-
-  <!-- Search by User ID Panel -->
-  <div class="panel mb-6">
-    <div class="panel-header">
-      <h2 class="panel-title">Search by User ID</h2>
-      <div class="panel-subtitle">Find user by user ID (OBPv4.0.0)</div>
-    </div>
-    <div class="panel-content">
-      <form
-        onsubmit={(e) => {
-          e.preventDefault();
-          searchByUserId();
-        }}
-        class="flex gap-4 items-end"
-      >
-        <div class="flex-1">
-          <label for="userid-search" class="block text-sm font-medium mb-2"
-            >User ID</label
-          >
-          <input
-            type="text"
-            id="userid-search"
-            bind:value={userIdQuery}
-            placeholder="Enter user ID"
-            class="form-input w-full"
-          />
-        </div>
-        <button
-          type="submit"
-          class="btn btn-primary"
-          disabled={isSearchingUserId || !userIdQuery.trim()}
-        >
-          {isSearchingUserId ? "Searching..." : "Search"}
-        </button>
-      </form>
-
-      {#if userIdResult}
-        <div class="mt-6">
-          <h3 class="text-lg font-semibold mb-4">Result</h3>
-          <div class="table-wrapper">
-            <table class="users-table">
-              <thead>
-                <tr>
-                  <th>Username</th>
-                  <th>Email</th>
-                  <th>User ID</th>
-                  <th>Provider</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  class="cursor-pointer"
-                  onclick={() => {
-                    if (userIdResult.provider && userIdResult.username) {
-                      window.location.href = `/users/${encodeURIComponent(userIdResult.provider)}/${encodeURIComponent(userIdResult.username)}`;
-                    }
-                  }}
-                >
-                  <td>{userIdResult.username || "N/A"}</td>
-                  <td>{userIdResult.email || "N/A"}</td>
-                  <td class="font-mono text-sm"
-                    >{userIdResult.user_id || "N/A"}</td
-                  >
-                  <td>{userIdResult.provider || "N/A"}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      {:else if userIdQuery.trim() && !isSearchingUserId}
-        <div class="mt-6 text-center text-gray-500">
-          No user found with ID "{userIdQuery}"
-        </div>
-      {/if}
-    </div>
-  </div>
-
-  <!-- Search by Provider and Username Panel -->
-  <div class="panel mb-6">
-    <div class="panel-header">
-      <h2 class="panel-title">Search by Provider and Username</h2>
-      <div class="panel-subtitle">
-        Find user by provider and username (OBPv5.1.0)
-      </div>
-    </div>
-    <div class="panel-content">
-      <form
-        onsubmit={(e) => {
-          e.preventDefault();
-          searchByProviderUsername();
-        }}
-        class="flex gap-4 items-end"
-      >
-        <div class="flex-1">
-          <label for="provider-search" class="block text-sm font-medium mb-2"
-            >Provider</label
-          >
-          <input
-            type="text"
-            id="provider-search"
-            bind:value={providerQuery}
-            placeholder="e.g. http://127.0.0.1:8080"
-            class="form-input w-full"
-          />
-        </div>
-        <div class="flex-1">
-          <label for="username-search" class="block text-sm font-medium mb-2"
-            >Username</label
-          >
-          <input
-            type="text"
-            id="username-search"
-            bind:value={usernameQuery}
-            placeholder="Enter username"
-            class="form-input w-full"
-          />
-        </div>
-        <button
-          type="submit"
-          class="btn btn-primary"
-          disabled={isSearchingProviderUsername ||
-            !providerQuery.trim() ||
-            !usernameQuery.trim()}
-        >
-          {isSearchingProviderUsername ? "Searching..." : "Search"}
-        </button>
-      </form>
-
-      {#if providerUsernameResult}
-        <div class="mt-6">
-          <h3 class="text-lg font-semibold mb-4">Result</h3>
-          <div class="table-wrapper">
-            <table class="users-table">
-              <thead>
-                <tr>
-                  <th>Username</th>
-                  <th>Email</th>
-                  <th>User ID</th>
-                  <th>Provider</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  class="cursor-pointer"
-                  onclick={() => {
-                    if (
-                      providerUsernameResult.provider &&
-                      providerUsernameResult.username
-                    ) {
-                      window.location.href = `/users/${encodeURIComponent(providerUsernameResult.provider)}/${encodeURIComponent(providerUsernameResult.username)}`;
-                    }
-                  }}
-                >
-                  <td>{providerUsernameResult.username || "N/A"}</td>
-                  <td>{providerUsernameResult.email || "N/A"}</td>
-                  <td class="font-mono text-sm">
-                    {providerUsernameResult.user_id || "N/A"}
-                  </td>
-                  <td>{providerUsernameResult.provider || "N/A"}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      {:else if providerQuery.trim() && usernameQuery.trim() && !isSearchingProviderUsername}
-        <div class="mt-6 text-center text-gray-500">
-          No user found with provider "{providerQuery}" and username "{usernameQuery}"
+          No users found matching "{searchQuery}"
         </div>
       {/if}
     </div>

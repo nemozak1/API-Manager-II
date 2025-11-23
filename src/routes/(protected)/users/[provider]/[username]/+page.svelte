@@ -81,6 +81,26 @@
               <div class="info-value">{formatDate(user.last_login_date)}</div>
             </div>
           {/if}
+          <div class="info-item">
+            <div class="info-label">Is Locked</div>
+            <div class="info-value">
+              {#if user.is_locked}
+                <span class="badge badge-error">Yes</span>
+              {:else}
+                <span class="badge badge-success">No</span>
+              {/if}
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">Is Deleted</div>
+            <div class="info-value">
+              {#if user.is_deleted}
+                <span class="badge badge-error">Yes</span>
+              {:else}
+                <span class="badge badge-success">No</span>
+              {/if}
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -322,7 +342,7 @@
 
   .entitlements-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
     gap: 1rem;
   }
 
@@ -436,6 +456,16 @@
   :global([data-mode="dark"]) .badge-default {
     background: rgb(var(--color-surface-700));
     color: var(--color-surface-300);
+  }
+
+  .badge-error {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  :global([data-mode="dark"]) .badge-error {
+    background: rgb(var(--color-error-900));
+    color: rgb(var(--color-error-200));
   }
 
   .empty-state {

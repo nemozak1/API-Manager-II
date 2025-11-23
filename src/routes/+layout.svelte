@@ -91,6 +91,11 @@
 			href: '/metrics',
 			iconComponent: BarChart3
 		},
+		{
+			label: 'Aggregate Metrics',
+			href: '/aggregate-metrics',
+			iconComponent: BarChart3
+		},
 		...(data.externalLinks.SUBSCRIPTIONS_URL
 			? [
 					{

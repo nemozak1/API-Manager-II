@@ -535,6 +535,18 @@
     margin-right: 0.5rem;
   }
 
+  .form-input option,
+  .form-select option {
+    background: white;
+    color: #111827;
+  }
+
+  :global([data-mode="dark"]) .form-input option,
+  :global([data-mode="dark"]) .form-select option {
+    background: rgb(var(--color-surface-700));
+    color: var(--color-surface-100);
+  }
+
   .loading-text {
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;

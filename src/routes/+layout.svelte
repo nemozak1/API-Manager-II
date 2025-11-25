@@ -233,14 +233,14 @@
           <Navigation.Group>
             <button
               type="button"
-              class="hover:bg-surface-100-800 mx-2 flex w-full items-center justify-between rounded-md p-3 text-left transition-colors"
-              class:bg-primary-100-800={isMyAccountActive}
+              class="btn w-full justify-start gap-3 px-2 hover:preset-tonal"
+              class:preset-filled-primary-50-950={isMyAccountActive}
+              class:border={isMyAccountActive}
+              class:border-solid-secondary-500={isMyAccountActive}
               onclick={toggleMyAccount}
             >
-              <div class="flex items-center gap-3">
-                <User class="h-5 w-5" />
-                <span>My Account</span>
-              </div>
+              <User class="size-5" />
+              <span>My Account</span>
               {#if isMyAccountExpanded}
                 <ChevronDown class="h-4 w-4" />
               {:else}
@@ -277,14 +277,14 @@
           <Navigation.Group>
             <button
               type="button"
-              class="hover:bg-surface-100-800 mx-2 flex w-full items-center justify-between rounded-md p-3 text-left transition-colors"
-              class:bg-primary-100-800={isDevOpsActive}
+              class="btn w-full justify-start gap-3 px-2 hover:preset-tonal"
+              class:preset-filled-primary-50-950={isDevOpsActive}
+              class:border={isDevOpsActive}
+              class:border-solid-secondary-500={isDevOpsActive}
               onclick={toggleDevOps}
             >
-              <div class="flex items-center gap-3">
-                <Server class="h-5 w-5" />
-                <span>DevOps</span>
-              </div>
+              <Server class="size-5" />
+              <span>DevOps</span>
               {#if isDevOpsExpanded}
                 <ChevronDown class="h-4 w-4" />
               {:else}
@@ -321,14 +321,14 @@
           <Navigation.Group>
             <button
               type="button"
-              class="hover:bg-surface-100-800 mx-2 flex w-full items-center justify-between rounded-md p-3 text-left transition-colors"
-              class:bg-primary-100-800={isIntegrationActive}
+              class="btn w-full justify-start gap-3 px-2 hover:preset-tonal"
+              class:preset-filled-primary-50-950={isIntegrationActive}
+              class:border={isIntegrationActive}
+              class:border-solid-secondary-500={isIntegrationActive}
               onclick={toggleIntegration}
             >
-              <div class="flex items-center gap-3">
-                <Plug class="h-5 w-5" />
-                <span>Integration</span>
-              </div>
+              <Plug class="size-5" />
+              <span>Integration</span>
               {#if isIntegrationExpanded}
                 <ChevronDown class="h-4 w-4" />
               {:else}
@@ -365,14 +365,14 @@
           <Navigation.Group>
             <button
               type="button"
-              class="hover:bg-surface-100-800 mx-2 flex w-full items-center justify-between rounded-md p-3 text-left transition-colors"
-              class:bg-primary-100-800={isApiMetricsActive}
+              class="btn w-full justify-start gap-3 px-2 hover:preset-tonal"
+              class:preset-filled-primary-50-950={isApiMetricsActive}
+              class:border={isApiMetricsActive}
+              class:border-solid-secondary-500={isApiMetricsActive}
               onclick={toggleApiMetrics}
             >
-              <div class="flex items-center gap-3">
-                <BarChart3 class="h-5 w-5" />
-                <span>API Metrics</span>
-              </div>
+              <BarChart3 class="size-5" />
+              <span>API Metrics</span>
               {#if isApiMetricsExpanded}
                 <ChevronDown class="h-4 w-4" />
               {:else}

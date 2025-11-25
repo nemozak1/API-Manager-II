@@ -90,6 +90,9 @@
   // Watch for autoRefresh changes and update to_date
   $effect(() => {
     updateToDate();
+    if (initialized) {
+      startAutoRefresh();
+    }
   });
 
   // Initialize on mount - run only once
@@ -239,21 +242,22 @@
   });
 
   function startAutoRefresh() {
-    // Start 5-second auto-refresh cycle
-    countdown = 5;
+    // Get countdown duration from autoRefresh (in seconds)
+    const refreshSeconds = autoRefresh === "none" ? 5 : parseInt(autoRefresh);
+    countdown = refreshSeconds;
     isCountingDown = true;
 
     if (refreshInterval) clearInterval(refreshInterval);
     if (countdownInterval) clearInterval(countdownInterval);
 
-    console.log("Starting auto-refresh countdown from 5");
+    console.log(`Starting auto-refresh countdown from ${refreshSeconds}`);
     countdownInterval = setInterval(() => {
       countdown--;
       console.log("Countdown:", countdown);
       if (countdown <= 0) {
         console.log("Countdown reached 0, refreshing...");
         refreshMetrics();
-        countdown = 5;
+        countdown = refreshSeconds;
       }
     }, 1000);
   }

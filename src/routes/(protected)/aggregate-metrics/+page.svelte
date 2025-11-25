@@ -378,7 +378,7 @@
       <form on:submit|preventDefault={submitQuery} class="query-form">
         <div class="form-section">
           <h3 class="form-section-title">Query Parameters</h3>
-          <div class="form-row">
+          <div class="form-row date-row">
             <div class="form-field date-field">
               <label for="from_date">From Date</label>
               <input
@@ -452,8 +452,6 @@
                 <option value="asc">Ascending</option>
               </select>
             </div>
-          </div>
-          <div class="form-row">
             <div class="form-field narrow-field">
               <label for="verb">HTTP Method</label>
               <select
@@ -470,6 +468,8 @@
                 <option value="PATCH">PATCH</option>
               </select>
             </div>
+          </div>
+          <div class="form-row">
             <div class="form-field">
               <label for="app_name">App Name</label>
               <input
@@ -1135,9 +1135,14 @@
 
   .form-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 2rem;
     margin-bottom: 1rem;
+  }
+
+  .form-row.date-row {
+    grid-template-columns: 280px 280px 100px 100px 100px 100px 100px;
+    gap: 1.5rem;
   }
 
   .form-row.compact {
@@ -1150,8 +1155,8 @@
   }
 
   .form-field.date-field {
-    min-width: 220px;
-    max-width: 260px;
+    min-width: 260px;
+    max-width: 280px;
   }
 
   .form-field.narrow-field {

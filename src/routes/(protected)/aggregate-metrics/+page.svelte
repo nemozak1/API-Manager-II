@@ -424,7 +424,7 @@
                 class="form-input"
               />
             </div>
-            <div class="form-field">
+            <div class="form-field narrow-field">
               <label for="sort_by">Sort By</label>
               <select
                 id="sort_by"
@@ -454,7 +454,7 @@
             </div>
           </div>
           <div class="form-row">
-            <div class="form-field">
+            <div class="form-field narrow-field">
               <label for="verb">HTTP Method</label>
               <select
                 id="verb"
@@ -527,7 +527,7 @@
                 class="form-input"
               />
             </div>
-            <div class="form-field">
+            <div class="form-field narrow-field">
               <label for="anon">Anonymous</label>
               <select
                 id="anon"
@@ -1135,7 +1135,7 @@
 
   .form-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 1rem;
     margin-bottom: 1rem;
   }
@@ -1150,11 +1150,12 @@
   }
 
   .form-field.date-field {
-    max-width: 300px;
+    min-width: 220px;
+    max-width: 260px;
   }
 
   .form-field.narrow-field {
-    max-width: 120px;
+    max-width: 100px;
   }
 
   .form-field label {

@@ -377,7 +377,31 @@
       <!-- Query Form -->
       <form on:submit|preventDefault={submitQuery} class="query-form">
         <div class="form-section">
-          <h3 class="form-section-title">Query Parameters</h3>
+          <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;"
+          >
+            <h3 class="form-section-title" style="margin: 0;">
+              Query Parameters
+            </h3>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <label for="auto_refresh" style="font-size: 0.875rem; margin: 0;"
+                >Auto Refresh:</label
+              >
+              <select
+                id="auto_refresh"
+                bind:value={autoRefresh}
+                class="form-input"
+                style="font-size: 0.875rem; padding: 0.375rem 0.5rem; min-width: 90px;"
+              >
+                <option value="none">None</option>
+                <option value="5">5 sec</option>
+                <option value="10">10 sec</option>
+                <option value="20">20 sec</option>
+                <option value="30">30 sec</option>
+                <option value="60">60 sec</option>
+              </select>
+            </div>
+          </div>
           <div class="form-row date-row">
             <div class="form-field date-field">
               <label for="from_date">From Date</label>
@@ -542,30 +566,6 @@
             </div>
           </div>
         </div>
-
-        <div class="form-actions">
-          <div
-            class="form-field narrow-field"
-            style="display: inline-block; margin-right: 1rem;"
-          >
-            <label for="auto_refresh">Auto Refresh</label>
-            <select
-              id="auto_refresh"
-              bind:value={autoRefresh}
-              class="form-input"
-            >
-              <option value="none">None</option>
-              <option value="5">5 sec</option>
-              <option value="10">10 sec</option>
-              <option value="20">20 sec</option>
-              <option value="30">30 sec</option>
-              <option value="60">60 sec</option>
-            </select>
-          </div>
-          <button type="button" class="btn btn-secondary" on:click={clearQuery}>
-            🗑️ Clear Form
-          </button>
-        </div>
       </form>
     </div>
   </div>
@@ -573,7 +573,30 @@
   <!-- Panel 2: Aggregate Metrics Results -->
   <div class="panel full-width-panel">
     <div class="panel-header">
-      <h2 class="panel-title">Aggregate Metrics Results</h2>
+      <div
+        style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;"
+      >
+        <h2 class="panel-title" style="margin: 0;">
+          Aggregate Metrics Results
+        </h2>
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            on:click={clearQuery}
+            style="padding: 0.375rem 0.75rem; font-size: 0.875rem;"
+          >
+            🗑️ Clear Form
+          </button>
+          <button
+            class="refresh-btn"
+            on:click={refreshMetrics}
+            title="Manual refresh"
+          >
+            🔄
+          </button>
+        </div>
+      </div>
       <div class="panel-subtitle">
         URL: {obpInfo.baseUrl}/obp/v6.0.0/management/aggregate-metrics?{decodeURIComponent(
           currentQueryString,
@@ -590,13 +613,6 @@
           <span class="countdown-idle">Next refresh in {countdown}s</span>
         {/if}
       </div>
-      <button
-        class="refresh-btn"
-        on:click={refreshMetrics}
-        title="Manual refresh"
-      >
-        🔄
-      </button>
     </div>
 
     <div class="panel-content">

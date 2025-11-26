@@ -84,7 +84,10 @@
               </div>
               <div class="roles-grid">
                 {#each bankRoles as role}
-                  <div class="role-card">
+                  <a
+                    href="/rbac/roles/{encodeURIComponent(role.role)}"
+                    class="role-card"
+                  >
                     <div class="role-icon">🛡️</div>
                     <div class="role-info">
                       <h4 class="role-name">{role.role}</h4>
@@ -94,7 +97,7 @@
                         <span class="role-meta system">System Role</span>
                       {/if}
                     </div>
-                  </div>
+                  </a>
                 {/each}
               </div>
             </div>
@@ -315,6 +318,7 @@
     border-radius: 8px;
     transition: all 0.2s;
     cursor: pointer;
+    text-decoration: none;
   }
 
   .role-card:hover {

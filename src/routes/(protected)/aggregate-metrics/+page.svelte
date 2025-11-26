@@ -1241,8 +1241,8 @@
   }
 
   .form-row.date-row {
-    grid-template-columns: 260px 260px 100px 100px 100px 100px 100px;
-    gap: 1.5rem;
+    grid-template-columns: 200px 220px 80px 80px 80px 80px 80px 80px;
+    gap: 1rem;
   }
 
   .form-row.compact {

@@ -743,25 +743,25 @@
                 {@const minPercent =
                   (metric.minimum_response_time / maxInHistory) * 100}
                 {@const minColor =
-                  minPercent < 33
+                  metric.minimum_response_time < 50
                     ? "#10b981"
-                    : minPercent < 66
+                    : metric.minimum_response_time < 150
                       ? "#f59e0b"
                       : "#ef4444"}
                 {@const maxPercent =
                   (metric.maximum_response_time / maxInHistory) * 100}
                 {@const maxColor =
-                  maxPercent < 33
+                  metric.maximum_response_time < 50
                     ? "#10b981"
-                    : maxPercent < 66
+                    : metric.maximum_response_time < 150
                       ? "#f59e0b"
                       : "#ef4444"}
                 {@const avgPercent =
                   (metric.average_response_time / maxInHistory) * 100}
                 {@const avgColor =
-                  avgPercent < 33
+                  metric.average_response_time < 50
                     ? "#10b981"
-                    : avgPercent < 66
+                    : metric.average_response_time < 150
                       ? "#f59e0b"
                       : "#ef4444"}
                 <tr>

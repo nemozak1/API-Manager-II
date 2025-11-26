@@ -472,6 +472,10 @@
                 <option value="20">20 sec</option>
                 <option value="30">30 sec</option>
                 <option value="60">60 sec</option>
+                <option value="120">2 min</option>
+                <option value="600">10 min</option>
+                <option value="1200">20 min</option>
+                <option value="3600">60 min</option>
               </select>
             </div>
           </div>
@@ -725,9 +729,9 @@
                 <th>To Date (UTC)</th>
                 <th>Span</th>
                 <th>Total Count</th>
-                <th>Average Response Time</th>
                 <th>Minimum Response Time</th>
                 <th>Maximum Response Time</th>
+                <th>Average Response Time</th>
               </tr>
             </thead>
             <tbody>
@@ -751,30 +755,19 @@
                   <td class="duration-cell">
                     <div style="display: flex; align-items: center; gap: 8px;">
                       <span style="min-width: 60px;"
-                        >{metric.average_response_time?.toFixed(2) ||
-                          "N/A"}ms</span
-                      >
-                      <div
-                        style="flex: 1; height: 20px; background: linear-gradient(90deg, #3b82f6 0%, #60a5fa {(metric.average_response_time /
-                          maxInHistory) *
-                          100}%, transparent {(metric.average_response_time /
-                          maxInHistory) *
-                          100}%); border-radius: 4px;"
-                      ></div>
-                    </div>
-                  </td>
-                  <td class="duration-cell">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                      <span style="min-width: 60px;"
                         >{metric.minimum_response_time?.toFixed(2) ||
                           "N/A"}ms</span
                       >
+                      {@const minPercent =
+                        (metric.minimum_response_time / maxInHistory) * 100}
+                      {@const minColor =
+                        minPercent < 33
+                          ? "#10b981"
+                          : minPercent < 66
+                            ? "#f59e0b"
+                            : "#ef4444"}
                       <div
-                        style="flex: 1; height: 20px; background: linear-gradient(90deg, #10b981 0%, #34d399 {(metric.minimum_response_time /
-                          maxInHistory) *
-                          100}%, transparent {(metric.minimum_response_time /
-                          maxInHistory) *
-                          100}%); border-radius: 4px;"
+                        style="flex: 1; height: 20px; background: linear-gradient(90deg, {minColor} 0%, {minColor} {minPercent}%, transparent {minPercent}%); border-radius: 4px;"
                       ></div>
                     </div>
                   </td>
@@ -784,12 +777,35 @@
                         >{metric.maximum_response_time?.toFixed(2) ||
                           "N/A"}ms</span
                       >
+                      {@const maxPercent =
+                        (metric.maximum_response_time / maxInHistory) * 100}
+                      {@const maxColor =
+                        maxPercent < 33
+                          ? "#10b981"
+                          : maxPercent < 66
+                            ? "#f59e0b"
+                            : "#ef4444"}
                       <div
-                        style="flex: 1; height: 20px; background: linear-gradient(90deg, #ef4444 0%, #f87171 {(metric.maximum_response_time /
-                          maxInHistory) *
-                          100}%, transparent {(metric.maximum_response_time /
-                          maxInHistory) *
-                          100}%); border-radius: 4px;"
+                        style="flex: 1; height: 20px; background: linear-gradient(90deg, {maxColor} 0%, {maxColor} {maxPercent}%, transparent {maxPercent}%); border-radius: 4px;"
+                      ></div>
+                    </div>
+                  </td>
+                  <td class="duration-cell">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="min-width: 60px;"
+                        >{metric.average_response_time?.toFixed(2) ||
+                          "N/A"}ms</span
+                      >
+                      {@const avgPercent =
+                        (metric.average_response_time / maxInHistory) * 100}
+                      {@const avgColor =
+                        avgPercent < 33
+                          ? "#10b981"
+                          : avgPercent < 66
+                            ? "#f59e0b"
+                            : "#ef4444"}
+                      <div
+                        style="flex: 1; height: 20px; background: linear-gradient(90deg, {avgColor} 0%, {avgColor} {avgPercent}%, transparent {avgPercent}%); border-radius: 4px;"
                       ></div>
                     </div>
                   </td>

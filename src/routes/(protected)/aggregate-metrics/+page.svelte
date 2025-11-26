@@ -30,6 +30,9 @@
   let refreshInterval: number | undefined = undefined;
   let countdownInterval: number | undefined = undefined;
   let currentTime = $state(new Date().toLocaleString());
+  let currentTimeUTC = $state(
+    new Date().toISOString().replace("T", " ").slice(0, 19),
+  );
   let lastRefreshTime = $state(new Date().toLocaleString());
   let countdown = $state(5);
   let isCountingDown = $state(false);
@@ -84,8 +87,7 @@
     }
 
     const now = new Date();
-    const seconds = parseInt(autoRefresh);
-    now.setSeconds(now.getSeconds() + seconds);
+    // Set to_date to current time (not future time)
     queryForm.to_date = now.toISOString().slice(0, 19);
 
     // Set from_date to 1 hour earlier than to_date
@@ -145,6 +147,10 @@
       // Update current time every second
       setInterval(() => {
         currentTime = new Date().toLocaleString();
+        currentTimeUTC = new Date()
+          .toISOString()
+          .replace("T", " ")
+          .slice(0, 19);
       }, 1000);
     }
   });
@@ -192,7 +198,7 @@
             average_response_time: result.average_response_time,
             minimum_response_time: result.minimum_response_time,
             maximum_response_time: result.maximum_response_time,
-            timestamp: new Date().toLocaleString(),
+            timestamp: new Date().toISOString().replace("T", " ").slice(0, 19),
           };
 
           // Add to beginning of array and keep max 20 entries
@@ -369,7 +375,7 @@
     <div class="panel-header">
       <h2 class="panel-title">Query Aggregate Metrics</h2>
       <div class="panel-subtitle">
-        Search and filter aggregate API metrics with custom parameters
+        Current Date Time (UTC): <strong>{currentTimeUTC}</strong>
       </div>
     </div>
 
@@ -383,7 +389,7 @@
             <h3 class="form-section-title" style="margin: 0;">
               Query Parameters
             </h3>
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
               <button
                 type="button"
                 class="btn btn-secondary"
@@ -419,7 +425,7 @@
           </div>
           <div class="form-row date-row">
             <div class="form-field date-field">
-              <label for="from_date">From Date</label>
+              <label for="from_date">From Date (UTC)</label>
               <input
                 type="datetime-local"
                 id="from_date"
@@ -430,7 +436,7 @@
               />
             </div>
             <div class="form-field date-field">
-              <label for="to_date">To Date</label>
+              <label for="to_date">To Date (UTC)</label>
               <input
                 type="datetime-local"
                 id="to_date"
@@ -627,7 +633,7 @@
           <table class="metrics-table">
             <thead>
               <tr>
-                <th>Timestamp</th>
+                <th>Timestamp (UTC)</th>
                 <th>Total Count</th>
                 <th>Average Response Time</th>
                 <th>Minimum Response Time</th>

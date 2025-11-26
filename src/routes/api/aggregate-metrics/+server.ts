@@ -3,6 +3,7 @@ import type { RequestHandler } from "./$types";
 import { obp_requests } from "$lib/obp/requests";
 import { SessionOAuthHelper } from "$lib/oauth/sessionHelper";
 import { createLogger } from "$lib/utils/logger";
+import { env } from "$env/dynamic/public";
 
 const logger = createLogger("AggregateMetricsAPI");
 
@@ -32,10 +33,29 @@ export const GET: RequestHandler = async ({ url, locals }) => {
     logger.info("=== AGGREGATE METRICS API CALL ===");
     logger.info(`Request: ${endpoint}`);
 
-    const response = await obp_requests.get(endpoint, accessToken);
+    // Make the fetch call directly to capture headers
+    const obpResponse = await fetch(
+      `${env.PUBLIC_OBP_BASE_URL || ""}${endpoint}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    // Extract correlation ID from response headers
+    const correlationId =
+      obpResponse.headers.get("X-Correlation-Id") ||
+      obpResponse.headers.get("correlation-id") ||
+      obpResponse.headers.get("x-correlation-id") ||
+      "N/A";
+
+    const response = await obpResponse.json();
 
     logger.info("Raw response from OBP API:");
     logger.info(JSON.stringify(response, null, 2));
+    logger.info(`Correlation ID: ${correlationId}`);
 
     // Aggregate metrics returns an array with a single object containing count, average_response_time, min, max
     if (
@@ -47,12 +67,18 @@ export const GET: RequestHandler = async ({ url, locals }) => {
       logger.info(
         `Response: count=${metrics.count}, avg=${metrics.average_response_time}ms`,
       );
-      return json({
+
+      const responseData = json({
         count: metrics.count,
         average_response_time: metrics.average_response_time,
         minimum_response_time: metrics.minimum_response_time,
         maximum_response_time: metrics.maximum_response_time,
       });
+
+      // Add correlation ID to response headers
+      responseData.headers.set("X-Correlation-Id", correlationId);
+
+      return responseData;
     } else {
       logger.warn("NO AGGREGATE METRICS DATA IN RESPONSE");
       return json({

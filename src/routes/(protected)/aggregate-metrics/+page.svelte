@@ -38,6 +38,7 @@
   let isCountingDown = $state(false);
   let timestampColorIndex = $state(0);
   let autoRefresh = $state("5");
+  let lastCorrelationId = $state<string>("N/A");
 
   // Configuration information
   let obpInfo = $derived(configHelpers.getObpConnectionInfo());
@@ -189,13 +190,25 @@
 
     // Call API endpoint directly with the ON_PAGE_METRICS_REQUEST_URL params
     fetch(`/api/aggregate-metrics?${currentQueryString}`)
-      .then((response) => response.json())
-      .then((result) => {
+      .then((response) => {
+        const correlationId =
+          response.headers.get("X-Correlation-Id") ||
+          response.headers.get("x-correlation-id") ||
+          response.headers.get("correlation-id") ||
+          response.headers.get("Correlation-Id") ||
+          "N/A";
+        return response.json().then((result) => ({ result, correlationId }));
+      })
+      .then(({ result, correlationId }) => {
         if (result.error) {
           console.error("API error:", result.error);
           apiError = result.error;
         } else if (result.count !== undefined) {
           apiError = undefined;
+
+          // Store the correlation ID
+          lastCorrelationId = correlationId;
+
           // Add new result to the top of the history
           const newEntry = {
             count: result.count,
@@ -688,6 +701,10 @@
         {:else}
           <span class="countdown-idle">Next refresh in {countdown}s</span>
         {/if}
+        •
+        <span style="font-family: monospace; font-size: 0.85em;">
+          Correlation ID: {lastCorrelationId}
+        </span>
       </div>
     </div>
 

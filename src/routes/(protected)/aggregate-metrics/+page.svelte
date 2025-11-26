@@ -198,7 +198,8 @@
             average_response_time: result.average_response_time,
             minimum_response_time: result.minimum_response_time,
             maximum_response_time: result.maximum_response_time,
-            timestamp: new Date().toISOString().replace("T", " ").slice(0, 19),
+            from_date: queryForm.from_date,
+            to_date: queryForm.to_date,
           };
 
           // Add to beginning of array and keep max 20 entries
@@ -329,6 +330,25 @@
       second: "2-digit",
       hour12: false,
     });
+  }
+
+  function calculateSpan(fromDate: string, toDate: string): string {
+    if (!fromDate || !toDate) return "N/A";
+
+    const from = new Date(fromDate);
+    const to = new Date(toDate);
+    const diffMs = to.getTime() - from.getTime();
+
+    if (diffMs < 0) return "Invalid";
+
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const hours = Math.floor(
+      (diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
+    );
+    const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    const secs = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+    return `${days}d ${hours}h ${mins}m ${secs}s`;
   }
 
   function getVerbColor(verb: string): string {
@@ -633,7 +653,9 @@
           <table class="metrics-table">
             <thead>
               <tr>
-                <th>Timestamp (UTC)</th>
+                <th>From Date (UTC)</th>
+                <th>To Date (UTC)</th>
+                <th>Span</th>
                 <th>Total Count</th>
                 <th>Average Response Time</th>
                 <th>Minimum Response Time</th>
@@ -647,7 +669,13 @@
                 )}
                 <tr>
                   <td class="date-cell">
-                    {metric.timestamp}
+                    {metric.from_date}
+                  </td>
+                  <td class="date-cell">
+                    {metric.to_date}
+                  </td>
+                  <td class="date-cell">
+                    {calculateSpan(metric.from_date, metric.to_date)}
                   </td>
                   <td class="count-cell">
                     {metric.count}

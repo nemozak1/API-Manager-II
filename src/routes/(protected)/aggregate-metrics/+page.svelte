@@ -383,7 +383,14 @@
             <h3 class="form-section-title" style="margin: 0;">
               Query Parameters
             </h3>
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <button
+                class="refresh-btn"
+                on:click={refreshMetrics}
+                title="Manual refresh"
+              >
+                🔄
+              </button>
               <label for="auto_refresh" style="font-size: 0.875rem; margin: 0;"
                 >Auto Refresh:</label
               >
@@ -587,13 +594,6 @@
             style="padding: 0.375rem 0.75rem; font-size: 0.875rem;"
           >
             🗑️ Clear Form
-          </button>
-          <button
-            class="refresh-btn"
-            on:click={refreshMetrics}
-            title="Manual refresh"
-          >
-            🔄
           </button>
         </div>
       </div>

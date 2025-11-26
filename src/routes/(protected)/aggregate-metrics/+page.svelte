@@ -78,6 +78,8 @@
     verb: "",
     correlation_id: "",
     duration: "",
+    exclude_app_names: "",
+    http_status_code: "",
   });
 
   // Function to update to_date and from_date based on Auto Refresh setting
@@ -138,6 +140,8 @@
         verb: urlParams.get("verb") || "",
         correlation_id: urlParams.get("correlation_id") || "",
         duration: urlParams.get("duration") || "",
+        exclude_app_names: urlParams.get("exclude_app_names") || "",
+        http_status_code: urlParams.get("http_status_code") || "",
       };
 
       // Sync URL with form values and start auto-refresh
@@ -250,6 +254,18 @@
     if (queryForm.anon && queryForm.anon.trim() !== "") {
       params.set("anon", queryForm.anon);
     }
+    if (
+      queryForm.exclude_app_names &&
+      queryForm.exclude_app_names.trim() !== ""
+    ) {
+      params.set("exclude_app_names", queryForm.exclude_app_names);
+    }
+    if (
+      queryForm.http_status_code &&
+      queryForm.http_status_code.trim() !== ""
+    ) {
+      params.set("http_status_code", queryForm.http_status_code);
+    }
 
     // Always include pagination and sorting
     params.set("limit", queryForm.limit);
@@ -308,6 +324,8 @@
       verb: "",
       correlation_id: "",
       duration: "",
+      exclude_app_names: "",
+      http_status_code: "",
     };
 
     // Reset default date range
@@ -501,7 +519,7 @@
                 <option value="url">URL</option>
                 <option value="user_name">User Name</option>
                 <option value="app_name">App Name</option>
-                <option value="verb">HTTP Method</option>
+                <option value="verb">Method</option>
                 <option value="duration">Duration</option>
               </select>
             </div>
@@ -518,7 +536,7 @@
               </select>
             </div>
             <div class="form-field narrow-field">
-              <label for="verb">HTTP Method</label>
+              <label for="verb">Method</label>
               <select
                 id="verb"
                 bind:value={queryForm.verb}
@@ -533,6 +551,27 @@
                 <option value="PATCH">PATCH</option>
               </select>
             </div>
+            <div class="form-field narrow-field">
+              <label for="http_status_code">Code</label>
+              <select
+                id="http_status_code"
+                bind:value={queryForm.http_status_code}
+                on:change={handleFieldChange}
+                class="form-input"
+              >
+                <option value="">All Status Codes</option>
+                <option value="200">200 OK</option>
+                <option value="201">201 Created</option>
+                <option value="204">204 No Content</option>
+                <option value="400">400 Bad Request</option>
+                <option value="401">401 Unauthorized</option>
+                <option value="403">403 Forbidden</option>
+                <option value="404">404 Not Found</option>
+                <option value="500">500 Internal Server Error</option>
+                <option value="502">502 Bad Gateway</option>
+                <option value="503">503 Service Unavailable</option>
+              </select>
+            </div>
           </div>
           <div class="form-row">
             <div class="form-field">
@@ -542,6 +581,17 @@
                 id="app_name"
                 bind:value={queryForm.app_name}
                 placeholder="Filter by app name"
+                on:blur={handleFieldChange}
+                class="form-input"
+              />
+            </div>
+            <div class="form-field">
+              <label for="exclude_app_names">Exclude App Names</label>
+              <input
+                type="text"
+                id="exclude_app_names"
+                bind:value={queryForm.exclude_app_names}
+                placeholder="Comma-separated app names to exclude"
                 on:blur={handleFieldChange}
                 class="form-input"
               />
@@ -1205,12 +1255,12 @@
   }
 
   .form-field.date-field {
-    min-width: 260px;
-    max-width: 280px;
+    min-width: 200px;
+    max-width: 220px;
   }
 
   .form-field.narrow-field {
-    max-width: 100px;
+    max-width: 80px;
   }
 
   .form-field label {

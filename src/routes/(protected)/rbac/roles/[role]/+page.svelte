@@ -148,7 +148,9 @@
               {#each endpoints as endpoint}
                 <div class="endpoint-card">
                   <div class="endpoint-header">
-                    <span class="http-method method-{endpoint.request_verb.toLowerCase()}">
+                    <span
+                      class="http-method method-{endpoint.request_verb.toLowerCase()}"
+                    >
                       {endpoint.request_verb}
                     </span>
                     <code class="endpoint-url">{endpoint.request_url}</code>
@@ -158,11 +160,9 @@
                     {#if endpoint.operation_id}
                       <div class="endpoint-meta">
                         <span class="meta-label">Operation ID:</span>
-                        <code class="operation-id">{endpoint.operation_id}</code>
+                        <code class="operation-id">{endpoint.operation_id}</code
+                        >
                       </div>
-                    {/if}
-                    {#if endpoint.description}
-                      <p class="endpoint-description">{endpoint.description}</p>
                     {/if}
                   </div>
                 </div>
@@ -677,6 +677,66 @@
 
   :global([data-mode="dark"]) .endpoint-description {
     color: var(--color-surface-400);
+  }
+
+  .endpoint-description :global(h1),
+  .endpoint-description :global(h2),
+  .endpoint-description :global(h3),
+  .endpoint-description :global(h4) {
+    font-weight: 600;
+    margin-top: 0.75rem;
+    margin-bottom: 0.5rem;
+    color: #111827;
+  }
+
+  :global([data-mode="dark"]) .endpoint-description :global(h1),
+  :global([data-mode="dark"]) .endpoint-description :global(h2),
+  :global([data-mode="dark"]) .endpoint-description :global(h3),
+  :global([data-mode="dark"]) .endpoint-description :global(h4) {
+    color: var(--color-surface-100);
+  }
+
+  .endpoint-description :global(code) {
+    background: #f3f4f6;
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+    font-size: 0.8125rem;
+    font-family: monospace;
+  }
+
+  :global([data-mode="dark"]) .endpoint-description :global(code) {
+    background: rgb(var(--color-surface-700));
+  }
+
+  .endpoint-description :global(pre) {
+    background: #f9fafb;
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    overflow-x: auto;
+    margin: 0.5rem 0;
+  }
+
+  :global([data-mode="dark"]) .endpoint-description :global(pre) {
+    background: rgb(var(--color-surface-700));
+  }
+
+  .endpoint-description :global(ul),
+  .endpoint-description :global(ol) {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+  }
+
+  .endpoint-description :global(li) {
+    margin: 0.25rem 0;
+  }
+
+  .endpoint-description :global(a) {
+    color: #3b82f6;
+    text-decoration: underline;
+  }
+
+  :global([data-mode="dark"]) .endpoint-description :global(a) {
+    color: rgb(var(--color-primary-400));
   }
 
   @media (max-width: 768px) {

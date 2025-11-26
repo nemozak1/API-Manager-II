@@ -31,6 +31,8 @@ interface ResourceDoc {
   request_url: string;
   summary: string;
   description?: string;
+  markdown_description?: string;
+  description_html?: string;
 }
 
 interface ResourceDocsResponse {

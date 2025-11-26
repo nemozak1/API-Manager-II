@@ -90,13 +90,14 @@
     }
 
     const now = new Date();
-    // Set to_date to current time (not future time)
+    // Set to_date to current time
     queryForm.to_date = now.toISOString().slice(0, 19);
 
-    // Set from_date to 1 hour earlier than to_date
-    const oneHourEarlier = new Date(now);
-    oneHourEarlier.setHours(oneHourEarlier.getHours() - 1);
-    queryForm.from_date = oneHourEarlier.toISOString().slice(0, 19);
+    // Set from_date based on auto refresh period (in seconds)
+    const refreshSeconds = parseInt(autoRefresh);
+    const fromDate = new Date(now);
+    fromDate.setSeconds(fromDate.getSeconds() - refreshSeconds);
+    queryForm.from_date = fromDate.toISOString().slice(0, 19);
   }
 
   // Watch for autoRefresh changes and update to_date

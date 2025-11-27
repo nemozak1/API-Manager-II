@@ -253,6 +253,7 @@
     position: relative;
     display: flex;
     align-items: center;
+    max-width: 33.333%;
   }
 
   .search-input-wrapper :global(.search-icon) {

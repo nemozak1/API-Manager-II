@@ -21,7 +21,8 @@
     if (!searchQuery.trim()) {
       return roles;
     }
-    const query = searchQuery.toLowerCase();
+    // Remove spaces from the query for matching (role names never have spaces)
+    const query = searchQuery.toLowerCase().replace(/\s+/g, "");
     return roles.filter((role: Role) =>
       role.role.toLowerCase().includes(query),
     );

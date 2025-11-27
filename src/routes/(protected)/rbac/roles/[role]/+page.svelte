@@ -79,6 +79,51 @@
     </div>
   {:else}
     <div class="grid-layout">
+      <!-- Endpoints Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="section-header">
+            <h2 class="section-title">
+              <span class="section-icon">🔗</span>
+              Enabled Endpoints
+            </h2>
+            <span class="section-count">{endpoints.length}</span>
+          </div>
+        </div>
+        <div class="panel-content">
+          {#if endpoints.length === 0}
+            <div class="empty-state-small">
+              <p class="empty-text">No endpoints are enabled by this role.</p>
+            </div>
+          {:else}
+            <div class="endpoints-list">
+              {#each endpoints as endpoint}
+                <div class="endpoint-card">
+                  <div class="endpoint-header">
+                    <span
+                      class="http-method method-{endpoint.request_verb.toLowerCase()}"
+                    >
+                      {endpoint.request_verb}
+                    </span>
+                    <code class="endpoint-url">{endpoint.request_url}</code>
+                  </div>
+                  <div class="endpoint-body">
+                    <h4 class="endpoint-title">{endpoint.summary}</h4>
+                    {#if endpoint.operation_id}
+                      <div class="endpoint-meta">
+                        <span class="meta-label">Operation ID:</span>
+                        <code class="operation-id">{endpoint.operation_id}</code
+                        >
+                      </div>
+                    {/if}
+                  </div>
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
+      </div>
+
       <!-- Users Panel -->
       <div class="panel">
         <div class="panel-header">
@@ -122,51 +167,6 @@
                   {/each}
                 </tbody>
               </table>
-            </div>
-          {/if}
-        </div>
-      </div>
-
-      <!-- Endpoints Panel -->
-      <div class="panel">
-        <div class="panel-header">
-          <div class="section-header">
-            <h2 class="section-title">
-              <span class="section-icon">🔗</span>
-              Enabled Endpoints
-            </h2>
-            <span class="section-count">{endpoints.length}</span>
-          </div>
-        </div>
-        <div class="panel-content">
-          {#if endpoints.length === 0}
-            <div class="empty-state-small">
-              <p class="empty-text">No endpoints are enabled by this role.</p>
-            </div>
-          {:else}
-            <div class="endpoints-list">
-              {#each endpoints as endpoint}
-                <div class="endpoint-card">
-                  <div class="endpoint-header">
-                    <span
-                      class="http-method method-{endpoint.request_verb.toLowerCase()}"
-                    >
-                      {endpoint.request_verb}
-                    </span>
-                    <code class="endpoint-url">{endpoint.request_url}</code>
-                  </div>
-                  <div class="endpoint-body">
-                    <h4 class="endpoint-title">{endpoint.summary}</h4>
-                    {#if endpoint.operation_id}
-                      <div class="endpoint-meta">
-                        <span class="meta-label">Operation ID:</span>
-                        <code class="operation-id">{endpoint.operation_id}</code
-                        >
-                      </div>
-                    {/if}
-                  </div>
-                </div>
-              {/each}
             </div>
           {/if}
         </div>

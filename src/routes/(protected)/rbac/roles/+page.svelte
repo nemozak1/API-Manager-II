@@ -1,5 +1,11 @@
 <script lang="ts">
   import type { PageData } from "./$types";
+  import { Search } from "@lucide/svelte";
+
+  interface Role {
+    role: string;
+    bank_id?: string;
+  }
 
   let { data } = $props<{ data: PageData }>();
 
@@ -7,11 +13,25 @@
   let hasApiAccess = $derived(data.hasApiAccess);
   let error = $derived(data.error);
 
+  // Search state
+  let searchQuery = $state("");
+
+  // Filter roles based on search query
+  let filteredRoles = $derived.by(() => {
+    if (!searchQuery.trim()) {
+      return roles;
+    }
+    const query = searchQuery.toLowerCase();
+    return roles.filter((role: Role) =>
+      role.role.toLowerCase().includes(query),
+    );
+  });
+
   // Group roles by bank_id
   let groupedRoles = $derived.by(() => {
-    const grouped = new Map<string, typeof roles>();
+    const grouped = new Map<string, Role[]>();
 
-    roles.forEach((role) => {
+    filteredRoles.forEach((role: Role) => {
       const key = role.bank_id || "System-wide";
       if (!grouped.has(key)) {
         grouped.set(key, []);
@@ -49,6 +69,33 @@
           <span class="count-number">{roles.length}</span>
           <span class="count-label">Total Roles</span>
         </div>
+      </div>
+
+      <!-- Search Box -->
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <Search class="search-icon" size={20} />
+          <input
+            type="text"
+            bind:value={searchQuery}
+            placeholder="Search roles by name..."
+            class="search-input"
+          />
+          {#if searchQuery}
+            <button
+              class="clear-button"
+              onclick={() => (searchQuery = "")}
+              aria-label="Clear search"
+            >
+              ×
+            </button>
+          {/if}
+        </div>
+        {#if searchQuery}
+          <div class="search-results-info">
+            Showing {filteredRoles.length} of {roles.length} roles
+          </div>
+        {/if}
       </div>
     </div>
 
@@ -126,11 +173,7 @@
 
   .panel-header {
     padding: 1.5rem;
-    border-bottom: 1px solid #e5e7eb;
-  }
-
-  :global([data-mode="dark"]) .panel-header {
-    border-bottom-color: rgb(var(--color-surface-700));
+    padding-bottom: 0;
   }
 
   .header-top {
@@ -194,6 +237,99 @@
   }
 
   :global([data-mode="dark"]) .count-label {
+    color: var(--color-surface-400);
+  }
+
+  .search-container {
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  :global([data-mode="dark"]) .search-container {
+    border-bottom-color: rgb(var(--color-surface-700));
+  }
+
+  .search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .search-input-wrapper :global(.search-icon) {
+    position: absolute;
+    left: 1rem;
+    color: #9ca3af;
+    pointer-events: none;
+  }
+
+  :global([data-mode="dark"]) .search-input-wrapper :global(.search-icon) {
+    color: var(--color-surface-400);
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 0.75rem 3rem 0.75rem 3rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    background: white;
+    color: #111827;
+    transition: all 0.2s;
+  }
+
+  .search-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  :global([data-mode="dark"]) .search-input {
+    background: rgb(var(--color-surface-700));
+    border-color: rgb(var(--color-surface-600));
+    color: var(--color-surface-100);
+  }
+
+  :global([data-mode="dark"]) .search-input:focus {
+    border-color: rgb(var(--color-primary-500));
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
+
+  .clear-button {
+    position: absolute;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 0;
+    width: 1.5rem;
+    height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+  }
+
+  .clear-button:hover {
+    color: #4b5563;
+  }
+
+  :global([data-mode="dark"]) .clear-button {
+    color: var(--color-surface-400);
+  }
+
+  :global([data-mode="dark"]) .clear-button:hover {
+    color: var(--color-surface-200);
+  }
+
+  .search-results-info {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+
+  :global([data-mode="dark"]) .search-results-info {
     color: var(--color-surface-400);
   }
 

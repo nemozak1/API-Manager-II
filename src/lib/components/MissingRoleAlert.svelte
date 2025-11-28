@@ -66,28 +66,17 @@
 <div class="alert alert-missing-role">
   <div class="alert-header">
     <span class="alert-icon">🔒</span>
-    <strong>Missing Required Role{roles.length > 1 ? "s" : ""}</strong>
+    <strong>Missing Entitlement{roles.length > 1 ? "s" : ""}</strong>
     {#if errorCode}
       <span class="error-code">OBP-{errorCode}</span>
     {/if}
   </div>
 
-  <p class="alert-message">
-    You need the following role{roles.length > 1 ? "s" : ""} to access this page:
-  </p>
-
-  <ul class="role-list">
+  <div class="entitlement-list">
     {#each roles as role}
-      <li>
-        <code class="role-code">{role}</code>
-        {#if role.includes("AtOneBank") && !role.includes("AtAnyBank")}
-          <span class="role-scope bank-level">Bank-level</span>
-        {:else if role.includes("AtAnyBank")}
-          <span class="role-scope system-wide">System-wide</span>
-        {/if}
-      </li>
+      <div class="entitlement-name">{role}</div>
     {/each}
-  </ul>
+  </div>
 
   {#if bankId}
     <p class="bank-info">
@@ -171,63 +160,19 @@
     background: rgba(255, 255, 255, 0.1);
   }
 
-  .alert-message {
-    margin: 0.5rem 0;
-    font-size: 0.875rem;
+  .entitlement-list {
+    margin: 1rem 0;
   }
 
-  .role-list {
-    margin: 0.75rem 0;
-    padding-left: 1.5rem;
-    list-style: disc;
-  }
-
-  .role-list li {
-    margin: 0.25rem 0;
-  }
-
-  .role-code {
-    background: rgba(0, 0, 0, 0.15);
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-family: monospace;
-    font-size: 0.875rem;
+  .entitlement-name {
+    font-size: 1.25rem;
     font-weight: 600;
     color: #78350f;
+    margin: 0.5rem 0;
   }
 
-  :global([data-mode="dark"]) .role-code {
-    background: rgba(255, 255, 255, 0.15);
+  :global([data-mode="dark"]) .entitlement-name {
     color: rgb(var(--color-warning-100));
-  }
-
-  .role-scope {
-    display: inline-block;
-    font-size: 0.75rem;
-    padding: 0.125rem 0.5rem;
-    border-radius: 9999px;
-    margin-left: 0.5rem;
-    font-weight: 600;
-  }
-
-  .role-scope.bank-level {
-    background: rgba(59, 130, 246, 0.15);
-    color: #1e40af;
-  }
-
-  :global([data-mode="dark"]) .role-scope.bank-level {
-    background: rgba(59, 130, 246, 0.2);
-    color: rgb(var(--color-primary-300));
-  }
-
-  .role-scope.system-wide {
-    background: rgba(16, 185, 129, 0.15);
-    color: #065f46;
-  }
-
-  :global([data-mode="dark"]) .role-scope.system-wide {
-    background: rgba(16, 185, 129, 0.2);
-    color: rgb(var(--color-success-300));
   }
 
   .bank-info {

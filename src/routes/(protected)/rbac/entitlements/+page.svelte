@@ -1,7 +1,99 @@
 <script lang="ts">
-  import { page } from "$app/state";
+  import type { PageData } from "./$types";
+  import { Search, User, Building2, Globe, Trash2 } from "@lucide/svelte";
+  import MissingRoleAlert from "$lib/components/MissingRoleAlert.svelte";
 
-  let { data } = $props<{ data: any }>();
+  interface Entitlement {
+    entitlement_id: string;
+    role_name: string;
+    bank_id: string;
+    user_id: string;
+  }
+
+  let { data } = $props<{ data: PageData }>();
+
+  let entitlements = $derived(data.entitlements || []);
+  let hasApiAccess = $derived(data.hasApiAccess);
+  let error = $derived(data.error);
+
+  // Parse OBP error to extract missing role information
+  let parsedError = $derived.by(() => {
+    if (!error) return null;
+
+    // Check if it's an OBP missing role error
+    const missingRoleMatch = error.match(
+      /OBP-(\d+):.*missing one or more roles:\s*(.+)/i,
+    );
+    if (missingRoleMatch) {
+      const rolesString = missingRoleMatch[2];
+      const roles = rolesString.split(",").map((r: string) => r.trim());
+
+      // Try to detect bank_id from the error message or role name
+      let bankId: string | undefined = undefined;
+
+      // Check if any role requires a bank (ends with AtOneBank)
+      const requiresBank = roles.some(
+        (role: string) =>
+          role.includes("AtOneBank") && !role.includes("AtAnyBank"),
+      );
+
+      // Try to extract bank_id from error message if present
+      const bankMatch = error.match(/bank[_\s]?id[:\s]+([a-zA-Z0-9._-]+)/i);
+      if (bankMatch) {
+        bankId = bankMatch[1];
+      }
+
+      return {
+        type: "missing_role",
+        code: missingRoleMatch[1],
+        roles: roles,
+        bankId: bankId,
+        requiresBank: requiresBank,
+        message: error,
+      };
+    }
+
+    return {
+      type: "general",
+      message: error,
+    };
+  });
+
+  // Search state
+  let searchQuery = $state("");
+
+  // Filter entitlements based on search query
+  let filteredEntitlements = $derived.by(() => {
+    if (!searchQuery.trim()) {
+      return entitlements;
+    }
+    const query = searchQuery.toLowerCase();
+    return entitlements.filter(
+      (ent: Entitlement) =>
+        ent.role_name.toLowerCase().includes(query) ||
+        ent.user_id.toLowerCase().includes(query) ||
+        (ent.bank_id && ent.bank_id.toLowerCase().includes(query)),
+    );
+  });
+
+  // Group entitlements by bank_id
+  let groupedEntitlements = $derived.by(() => {
+    const grouped = new Map<string, Entitlement[]>();
+
+    filteredEntitlements.forEach((ent: Entitlement) => {
+      const key = ent.bank_id || "System-wide";
+      if (!grouped.has(key)) {
+        grouped.set(key, []);
+      }
+      grouped.get(key)!.push(ent);
+    });
+
+    return grouped;
+  });
+
+  // Count total entitlements
+  let totalCount = $derived(entitlements.length);
+  let filteredCount = $derived(filteredEntitlements.length);
 </script>
 
 <svelte:head>
@@ -9,30 +101,150 @@
 </svelte:head>
 
 <div class="container mx-auto px-4 py-8">
+  <!-- Error Alert -->
+  {#if error && parsedError}
+    {#if parsedError.type === "missing_role"}
+      <MissingRoleAlert
+        roles={parsedError.roles}
+        errorCode={parsedError.code}
+        message={parsedError.message}
+        bankId={parsedError.bankId}
+      />
+    {:else}
+      <div class="alert alert-error mb-6">
+        <strong>Error:</strong>
+        {error}
+      </div>
+    {/if}
+  {/if}
+
   <div class="panel">
     <div class="panel-header">
-      <h1 class="panel-title">RBAC Entitlements</h1>
-      <div class="panel-subtitle">
-        Manage entitlements and access control policies for your organization
+      <div class="header-top">
+        <div>
+          <h1 class="panel-title">RBAC Entitlements</h1>
+          <div class="panel-subtitle">
+            Manage user entitlements and role assignments across your
+            organization
+          </div>
+        </div>
+        <div class="entitlement-count">
+          <span class="count-number">{totalCount}</span>
+          <span class="count-label">Total Entitlements</span>
+        </div>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <Search class="search-icon" size={20} />
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Search by role, user ID, or bank ID..."
+            bind:value={searchQuery}
+          />
+          {#if searchQuery}
+            <button
+              class="clear-button"
+              onclick={() => (searchQuery = "")}
+              aria-label="Clear search"
+            >
+              ✕
+            </button>
+          {/if}
+        </div>
+        {#if searchQuery}
+          <div class="search-results-info">
+            Showing {filteredCount} of {totalCount} entitlements
+          </div>
+        {/if}
       </div>
     </div>
 
     <div class="panel-content">
-      <div class="empty-state">
-        <div
-          style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; text-align: center;"
-        >
-          🔐
+      {#if !hasApiAccess}
+        <div class="empty-state">
+          <div class="empty-icon">🔒</div>
+          <h4 class="empty-title">No API Access</h4>
+          <p class="empty-text">
+            You need to authenticate with the API to view entitlements.
+            <br />
+            Please ensure you have valid OAuth credentials.
+          </p>
         </div>
-        <h4
-          style="color: #4a5568; margin-bottom: 0.5rem; font-size: 1.125rem; text-align: center;"
-        >
-          RBAC Entitlements
-        </h4>
-        <p style="text-align: center; margin-bottom: 1.5rem; color: #6b7280;">
-          Entitlement management coming soon.
-        </p>
-      </div>
+      {:else if entitlements.length === 0}
+        <div class="empty-state">
+          <div class="empty-icon">🔐</div>
+          <h4 class="empty-title">No Entitlements Found</h4>
+          <p class="empty-text">
+            There are currently no entitlements in the system.
+          </p>
+        </div>
+      {:else if filteredEntitlements.length === 0}
+        <div class="empty-state">
+          <div class="empty-icon">🔍</div>
+          <h4 class="empty-title">No Results Found</h4>
+          <p class="empty-text">
+            No entitlements match your search query "{searchQuery}".
+            <br />
+            Try adjusting your search terms.
+          </p>
+        </div>
+      {:else}
+        <div class="entitlements-container">
+          {#each Array.from(groupedEntitlements.entries()) as [bankId, ents]}
+            <div class="bank-group">
+              <div class="bank-header">
+                {#if bankId === "System-wide"}
+                  <Globe size={20} class="bank-icon" />
+                  <h3 class="bank-name">System-wide Entitlements</h3>
+                {:else}
+                  <Building2 size={20} class="bank-icon" />
+                  <h3 class="bank-name">Bank: {bankId}</h3>
+                {/if}
+                <span class="bank-count">{ents.length}</span>
+              </div>
+
+              <div class="entitlements-list">
+                {#each ents as entitlement}
+                  <div class="entitlement-card">
+                    <div class="entitlement-header">
+                      <div class="entitlement-role">
+                        <h4 class="role-name">{entitlement.role_name}</h4>
+                      </div>
+                      <div class="entitlement-id">
+                        ID: {entitlement.entitlement_id}
+                      </div>
+                    </div>
+
+                    <div class="entitlement-body">
+                      <div class="entitlement-info">
+                        <User size={16} class="info-icon" />
+                        <div class="info-content">
+                          <span class="info-label">User ID:</span>
+                          <span class="info-value">{entitlement.user_id}</span>
+                        </div>
+                      </div>
+
+                      {#if entitlement.bank_id}
+                        <div class="entitlement-info">
+                          <Building2 size={16} class="info-icon" />
+                          <div class="info-content">
+                            <span class="info-label">Bank ID:</span>
+                            <span class="info-value">{entitlement.bank_id}</span
+                            >
+                          </div>
+                        </div>
+                      {/if}
+                    </div>
+                  </div>
+                {/each}
+              </div>
+            </div>
+          {/each}
+        </div>
+      {/if}
     </div>
   </div>
 </div>
@@ -62,6 +274,14 @@
     border-bottom-color: rgb(var(--color-surface-700));
   }
 
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+  }
+
   .panel-title {
     font-size: 1.5rem;
     font-weight: 600;
@@ -83,8 +303,154 @@
     color: var(--color-surface-400);
   }
 
+  .entitlement-count {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    padding: 0.75rem 1.25rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+  }
+
+  :global([data-mode="dark"]) .entitlement-count {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .count-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: white;
+    line-height: 1;
+  }
+
+  :global([data-mode="dark"]) .count-number {
+    color: white;
+  }
+
+  .count-label {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.9);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0.25rem;
+  }
+
+  :global([data-mode="dark"]) .count-label {
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .search-container {
+    margin-top: 1rem;
+  }
+
+  :global([data-mode="dark"]) .search-container {
+    border-top-color: rgb(var(--color-surface-700));
+  }
+
+  .search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .search-input-wrapper :global(.search-icon) {
+    position: absolute;
+    left: 1rem;
+    color: #9ca3af;
+    pointer-events: none;
+  }
+
+  :global([data-mode="dark"]) .search-input-wrapper :global(.search-icon) {
+    color: var(--color-surface-400);
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 0.75rem 3rem 0.75rem 3rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+  }
+
+  .search-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  :global([data-mode="dark"]) .search-input {
+    background: rgb(var(--color-surface-700));
+    border-color: rgb(var(--color-surface-600));
+    color: var(--color-surface-100);
+  }
+
+  :global([data-mode="dark"]) .search-input:focus {
+    border-color: rgb(var(--color-primary-500));
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+  }
+
+  .clear-button {
+    position: absolute;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: #9ca3af;
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    line-height: 1;
+    transition: color 0.2s;
+    width: 1.5rem;
+    height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .clear-button:hover {
+    color: #4b5563;
+  }
+
+  :global([data-mode="dark"]) .clear-button {
+    color: var(--color-surface-400);
+  }
+
+  :global([data-mode="dark"]) .clear-button:hover {
+    color: var(--color-surface-200);
+  }
+
+  .search-results-info {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+
+  :global([data-mode="dark"]) .search-results-info {
+    color: var(--color-surface-400);
+  }
+
   .panel-content {
-    padding: 2rem;
+    padding: 1.5rem;
+  }
+
+  .alert {
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .alert-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+  }
+
+  :global([data-mode="dark"]) .alert-error {
+    background: rgb(var(--color-error-900));
+    border-color: rgb(var(--color-error-700));
+    color: rgb(var(--color-error-200));
   }
 
   .empty-state {
@@ -95,5 +461,243 @@
 
   :global([data-mode="dark"]) .empty-state {
     color: var(--color-surface-400);
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+
+  .empty-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+  }
+
+  :global([data-mode="dark"]) .empty-title {
+    color: var(--color-surface-200);
+  }
+
+  .empty-text {
+    color: #6b7280;
+  }
+
+  :global([data-mode="dark"]) .empty-text {
+    color: var(--color-surface-400);
+  }
+
+  .entitlements-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .bank-group {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  :global([data-mode="dark"]) .bank-group {
+    border-color: rgb(var(--color-surface-700));
+  }
+
+  .bank-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  :global([data-mode="dark"]) .bank-header {
+    background: rgb(var(--color-surface-700));
+    border-bottom-color: rgb(var(--color-surface-600));
+  }
+
+  .bank-header :global(.bank-icon) {
+    color: #667eea;
+  }
+
+  :global([data-mode="dark"]) .bank-header :global(.bank-icon) {
+    color: rgb(var(--color-primary-400));
+  }
+
+  .bank-name {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+    flex: 1;
+  }
+
+  :global([data-mode="dark"]) .bank-name {
+    color: var(--color-surface-100);
+  }
+
+  .bank-count {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+    background: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+  }
+
+  :global([data-mode="dark"]) .bank-count {
+    background: rgb(var(--color-surface-600));
+    color: var(--color-surface-300);
+  }
+
+  .entitlements-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1rem;
+    padding: 1.5rem;
+  }
+
+  .entitlement-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.2s;
+  }
+
+  .entitlement-card:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border-color: #667eea;
+  }
+
+  :global([data-mode="dark"]) .entitlement-card {
+    background: rgb(var(--color-surface-800));
+    border-color: rgb(var(--color-surface-700));
+  }
+
+  :global([data-mode="dark"]) .entitlement-card:hover {
+    border-color: rgb(var(--color-primary-500));
+  }
+
+  .entitlement-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  :global([data-mode="dark"]) .entitlement-header {
+    border-bottom-color: rgb(var(--color-surface-700));
+  }
+
+  .entitlement-role {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .role-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+    word-break: break-word;
+  }
+
+  :global([data-mode="dark"]) .role-name {
+    color: var(--color-surface-100);
+  }
+
+  .entitlement-id {
+    font-size: 0.7rem;
+    color: #9ca3af;
+    font-family: monospace;
+  }
+
+  :global([data-mode="dark"]) .entitlement-id {
+    color: var(--color-surface-500);
+  }
+
+  .entitlement-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .entitlement-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .entitlement-info :global(.info-icon) {
+    margin-top: 0.125rem;
+    color: #6b7280;
+    flex-shrink: 0;
+  }
+
+  :global([data-mode="dark"]) .entitlement-info :global(.info-icon) {
+    color: var(--color-surface-400);
+  }
+
+  .info-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    align-items: baseline;
+    min-width: 0;
+  }
+
+  .info-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #6b7280;
+    flex-shrink: 0;
+  }
+
+  :global([data-mode="dark"]) .info-label {
+    color: var(--color-surface-400);
+  }
+
+  .info-value {
+    font-size: 0.75rem;
+    color: #111827;
+    word-break: break-all;
+  }
+
+  :global([data-mode="dark"]) .info-value {
+    color: var(--color-surface-200);
+  }
+
+  @media (max-width: 768px) {
+    .header-top {
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .entitlement-count {
+      align-self: stretch;
+      align-items: center;
+    }
+
+    .search-input-wrapper {
+      font-size: 0.875rem;
+    }
+
+    .entitlements-list {
+      grid-template-columns: 1fr;
+      padding: 1rem;
+    }
+
+    .bank-header {
+      padding: 0.75rem 1rem;
+    }
+
+    .entitlement-card {
+      padding: 0.875rem;
+    }
   }
 </style>

@@ -1,6 +1,8 @@
 <script lang="ts">
   import { ShieldCheck } from "@lucide/svelte";
   import MessageBox from "$lib/components/MessageBox.svelte";
+  import { rolesCache } from "$lib/stores/rolesCache.svelte";
+  import { onMount } from "svelte";
 
   interface Props {
     roles: string[];
@@ -14,6 +16,31 @@
   let isSubmitting = $state(false);
   let submitSuccess = $state(false);
   let submitError = $state<string | null>(null);
+  let rolesMetadata = $state<Map<string, boolean>>(new Map());
+  let loadingMetadata = $state(false);
+
+  // Fetch role metadata on mount
+  onMount(async () => {
+    loadingMetadata = true;
+    try {
+      await rolesCache.fetchRoles();
+      // Build a map of role name -> requires_bank_id
+      const metadataMap = new Map<string, boolean>();
+      roles.forEach((roleName) => {
+        metadataMap.set(roleName, rolesCache.requiresBankId(roleName));
+      });
+      rolesMetadata = metadataMap;
+    } catch (error) {
+      console.error("Failed to fetch role metadata:", error);
+    } finally {
+      loadingMetadata = false;
+    }
+  });
+
+  // Check if any role requires bank_id
+  let requiresBankId = $derived(
+    Array.from(rolesMetadata.values()).some((requires) => requires),
+  );
 
   async function handleRequestClick() {
     if (isSubmitting) return;
@@ -24,6 +51,15 @@
     try {
       // Submit entitlement request for each missing role
       for (const role of roles) {
+        const requiresBank = rolesMetadata.get(role) ?? false;
+
+        // Check if role requires bank_id but we don't have one
+        if (requiresBank && !bankId) {
+          throw new Error(
+            `The role "${role}" requires a bank_id. Please contact your administrator to specify which bank you need access to.`,
+          );
+        }
+
         const requestBody: any = {
           role_name: role,
         };
@@ -82,6 +118,11 @@
     <p class="bank-info">
       <strong>Bank ID:</strong> <code class="bank-code">{bankId}</code>
     </p>
+  {:else if requiresBankId && !loadingMetadata}
+    <div class="bank-warning">
+      <strong>⚠️ Bank ID Required:</strong> This entitlement requires a specific
+      bank ID. Contact your administrator to request access for a specific bank.
+    </div>
   {/if}
 
   {#if message}
@@ -200,6 +241,22 @@
 
   :global([data-mode="dark"]) .bank-code {
     background: rgba(255, 255, 255, 0.15);
+  }
+
+  .bank-warning {
+    margin: 1rem 0 0.5rem 0;
+    padding: 0.75rem;
+    background: rgba(245, 158, 11, 0.15);
+    border-left: 3px solid #f59e0b;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    color: #92400e;
+  }
+
+  :global([data-mode="dark"]) .bank-warning {
+    background: rgba(245, 158, 11, 0.2);
+    border-left-color: rgb(var(--color-warning-500));
+    color: rgb(var(--color-warning-200));
   }
 
   .alert-actions {

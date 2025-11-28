@@ -32,18 +32,13 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
     logger.info("=== CREATE ENTITLEMENT REQUEST ===");
     logger.info(`Role: ${role_name}`);
-    if (bank_id) {
-      logger.info(`Bank ID: ${bank_id}`);
-    }
+    logger.info(`Bank ID: ${bank_id || "(empty string)"}`);
 
     const requestBody: any = {
       role_name,
+      // Always include bank_id - use empty string for system-wide roles
+      bank_id: bank_id || "",
     };
-
-    // Only include bank_id if it's provided
-    if (bank_id) {
-      requestBody.bank_id = bank_id;
-    }
 
     const endpoint = `/obp/v6.0.0/entitlement-requests`;
     logger.info(`POST ${endpoint}`);
@@ -63,7 +58,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     logger.error("Error creating entitlement request:", err);
 
     const errorMessage =
-      err instanceof Error ? err.message : "Failed to create entitlement request";
+      err instanceof Error
+        ? err.message
+        : "Failed to create entitlement request";
 
     return json({ error: errorMessage }, { status: 500 });
   }

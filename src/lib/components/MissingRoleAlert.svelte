@@ -51,23 +51,11 @@
     try {
       // Submit entitlement request for each missing role
       for (const role of roles) {
-        const requiresBank = rolesMetadata.get(role) ?? false;
-
-        // Check if role requires bank_id but we don't have one
-        if (requiresBank && !bankId) {
-          throw new Error(
-            `The role "${role}" requires a bank_id. Please contact your administrator to specify which bank you need access to.`,
-          );
-        }
-
         const requestBody: any = {
           role_name: role,
+          // Always send bank_id - use empty string for system-wide roles
+          bank_id: bankId || "",
         };
-
-        // Only include bank_id if it's provided
-        if (bankId) {
-          requestBody.bank_id = bankId;
-        }
 
         const response = await fetch("/api/rbac/entitlement-requests", {
           method: "POST",
@@ -118,11 +106,6 @@
     <p class="bank-info">
       <strong>Bank ID:</strong> <code class="bank-code">{bankId}</code>
     </p>
-  {:else if requiresBankId && !loadingMetadata}
-    <div class="bank-warning">
-      <strong>⚠️ Bank ID Required:</strong> This entitlement requires a specific
-      bank ID. Contact your administrator to request access for a specific bank.
-    </div>
   {/if}
 
   {#if message}
@@ -241,22 +224,6 @@
 
   :global([data-mode="dark"]) .bank-code {
     background: rgba(255, 255, 255, 0.15);
-  }
-
-  .bank-warning {
-    margin: 1rem 0 0.5rem 0;
-    padding: 0.75rem;
-    background: rgba(245, 158, 11, 0.15);
-    border-left: 3px solid #f59e0b;
-    border-radius: 4px;
-    font-size: 0.875rem;
-    color: #92400e;
-  }
-
-  :global([data-mode="dark"]) .bank-warning {
-    background: rgba(245, 158, 11, 0.2);
-    border-left-color: rgb(var(--color-warning-500));
-    color: rgb(var(--color-warning-200));
   }
 
   .alert-actions {

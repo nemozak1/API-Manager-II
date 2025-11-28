@@ -6,19 +6,9 @@
 
   let roleName = $derived(data.roleName);
   let entitlements = $derived(data.entitlements || []);
-  let users = $derived(data.users || []);
   let endpoints = $derived(data.endpoints || []);
   let hasApiAccess = $derived(data.hasApiAccess);
   let error = $derived(data.error);
-
-  // Create a map for quick user lookup
-  let userMap = $derived.by(() => {
-    const map = new Map();
-    users.forEach((user) => {
-      map.set(user.user_id, user);
-    });
-    return map;
-  });
 </script>
 
 <svelte:head>
@@ -50,7 +40,7 @@
           <h1 class="role-title">{roleName}</h1>
           <div class="role-stats">
             <span class="stat-badge">
-              <span class="stat-number">{users.length}</span>
+              <span class="stat-number">{entitlements.length}</span>
               <span class="stat-label">Users</span>
             </span>
             <span class="stat-separator">•</span>
@@ -132,11 +122,11 @@
               <span class="section-icon">👥</span>
               Users with this Role
             </h2>
-            <span class="section-count">{users.length}</span>
+            <span class="section-count">{entitlements.length}</span>
           </div>
         </div>
         <div class="panel-content">
-          {#if users.length === 0}
+          {#if entitlements.length === 0}
             <div class="empty-state-small">
               <p class="empty-text">No users have been assigned this role.</p>
             </div>
@@ -146,22 +136,26 @@
                 <thead>
                   <tr>
                     <th>Username</th>
-                    <th>Email</th>
-                    <th>Display Name</th>
-                    <th>Provider</th>
+                    <th>User ID</th>
+                    <th>Bank ID</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {#each users as user}
+                  {#each entitlements as entitlement}
                     <tr>
                       <td class="username-cell">
                         <span class="user-icon">👤</span>
-                        {user.username}
+                        {entitlement.username}
                       </td>
-                      <td class="email-cell">{user.email || "N/A"}</td>
-                      <td>{user.display_name || "N/A"}</td>
+                      <td class="userid-cell">
+                        <code>{entitlement.user_id}</code>
+                      </td>
                       <td>
-                        <span class="provider-badge">{user.provider}</span>
+                        {#if entitlement.bank_id}
+                          <span class="bank-badge">{entitlement.bank_id}</span>
+                        {:else}
+                          <span class="system-badge">System-wide</span>
+                        {/if}
                       </td>
                     </tr>
                   {/each}
@@ -476,17 +470,27 @@
     font-size: 1.125rem;
   }
 
-  .email-cell {
-    color: #6b7280;
+  .userid-cell {
     font-family: monospace;
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
+    color: #6b7280;
   }
 
-  :global([data-mode="dark"]) .email-cell {
+  :global([data-mode="dark"]) .userid-cell {
     color: var(--color-surface-400);
   }
 
-  .provider-badge {
+  .userid-cell code {
+    background: #f3f4f6;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+  }
+
+  :global([data-mode="dark"]) .userid-cell code {
+    background: rgb(var(--color-surface-700));
+  }
+
+  .bank-badge {
     display: inline-block;
     padding: 0.25rem 0.5rem;
     background: #dbeafe;
@@ -496,9 +500,24 @@
     font-weight: 500;
   }
 
-  :global([data-mode="dark"]) .provider-badge {
+  :global([data-mode="dark"]) .bank-badge {
     background: rgba(59, 130, 246, 0.2);
     color: rgb(147, 197, 253);
+  }
+
+  .system-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    background: #f3f4f6;
+    color: #6b7280;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  :global([data-mode="dark"]) .system-badge {
+    background: rgb(var(--color-surface-700));
+    color: var(--color-surface-400);
   }
 
   .endpoints-list {

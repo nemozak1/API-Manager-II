@@ -9,6 +9,7 @@ import { Redis } from "ioredis";
 import { env } from "$env/dynamic/private";
 import { oauth2ProviderManager } from "$lib/oauth/providerManager";
 import { SessionOAuthHelper } from "$lib/oauth/sessionHelper";
+import { resourceDocsCache } from "$lib/stores/resourceDocsCache";
 
 // Constants
 const DEFAULT_PORT = 3003;
@@ -150,7 +151,14 @@ const checkAuthorization: Handle = async ({ event, resolve }) => {
       });
     } else {
       logger.debug("User is authenticated:", session.data.user);
-      // Optionally, you can add more checks here, e.g., user roles or permissions
+
+      // Pre-warm resource docs cache in background (non-blocking)
+      const sessionOAuth = SessionOAuthHelper.getSessionOAuth(session);
+      if (sessionOAuth?.accessToken) {
+        resourceDocsCache.preWarmCache(sessionOAuth.accessToken).catch(() => {
+          // Silently fail - pre-warming is best-effort
+        });
+      }
     }
   }
 

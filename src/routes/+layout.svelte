@@ -11,6 +11,8 @@
   } from "$lib/config/navigation";
   import Toast from "$lib/components/Toast.svelte";
   import { createLogger } from "$lib/utils/logger";
+  import { resourceDocsCache } from "$lib/stores/resourceDocsCache";
+  import { onMount } from "svelte";
 
   const logger = createLogger("LayoutClient");
   const layoutStartTime = performance.now();
@@ -69,6 +71,14 @@
     isAuthenticated = false;
     logger.info("ℹ️  User not authenticated");
   }
+
+  // Pre-warm resource docs cache in browser for authenticated users
+  onMount(() => {
+    if (isAuthenticated) {
+      logger.info("🔄 Pre-warming browser resource docs cache...");
+      resourceDocsCache.preWarmCache(undefined as any);
+    }
+  });
 
   let isMyAccountActive = $derived(
     page.url.pathname === "/user" || page.url.pathname.startsWith("/user/"),

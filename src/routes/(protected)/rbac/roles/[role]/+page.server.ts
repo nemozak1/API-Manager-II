@@ -4,6 +4,7 @@ import type { PageServerLoad } from "./$types";
 import { obp_requests } from "$lib/obp/requests";
 import { SessionOAuthHelper } from "$lib/oauth/sessionHelper";
 import { error } from "@sveltejs/kit";
+import { resourceDocsCache } from "$lib/stores/resourceDocsCache";
 
 interface Entitlement {
   entitlement_id: string;
@@ -98,15 +99,10 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     const users = usersResults.filter((u) => u !== null) as User[];
     logger.info(`Successfully fetched ${users.length} user details`);
 
-    // 3. Fetch resource docs to find endpoints that require this role
-    logger.info(`Fetching resource docs to find endpoints for role`);
-    const resourceDocsEndpoint = `/obp/v6.0.0/resource-docs/v6.0.0/obp`;
-    const resourceDocsResponse: ResourceDocsResponse = await obp_requests.get(
-      resourceDocsEndpoint,
-      accessToken,
-    );
-
-    const allResourceDocs = resourceDocsResponse.resource_docs || [];
+    // 3. Fetch resource docs from cache to find endpoints that require this role
+    logger.info(`Fetching resource docs (from cache if available) for role`);
+    const allResourceDocs =
+      await resourceDocsCache.fetchResourceDocs(accessToken);
 
     // Filter resource docs that mention this role in their required roles
     const endpointsForRole = allResourceDocs.filter((doc: any) => {

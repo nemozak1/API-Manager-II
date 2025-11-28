@@ -75,6 +75,7 @@
     return entitlements.filter(
       (ent: Entitlement) =>
         ent.role_name.toLowerCase().includes(query) ||
+        ent.username.toLowerCase().includes(query) ||
         ent.user_id.toLowerCase().includes(query) ||
         (ent.bank_id && ent.bank_id.toLowerCase().includes(query)),
     );
@@ -148,7 +149,7 @@
           <input
             type="text"
             class="search-input"
-            placeholder="Search by role, user ID, or bank ID..."
+            placeholder="Search by role, username, user ID, or bank ID..."
             bind:value={searchQuery}
           />
           {#if searchQuery}

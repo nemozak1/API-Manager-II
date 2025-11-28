@@ -68,7 +68,7 @@
 
   // Sort order state
   type SortOrder = "all" | "usage";
-  let sortOrder = $state<SortOrder>("all");
+  let sortOrder = $state<SortOrder>("usage");
 
   // Filter and sort roles based on search query and sort order
   let filteredRoles = $derived.by(() => {

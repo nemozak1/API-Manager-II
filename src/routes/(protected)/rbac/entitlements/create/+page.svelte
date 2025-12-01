@@ -79,9 +79,9 @@
         `Successfully granted ${roleName} to user ${userId}`,
       );
 
-      // Redirect to entitlements list after short delay
+      // Redirect to user detail page after short delay
       setTimeout(() => {
-        goto("/rbac/entitlements");
+        goto(`/users/${userId.trim()}`);
       }, 1000);
     } catch (error) {
       const errorMessage =

@@ -29,6 +29,8 @@
   let isLoading = $state(false);
   let error = $state("");
 
+  let selectedBank = $derived(banks.find((bank) => bank.id === selectedBankId));
+
   onMount(async () => {
     await fetchBanks();
   });
@@ -45,7 +47,9 @@
       }
 
       const data = await response.json();
-      banks = data.banks || [];
+      banks = (data.banks || []).sort((a: Bank, b: Bank) =>
+        a.id.localeCompare(b.id),
+      );
     } catch (err) {
       console.error("Error fetching banks:", err);
       error = err instanceof Error ? err.message : "Failed to load banks";
@@ -87,11 +91,15 @@
     <div class="error-message">{error}</div>
   {/if}
 
-  {#if selectedBankId}
+  {#if selectedBankId && selectedBank}
     <div class="selected-info">
       <Building2 size={14} />
       <span class="selected-text">
-        Selected Bank: <strong>{selectedBankId}</strong>
+        Selected Bank: <strong>{selectedBank.short_name}</strong>
+        {#if selectedBank.full_name && selectedBank.full_name !== selectedBank.short_name}
+          ({selectedBank.full_name})
+        {/if}
+        <span class="bank-id">- {selectedBankId}</span>
       </span>
     </div>
   {/if}
@@ -225,5 +233,14 @@
 
   .selected-text {
     flex: 1;
+  }
+
+  .bank-id {
+    color: #64748b;
+    font-size: 0.7rem;
+  }
+
+  :global([data-mode="dark"]) .bank-id {
+    color: rgb(var(--color-surface-400));
   }
 </style>

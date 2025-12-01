@@ -10,6 +10,7 @@
   let endpoints = $derived(data.endpoints || []);
   let hasApiAccess = $derived(data.hasApiAccess);
   let error = $derived(data.error);
+  let requiresBankId = $derived(data.requiresBankId || false);
 </script>
 
 <svelte:head>
@@ -38,7 +39,14 @@
       <div class="role-header">
         <div class="role-icon-large">🛡️</div>
         <div class="role-header-info">
-          <h1 class="role-title">{roleName}</h1>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <h1 class="role-title">{roleName}</h1>
+            {#if requiresBankId}
+              <span class="requires-bank-badge">Requires Bank ID</span>
+            {:else}
+              <span class="system-wide-badge">System-wide</span>
+            {/if}
+          </div>
           <div class="role-stats">
             <span class="stat-badge">
               <span class="stat-number">{entitlements.length}</span>
@@ -147,7 +155,12 @@
                     <tr>
                       <td class="username-cell">
                         <span class="user-icon">👤</span>
-                        {entitlement.username}
+                        <a
+                          href="/users/{entitlement.user_id}"
+                          class="username-link"
+                        >
+                          {entitlement.username}
+                        </a>
                       </td>
                       <td class="userid-cell">
                         <code>{entitlement.user_id}</code>
@@ -477,6 +490,25 @@
     font-weight: 500;
   }
 
+  .username-link {
+    color: #3b82f6;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .username-link:hover {
+    color: #2563eb;
+    text-decoration: underline;
+  }
+
+  :global([data-mode="dark"]) .username-link {
+    color: rgb(var(--color-primary-400));
+  }
+
+  :global([data-mode="dark"]) .username-link:hover {
+    color: rgb(var(--color-primary-300));
+  }
+
   .user-icon {
     font-size: 1.125rem;
   }
@@ -527,6 +559,40 @@
   }
 
   :global([data-mode="dark"]) .system-badge {
+    background: rgb(var(--color-surface-700));
+    color: var(--color-surface-300);
+  }
+
+  .requires-bank-badge {
+    display: inline-block;
+    padding: 0.375rem 0.75rem;
+    background: #dbeafe;
+    color: #1e40af;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  :global([data-mode="dark"]) .requires-bank-badge {
+    background: rgba(59, 130, 246, 0.2);
+    color: rgb(var(--color-primary-300));
+  }
+
+  .system-wide-badge {
+    display: inline-block;
+    padding: 0.375rem 0.75rem;
+    background: #f3f4f6;
+    color: #6b7280;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  :global([data-mode="dark"]) .system-wide-badge {
     background: rgb(var(--color-surface-700));
     color: var(--color-surface-300);
   }

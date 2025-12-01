@@ -51,6 +51,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
       entitlements: [],
       users: [],
       endpoints: [],
+      requiresBankId: false,
       hasApiAccess: false,
       error: "No API access token available",
     };
@@ -60,7 +61,21 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     logger.info("=== ROLE DETAIL API CALLS ===");
     logger.info(`Role: ${roleName}`);
 
-    // 1. Fetch entitlements for this role
+    // 1. Fetch role metadata directly from OBP API to get requires_bank_id
+    let requiresBankId = false;
+    try {
+      const rolesEndpoint = `/obp/v6.0.0/roles`;
+      logger.info(`Fetching roles metadata: ${rolesEndpoint}`);
+      const rolesResponse = await obp_requests.get(rolesEndpoint, accessToken);
+      const roles = rolesResponse.roles || [];
+      const roleMetadata = roles.find((r: any) => r.role === roleName);
+      requiresBankId = roleMetadata?.requires_bank_id ?? false;
+      logger.info(`Role requires_bank_id: ${requiresBankId}`);
+    } catch (err) {
+      logger.warn(`Failed to fetch role metadata: ${err}`);
+    }
+
+    // 2. Fetch entitlements for this role
     const entitlementsEndpoint = `/obp/v6.0.0/entitlements?role=${encodeURIComponent(roleName)}`;
     logger.info(`Fetching entitlements: ${entitlementsEndpoint}`);
 
@@ -82,7 +97,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
       `Filtered to ${entitlements.length} entitlements with valid usernames (removed ${allEntitlements.length - entitlements.length})`,
     );
 
-    // 2. Fetch resource docs from cache to find endpoints that require this role
+    // 3. Fetch resource docs from cache to find endpoints that require this role
     logger.info(`Fetching resource docs (from cache if available) for role`);
     const allResourceDocs = await (resourceDocsCache as any).fetchResourceDocs(
       accessToken,
@@ -100,6 +115,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
       roleName,
       entitlements,
       endpoints: endpointsForRole,
+      requiresBankId,
       hasApiAccess: true,
     };
   } catch (err) {
@@ -109,6 +125,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
       roleName,
       entitlements: [],
       endpoints: [],
+      requiresBankId: false,
       hasApiAccess: false,
       error: err instanceof Error ? err.message : "Failed to load role details",
     };

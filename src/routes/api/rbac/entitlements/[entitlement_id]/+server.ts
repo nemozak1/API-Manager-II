@@ -32,40 +32,15 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
     logger.info("=== DELETE ENTITLEMENT ===");
     logger.info(`Entitlement ID: ${entitlement_id}`);
 
-    // First, fetch all entitlements to get the user_id for this entitlement
-    const allEntitlementsEndpoint = `/obp/v6.0.0/entitlements`;
-    const entitlementsResponse = await obp_requests.get(
-      allEntitlementsEndpoint,
-      accessToken,
-    );
-
-    const entitlement = entitlementsResponse.list?.find(
-      (e: any) => e.entitlement_id === entitlement_id,
-    );
-
-    if (!entitlement) {
-      logger.warn(`Entitlement ${entitlement_id} not found`);
-      return json({ error: "Entitlement not found" }, { status: 404 });
-    }
-
-    if (!entitlement.user_id) {
-      logger.error("Entitlement does not have a user_id");
-      return json({ error: "Invalid entitlement data" }, { status: 500 });
-    }
-
-    logger.info(`User ID: ${entitlement.user_id}`);
-    logger.info(`Bank ID: ${entitlement.bank_id || "(empty)"}`);
-
-    // Now delete using the correct endpoint: /users/{USER_ID}/entitlement/{ENTITLEMENT_ID}
-    const endpoint = `/obp/v6.0.0/users/${entitlement.user_id}/entitlement/${entitlement_id}`;
+    // Use v6.0.0 DELETE endpoint: /obp/v6.0.0/entitlements/{ENTITLEMENT_ID}
+    const endpoint = `/obp/v6.0.0/entitlements/${entitlement_id}`;
     logger.info(`DELETE ${endpoint}`);
 
     const response = await obp_requests.delete(endpoint, accessToken);
 
     logger.info("Entitlement deleted successfully");
-    logger.info(`Response: ${JSON.stringify(response)}`);
 
-    return json(response);
+    return json({ success: true }, { status: 200 });
   } catch (err) {
     logger.error("Error deleting entitlement:", err);
 

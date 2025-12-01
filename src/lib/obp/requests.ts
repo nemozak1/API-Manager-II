@@ -218,6 +218,18 @@ class OBPRequests {
       );
     }
 
+    // Handle 204 No Content response (successful DELETE with no body)
+    if (response.status === 204) {
+      logger.debug(
+        "Response from OBP",
+        response.status,
+        response.statusText,
+        "(no content)",
+      );
+      logger.debug("DELETE done");
+      return { success: true };
+    }
+
     const data = await response.json();
     logger.debug("Response from OBP", response.status, response.statusText);
     logger.debug("DELETE done");

@@ -54,10 +54,21 @@ export const load: PageServerLoad = async ({ locals }) => {
       accessToken,
     );
 
-    logger.info(`Response: ${response.list?.length || 0} entitlements`);
+    const allEntitlements = response.list || [];
+    logger.info(`Response: ${allEntitlements.length} entitlements`);
+
+    // TODO: Filter out entitlements with null/empty usernames
+    // This should be fixed at the API level - the entitlements endpoint should always return valid usernames
+    const entitlements = allEntitlements.filter(
+      (entitlement) =>
+        entitlement.username && entitlement.username.trim() !== "",
+    );
+    logger.info(
+      `Filtered to ${entitlements.length} entitlements with valid usernames (removed ${allEntitlements.length - entitlements.length})`,
+    );
 
     return {
-      entitlements: response.list || [],
+      entitlements,
       userEntitlements,
       requiredRoles,
       hasApiAccess: true,

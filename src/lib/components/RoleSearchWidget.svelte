@@ -10,14 +10,14 @@
   interface Props {
     roles: Role[];
     selectedRole?: string;
-    roleScope?: "system" | "bank";
+    roleScope?: "all" | "system" | "bank";
     disabled?: boolean;
   }
 
   let {
     roles,
     selectedRole = $bindable(""),
-    roleScope = $bindable<"system" | "bank">("system"),
+    roleScope = $bindable<"all" | "system" | "bank">("all"),
     disabled = false,
   }: Props = $props();
 
@@ -45,58 +45,76 @@
           role.role.includes("System") ||
           !role.role.includes("AtOneBank"),
       );
-    } else {
+    } else if (roleScope === "bank") {
       // Bank roles typically have "AtOneBank" in the name
       filtered = filtered.filter((role) => role.role.includes("AtOneBank"));
     }
+    // If roleScope === "all", don't filter by scope
 
     return filtered;
   });
 </script>
 
 <div class="role-search-widget">
-  <!-- Scope Toggle -->
-  <div class="scope-toggle">
-    <button
-      type="button"
-      class="scope-button"
-      class:active={roleScope === "system"}
-      onclick={() => {
-        roleScope = "system";
-        selectedRole = "";
-      }}
-      {disabled}
-    >
-      <Globe size={16} />
-      System-wide
-    </button>
-    <button
-      type="button"
-      class="scope-button"
-      class:active={roleScope === "bank"}
-      onclick={() => {
-        roleScope = "bank";
-        selectedRole = "";
-      }}
-      {disabled}
-    >
-      <Building2 size={16} />
-      Bank-level
-    </button>
-  </div>
+  <!-- Search and Scope Toggle Row -->
+  <div class="search-and-toggle-row">
+    <!-- Search Box -->
+    <div class="search-wrapper">
+      <Search class="search-icon" size={16} />
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search {roleScope === 'all'
+          ? 'all'
+          : roleScope === 'system'
+            ? 'system-wide'
+            : 'bank-level'} roles..."
+        bind:value={searchQuery}
+        {disabled}
+      />
+    </div>
 
-  <!-- Search Box -->
-  <div class="search-wrapper">
-    <Search class="search-icon" size={16} />
-    <input
-      type="text"
-      class="search-input"
-      placeholder="Search {roleScope === 'system'
-        ? 'system-wide'
-        : 'bank-level'} roles..."
-      bind:value={searchQuery}
-      {disabled}
-    />
+    <!-- Scope Toggle -->
+    <div class="scope-toggle">
+      <button
+        type="button"
+        class="scope-button"
+        class:active={roleScope === "all"}
+        onclick={() => {
+          roleScope = "all";
+          selectedRole = "";
+        }}
+        {disabled}
+      >
+        All
+      </button>
+      <button
+        type="button"
+        class="scope-button"
+        class:active={roleScope === "system"}
+        onclick={() => {
+          roleScope = "system";
+          selectedRole = "";
+        }}
+        {disabled}
+      >
+        <Globe size={14} />
+        System
+      </button>
+      <button
+        type="button"
+        class="scope-button"
+        class:active={roleScope === "bank"}
+        onclick={() => {
+          roleScope = "bank";
+          selectedRole = "";
+        }}
+        {disabled}
+      >
+        <Building2 size={14} />
+        Bank
+      </button>
+    </div>
   </div>
 
   <!-- Role Selection -->
@@ -104,7 +122,11 @@
     {#if filteredRoles.length === 0}
       <div class="empty-roles">
         <p>
-          No {roleScope === "system" ? "system-wide" : "bank-level"} roles found
+          No {roleScope === "all"
+            ? ""
+            : roleScope === "system"
+              ? "system-wide "
+              : "bank-level "}roles found
           {searchQuery ? `matching "${searchQuery}"` : ""}
         </p>
       </div>
@@ -140,7 +162,11 @@
       <span class="selected-role-text">
         Selected: <strong>{selectedRole}</strong>
         <span class="role-scope-badge">
-          {roleScope === "system" ? "System-wide" : "Bank-level"}
+          {roleScope === "all"
+            ? "All Roles"
+            : roleScope === "system"
+              ? "System-wide"
+              : "Bank-level"}
         </span>
       </span>
     </div>
@@ -154,12 +180,23 @@
     gap: 1rem;
   }
 
-  .scope-toggle {
+  .search-and-toggle-row {
     display: flex;
     gap: 0.5rem;
+    align-items: center;
+  }
+
+  .search-wrapper {
+    flex: 1;
+  }
+
+  .scope-toggle {
+    display: flex;
+    gap: 0.25rem;
     padding: 0.25rem;
     background: #f3f4f6;
-    border-radius: 8px;
+    border-radius: 6px;
+    flex-shrink: 0;
   }
 
   :global([data-mode="dark"]) .scope-toggle {
@@ -167,20 +204,20 @@
   }
 
   .scope-button {
-    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    padding: 0.625rem 1rem;
+    gap: 0.375rem;
+    padding: 0.5rem 0.75rem;
     background: transparent;
     border: none;
-    border-radius: 6px;
-    font-size: 0.875rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
     font-weight: 500;
     color: #6b7280;
     cursor: pointer;
     transition: all 0.2s;
+    white-space: nowrap;
   }
 
   .scope-button:hover:not(:disabled) {
@@ -212,10 +249,6 @@
     background: rgb(var(--color-surface-800));
     color: rgb(var(--color-primary-400));
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  }
-
-  .search-wrapper {
-    position: relative;
   }
 
   .search-wrapper :global(.search-icon) {

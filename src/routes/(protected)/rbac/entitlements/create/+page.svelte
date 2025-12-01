@@ -18,7 +18,7 @@
   let userId = $state("");
   let username = $state("");
   let roleName = $state("");
-  let roleScope = $state<"system" | "bank">("system");
+  let roleScope = $state<"all" | "system" | "bank">("all");
   let bankId = $state("");
   let isSubmitting = $state(false);
 
@@ -195,7 +195,7 @@
 
 <style>
   .container {
-    max-width: 900px;
+    max-width: 1200px;
   }
 
   .breadcrumb {

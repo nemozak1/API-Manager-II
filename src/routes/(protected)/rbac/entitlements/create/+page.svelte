@@ -27,6 +27,13 @@
     username = user.username;
   }
 
+  // Clear bankId when switching to system scope
+  $effect(() => {
+    if (roleScope === "system") {
+      bankId = "";
+    }
+  });
+
   async function handleSubmit(event: Event) {
     event.preventDefault();
 
@@ -150,24 +157,26 @@
           </div>
         </div>
 
-        <!-- Bank ID Field -->
-        <div class="form-group">
-          <label class="form-label">
-            <Building2 size={18} />
-            Bank ID
-            <span class="optional">(Optional)</span>
-          </label>
-          <BankSelectWidget
-            bind:selectedBankId={bankId}
-            disabled={isSubmitting}
-            allowEmpty={true}
-            emptyLabel="System-wide (no specific bank)"
-          />
-          <div class="form-hint">
-            Leave empty for system-wide roles, or select a specific bank for
-            bank-specific roles
+        <!-- Bank ID Field - Only show for All or Bank scope -->
+        {#if roleScope !== "system"}
+          <div class="form-group">
+            <label class="form-label">
+              <Building2 size={18} />
+              Bank ID
+              <span class="optional">(Optional)</span>
+            </label>
+            <BankSelectWidget
+              bind:selectedBankId={bankId}
+              disabled={isSubmitting}
+              allowEmpty={true}
+              emptyLabel="System-wide (no specific bank)"
+            />
+            <div class="form-hint">
+              Leave empty for system-wide roles, or select a specific bank for
+              bank-specific roles
+            </div>
           </div>
-        </div>
+        {/if}
 
         <!-- Form Actions -->
         <div class="form-actions">

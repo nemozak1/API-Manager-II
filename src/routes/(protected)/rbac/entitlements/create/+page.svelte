@@ -29,9 +29,15 @@
 
   // Clear bankId when switching to system scope
   $effect(() => {
+    console.log("roleScope changed to:", roleScope);
     if (roleScope === "system") {
       bankId = "";
     }
+  });
+
+  // Debug: log when roleName changes
+  $effect(() => {
+    console.log("roleName changed to:", roleName, "roleScope is:", roleScope);
   });
 
   async function handleSubmit(event: Event) {

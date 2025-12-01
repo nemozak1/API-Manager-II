@@ -5,6 +5,7 @@
   import PageRoleCheck from "$lib/components/PageRoleCheck.svelte";
   import UserSearchWidget from "$lib/components/UserSearchWidget.svelte";
   import BankSelectWidget from "$lib/components/BankSelectWidget.svelte";
+  import RoleSearchWidget from "$lib/components/RoleSearchWidget.svelte";
   import type { PageData } from "./$types";
 
   let { data } = $props<{ data: PageData }>();
@@ -17,21 +18,14 @@
   let userId = $state("");
   let username = $state("");
   let roleName = $state("");
+  let roleScope = $state<"system" | "bank">("system");
   let bankId = $state("");
   let isSubmitting = $state(false);
-  let searchQuery = $state("");
 
   function handleUserSelect(user: any) {
     userId = user.user_id;
     username = user.username;
   }
-
-  // Filter roles based on search
-  let filteredRoles = $derived.by(() => {
-    if (!searchQuery.trim()) return roles;
-    const query = searchQuery.toLowerCase();
-    return roles.filter((role: any) => role.role.toLowerCase().includes(query));
-  });
 
   async function handleSubmit(event: Event) {
     event.preventDefault();
@@ -139,56 +133,21 @@
 
         <!-- Role Selection Field -->
         <div class="form-group">
-          <label for="role-name" class="form-label">
+          <label class="form-label">
             <KeyRound size={18} />
             Role
             <span class="required">*</span>
           </label>
-
-          <!-- Search Box -->
-          <div class="search-wrapper">
-            <Search class="search-icon" size={16} />
-            <input
-              type="text"
-              class="search-input"
-              placeholder="Search roles..."
-              bind:value={searchQuery}
-              disabled={isSubmitting}
-            />
+          <RoleSearchWidget
+            {roles}
+            bind:selectedRole={roleName}
+            bind:roleScope
+            disabled={isSubmitting}
+          />
+          <div class="form-hint">
+            Select whether the role is system-wide or bank-level, then choose a
+            role
           </div>
-
-          <!-- Role Selection -->
-          <div class="role-selector">
-            {#if filteredRoles.length === 0}
-              <div class="empty-roles">
-                <p>No roles found matching "{searchQuery}"</p>
-              </div>
-            {:else}
-              <div class="roles-grid">
-                {#each filteredRoles as role}
-                  <label class="role-option">
-                    <input
-                      type="radio"
-                      name="role"
-                      value={role.role}
-                      bind:group={roleName}
-                      disabled={isSubmitting}
-                    />
-                    <div class="role-option-content">
-                      <span class="role-option-name">{role.role}</span>
-                      {#if role.entitlement_count !== undefined}
-                        <span class="role-option-count">
-                          {role.entitlement_count}
-                          {role.entitlement_count === 1 ? "user" : "users"}
-                        </span>
-                      {/if}
-                    </div>
-                  </label>
-                {/each}
-              </div>
-            {/if}
-          </div>
-          <div class="form-hint">Select the role to grant to the user</div>
         </div>
 
         <!-- Bank ID Field -->
@@ -368,131 +327,6 @@
   }
 
   :global([data-mode="dark"]) .form-hint {
-    color: var(--color-surface-400);
-  }
-
-  .search-wrapper {
-    position: relative;
-    margin-bottom: 1rem;
-  }
-
-  .search-wrapper :global(.search-icon) {
-    position: absolute;
-    left: 0.75rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #9ca3af;
-  }
-
-  .search-input {
-    width: 100%;
-    padding: 0.625rem 0.75rem 0.625rem 2.5rem;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 0.875rem;
-  }
-
-  .search-input:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  }
-
-  :global([data-mode="dark"]) .search-input {
-    background: rgb(var(--color-surface-700));
-    border-color: rgb(var(--color-surface-600));
-    color: var(--color-surface-100);
-  }
-
-  .role-selector {
-    max-height: 400px;
-    overflow-y: auto;
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
-    padding: 0.5rem;
-  }
-
-  :global([data-mode="dark"]) .role-selector {
-    border-color: rgb(var(--color-surface-700));
-  }
-
-  .roles-grid {
-    display: grid;
-    gap: 0.5rem;
-  }
-
-  .role-option {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .role-option:has(input:checked) {
-    background: #ede9fe;
-    border-color: #667eea;
-  }
-
-  .role-option:hover {
-    background: #f9fafb;
-  }
-
-  :global([data-mode="dark"]) .role-option {
-    border-color: rgb(var(--color-surface-700));
-  }
-
-  :global([data-mode="dark"]) .role-option:has(input:checked) {
-    background: rgba(102, 126, 234, 0.15);
-    border-color: rgb(var(--color-primary-500));
-  }
-
-  :global([data-mode="dark"]) .role-option:hover {
-    background: rgb(var(--color-surface-700));
-  }
-
-  .role-option input[type="radio"] {
-    width: 1.25rem;
-    height: 1.25rem;
-    cursor: pointer;
-  }
-
-  .role-option-content {
-    flex: 1;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .role-option-name {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #111827;
-  }
-
-  :global([data-mode="dark"]) .role-option-name {
-    color: var(--color-surface-100);
-  }
-
-  .role-option-count {
-    font-size: 0.75rem;
-    color: #6b7280;
-  }
-
-  :global([data-mode="dark"]) .role-option-count {
-    color: var(--color-surface-400);
-  }
-
-  .empty-roles {
-    padding: 2rem;
-    text-align: center;
-    color: #6b7280;
-  }
-
-  :global([data-mode="dark"]) .empty-roles {
     color: var(--color-surface-400);
   }
 

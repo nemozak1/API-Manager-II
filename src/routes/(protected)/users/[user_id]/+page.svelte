@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { PageData } from "./$types";
+  import { Trash2 } from "@lucide/svelte";
 
   let { data } = $props<{ data: PageData }>();
 
@@ -147,10 +148,19 @@
           <div class="entitlements-grid">
             {#each user.entitlements.list as entitlement}
               <div class="entitlement-card">
-                <div class="entitlement-name">
-                  {entitlement.role_name ||
-                    entitlement.entitlement_id ||
-                    "Unknown"}
+                <div class="entitlement-header">
+                  <div class="entitlement-name">
+                    {entitlement.role_name ||
+                      entitlement.entitlement_id ||
+                      "Unknown"}
+                  </div>
+                  <a
+                    href="/rbac/entitlements/{entitlement.entitlement_id}/delete"
+                    class="delete-button"
+                    title="Delete entitlement"
+                  >
+                    <Trash2 size={16} />
+                  </a>
                 </div>
                 {#if entitlement.bank_id}
                   <div class="entitlement-detail">
@@ -321,14 +331,45 @@
     border-color: rgb(var(--color-surface-600));
   }
 
+  .entitlement-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+
   .entitlement-name {
     font-weight: 600;
     color: #111827;
-    margin-bottom: 0.5rem;
   }
 
   :global([data-mode="dark"]) .entitlement-name {
     color: var(--color-surface-100);
+  }
+
+  .delete-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem;
+    color: #6b7280;
+    border-radius: 0.25rem;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+
+  .delete-button:hover {
+    color: #dc2626;
+    background: #fee2e2;
+  }
+
+  :global([data-mode="dark"]) .delete-button {
+    color: var(--color-surface-400);
+  }
+
+  :global([data-mode="dark"]) .delete-button:hover {
+    color: rgb(var(--color-error-400));
+    background: rgb(var(--color-error-900));
   }
 
   .entitlement-detail {

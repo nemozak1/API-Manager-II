@@ -77,7 +77,7 @@
 
       // Redirect after a short delay to show success message
       setTimeout(() => {
-        window.location.href = "/rbac/entitlement-requests";
+        window.location.href = "/user";
       }, 1500);
     } catch (error) {
       submitError =

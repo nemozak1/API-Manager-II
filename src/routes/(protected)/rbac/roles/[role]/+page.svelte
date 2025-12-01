@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { PageData } from "./$types";
   import { page } from "$app/state";
+  import { Trash2 } from "@lucide/svelte";
 
   let { data } = $props<{ data: PageData }>();
 
@@ -138,6 +139,7 @@
                     <th>Username</th>
                     <th>User ID</th>
                     <th>Bank ID</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -156,6 +158,15 @@
                         {:else}
                           <span class="system-badge">System-wide</span>
                         {/if}
+                      </td>
+                      <td class="actions-cell">
+                        <a
+                          href="/rbac/entitlements/{entitlement.entitlement_id}/delete"
+                          class="delete-button"
+                          title="Delete entitlement"
+                        >
+                          <Trash2 size={16} />
+                        </a>
                       </td>
                     </tr>
                   {/each}
@@ -517,7 +528,37 @@
 
   :global([data-mode="dark"]) .system-badge {
     background: rgb(var(--color-surface-700));
+    color: var(--color-surface-300);
+  }
+
+  .actions-cell {
+    text-align: center;
+    width: 80px;
+  }
+
+  .delete-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.375rem;
+    color: #6b7280;
+    border-radius: 0.25rem;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+
+  .delete-button:hover {
+    color: #dc2626;
+    background: #fee2e2;
+  }
+
+  :global([data-mode="dark"]) .delete-button {
     color: var(--color-surface-400);
+  }
+
+  :global([data-mode="dark"]) .delete-button:hover {
+    color: rgb(var(--color-error-400));
+    background: rgb(var(--color-error-900));
   }
 
   .endpoints-list {

@@ -231,10 +231,14 @@
                           >
                             {entitlement.role_name}
                           </a>
+                          <a
+                            href="/rbac/entitlements/{entitlement.entitlement_id}/delete"
+                            class="delete-button"
+                            title="Delete entitlement"
+                          >
+                            <Trash2 size={16} />
+                          </a>
                         </h4>
-                        <div class="entitlement-id">
-                          {entitlement.entitlement_id}
-                        </div>
                       </div>
                     </div>
 
@@ -249,9 +253,6 @@
                           >
                             {entitlement.username}
                           </a>
-                          <span class="info-detail"
-                            >({entitlement.user_id})</span
-                          >
                         </div>
                       </div>
 
@@ -661,6 +662,9 @@
   }
 
   .role-name {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     font-size: 0.875rem;
     font-weight: 600;
     color: #111827;
@@ -691,15 +695,29 @@
     color: rgb(var(--color-primary-300));
   }
 
-  .entitlement-id {
-    font-size: 0.625rem;
-    color: #9ca3af;
-    font-family: monospace;
-    opacity: 0.7;
+  .delete-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.375rem;
+    color: #6b7280;
+    border-radius: 0.25rem;
+    transition: all 0.2s;
+    text-decoration: none;
   }
 
-  :global([data-mode="dark"]) .entitlement-id {
-    color: var(--color-surface-500);
+  .delete-button:hover {
+    color: #dc2626;
+    background: #fee2e2;
+  }
+
+  :global([data-mode="dark"]) .delete-button {
+    color: var(--color-surface-400);
+  }
+
+  :global([data-mode="dark"]) .delete-button:hover {
+    color: rgb(var(--color-error-400));
+    background: rgb(var(--color-error-900));
   }
 
   .entitlement-body {

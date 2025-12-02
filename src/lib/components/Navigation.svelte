@@ -86,6 +86,28 @@
     },
     logout: () => handlers.navigate("/logout"),
     login: () => handlers.navigate("/login"),
+    clearCache: async () => {
+      try {
+        // Clear all caches
+        if ("caches" in window) {
+          const cacheNames = await caches.keys();
+          await Promise.all(cacheNames.map((name) => caches.delete(name)));
+        }
+
+        // Clear localStorage
+        localStorage.clear();
+
+        // Clear sessionStorage
+        sessionStorage.clear();
+
+        // Reload the page
+        window.location.reload();
+      } catch (error) {
+        console.error("Error clearing cache:", error);
+        alert("Cache cleared. Page will reload.");
+        window.location.reload();
+      }
+    },
   };
 </script>
 
@@ -160,6 +182,15 @@
             <span class="obp-host">→ {obpInfo.displayName}</span>
           </div>
         </div>
+
+        <!-- Clear Cache Button -->
+        <button
+          class="btn btn-cache desktop-only"
+          onclick={handlers.clearCache}
+          title="Clear browser cache and reload"
+        >
+          ⚡
+        </button>
 
         <!-- Logout Button -->
         <button class="btn btn-logout desktop-only" onclick={handlers.logout}>
@@ -241,6 +272,11 @@
             {/if}
           {/each}
         </div>
+
+        <!-- Clear Cache Button -->
+        <button class="mobile-cache-btn" onclick={handlers.clearCache}>
+          ⚡ Clear Cache & Reload
+        </button>
 
         <!-- Logout Button -->
         <button class="mobile-logout-btn" onclick={handlers.logout}>
@@ -453,6 +489,17 @@
     background-color: #dc2626;
   }
 
+  .btn-cache {
+    background-color: #6b7280;
+    color: white;
+    font-size: 1rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .btn-cache:hover {
+    background-color: #4b5563;
+  }
+
   /* Hamburger Menu */
   .hamburger {
     display: flex;
@@ -616,6 +663,23 @@
 
   .mobile-login-btn:hover {
     background-color: #1d4ed8;
+  }
+
+  .mobile-cache-btn {
+    width: 100%;
+    padding: 0.75rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    background-color: #6b7280;
+    color: white;
+    margin-bottom: 0.5rem;
+  }
+
+  .mobile-cache-btn:hover {
+    background-color: #4b5563;
   }
 
   /* Responsive Design */

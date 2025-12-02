@@ -162,12 +162,14 @@
                     <Trash2 size={16} />
                   </a>
                 </div>
-                {#if entitlement.bank_id}
-                  <div class="entitlement-detail">
-                    <span class="detail-label">Bank:</span>
+                <div class="entitlement-detail">
+                  <span class="detail-label">Scope:</span>
+                  {#if entitlement.bank_id}
                     {entitlement.bank_id}
-                  </div>
-                {/if}
+                  {:else}
+                    <span class="system-wide-badge">System-wide</span>
+                  {/if}
+                </div>
                 {#if entitlement.created_date}
                   <div class="entitlement-detail">
                     <span class="detail-label">Added:</span>
@@ -441,6 +443,21 @@
   :global([data-mode="dark"]) .badge-error {
     background: rgb(var(--color-error-900));
     color: rgb(var(--color-error-200));
+  }
+
+  .system-wide-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    background: #f3f4f6;
+    color: #6b7280;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  :global([data-mode="dark"]) .system-wide-badge {
+    background: rgb(var(--color-surface-700));
+    color: var(--color-surface-300);
   }
 
   .empty-state {

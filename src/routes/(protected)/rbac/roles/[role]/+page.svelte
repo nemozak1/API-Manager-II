@@ -145,7 +145,7 @@
                 <thead>
                   <tr>
                     <th>Username</th>
-                    <th>User ID</th>
+                    <th>Entitlement ID</th>
                     <th>Bank ID</th>
                     <th>Actions</th>
                   </tr>
@@ -163,7 +163,12 @@
                         </a>
                       </td>
                       <td class="userid-cell">
-                        <code>{entitlement.user_id}</code>
+                        <a
+                          href="/rbac/entitlements/{entitlement.entitlement_id}/delete"
+                          class="entitlement-link"
+                        >
+                          <code>{entitlement.entitlement_id}</code>
+                        </a>
                       </td>
                       <td>
                         {#if entitlement.bank_id}
@@ -506,6 +511,25 @@
   }
 
   :global([data-mode="dark"]) .username-link:hover {
+    color: rgb(var(--color-primary-300));
+  }
+
+  .entitlement-link {
+    color: #3b82f6;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .entitlement-link:hover {
+    color: #2563eb;
+    text-decoration: underline;
+  }
+
+  :global([data-mode="dark"]) .entitlement-link {
+    color: rgb(var(--color-primary-400));
+  }
+
+  :global([data-mode="dark"]) .entitlement-link:hover {
     color: rgb(var(--color-primary-300));
   }
 

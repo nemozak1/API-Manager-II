@@ -13,6 +13,7 @@ import {
   Users,
   FileCheck,
   Plus,
+  Building2,
 } from "@lucide/svelte";
 import { env } from "$env/dynamic/public";
 
@@ -168,9 +169,19 @@ function buildRbacItems(): NavigationItem[] {
       iconComponent: Users,
     },
     {
+      href: "/rbac/groups/create",
+      label: "Create Group",
+      iconComponent: Plus,
+    },
+    {
       href: "/rbac/entitlement-requests",
       label: "Entitlement Requests",
       iconComponent: FileCheck,
+    },
+    {
+      href: "/rbac/banks",
+      label: "Banks",
+      iconComponent: Building2,
     },
   ];
 

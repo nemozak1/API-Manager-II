@@ -51,11 +51,6 @@
   async function handleSubmit(event: Event) {
     event.preventDefault();
 
-    if (!bankId.trim()) {
-      toast.error("Validation Error", "Bank ID is required");
-      return;
-    }
-
     if (!groupName.trim()) {
       toast.error("Validation Error", "Group name is required");
       return;
@@ -74,18 +69,24 @@
     isSubmitting = true;
 
     try {
+      const requestBody: any = {
+        group_name: groupName.trim(),
+        group_description: groupDescription.trim(),
+        list_of_roles: selectedRoles,
+        is_enabled: isEnabled,
+      };
+
+      // Only include bank_id if it's provided
+      if (bankId && bankId.trim() !== "") {
+        requestBody.bank_id = bankId.trim();
+      }
+
       const response = await trackedFetch("/api/rbac/groups", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          bank_id: bankId.trim(),
-          group_name: groupName.trim(),
-          group_description: groupDescription.trim(),
-          list_of_roles: selectedRoles,
-          is_enabled: isEnabled,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -156,15 +157,16 @@
           <label for="bank-id" class="form-label">
             <Building2 size={16} />
             Bank ID
-            <span class="required">*</span>
           </label>
           <BankSelectWidget
             bind:selectedBankId={bankId}
             disabled={isSubmitting}
-            allowEmpty={false}
-            emptyLabel="Select a bank..."
+            allowEmpty={true}
+            emptyLabel="Select a bank (optional)..."
           />
-          <div class="form-help">Select the bank this group belongs to</div>
+          <div class="form-help">
+            Optionally select the bank this group belongs to
+          </div>
         </div>
 
         <!-- Group Name -->

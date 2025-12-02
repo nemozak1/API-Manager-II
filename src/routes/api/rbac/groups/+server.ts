@@ -32,10 +32,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       is_enabled,
     } = body;
 
-    if (!bank_id) {
-      return json({ error: "bank_id is required" }, { status: 400 });
-    }
-
     if (!group_name) {
       return json({ error: "group_name is required" }, { status: 400 });
     }
@@ -64,13 +60,17 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     logger.info(`Roles: ${list_of_roles.join(", ")}`);
     logger.info(`Enabled: ${is_enabled}`);
 
-    const requestBody = {
-      bank_id,
+    const requestBody: any = {
       group_name,
       group_description,
       list_of_roles,
       is_enabled: is_enabled ?? true,
     };
+
+    // Only include bank_id if it's provided
+    if (bank_id && bank_id.trim() !== "") {
+      requestBody.bank_id = bank_id;
+    }
 
     const endpoint = `/obp/v6.0.0/management/groups`;
     logger.info(`POST ${endpoint}`);

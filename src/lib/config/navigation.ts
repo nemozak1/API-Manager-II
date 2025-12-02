@@ -174,6 +174,16 @@ function buildRbacItems(): NavigationItem[] {
       iconComponent: Plus,
     },
     {
+      href: "/rbac/memberships",
+      label: "Memberships",
+      iconComponent: Users,
+    },
+    {
+      href: "/rbac/memberships/create",
+      label: "Create Membership",
+      iconComponent: Plus,
+    },
+    {
       href: "/rbac/entitlement-requests",
       label: "Entitlement Requests",
       iconComponent: FileCheck,

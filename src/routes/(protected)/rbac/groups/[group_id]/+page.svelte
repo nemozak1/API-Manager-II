@@ -75,10 +75,10 @@
               <Edit size={16} />
               Edit
             </button>
-            <button class="btn-danger" disabled>
+            <a href="/rbac/groups/{group.group_id}/delete" class="btn-danger">
               <Trash2 size={16} />
               Delete
-            </button>
+            </a>
           </div>
         </div>
       </div>
@@ -98,7 +98,7 @@
                 <Building2 size={16} />
                 Bank ID
               </div>
-              <div class="info-value">{group.bank_id}</div>
+              <div class="info-value">{group.bank_id || "N/A"}</div>
             </div>
             <div class="info-item">
               <div class="info-label">Status</div>

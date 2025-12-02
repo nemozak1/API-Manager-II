@@ -37,11 +37,6 @@ export const load: PageServerLoad = async ({ locals }) => {
           description: "Create groups at all banks",
           action: "create groups",
         },
-        {
-          role: "CanCreateGroupAtOneBank",
-          description: "Create groups at one bank",
-          action: "create groups",
-        },
       ],
       hasApiAccess: false,
       error: "No API access token available",
@@ -56,11 +51,6 @@ export const load: PageServerLoad = async ({ locals }) => {
     {
       role: "CanCreateGroupAtAllBanks",
       description: "Create groups at all banks",
-      action: "create groups",
-    },
-    {
-      role: "CanCreateGroupAtOneBank",
-      description: "Create groups at one bank",
       action: "create groups",
     },
   ];

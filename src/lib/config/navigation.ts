@@ -14,6 +14,8 @@ import {
   FileCheck,
   Plus,
   Building2,
+  Eye,
+  Landmark,
 } from "@lucide/svelte";
 import { env } from "$env/dynamic/public";
 
@@ -210,4 +212,41 @@ export function getActiveRbacMenuItem(pathname: string) {
   });
 
   return found || rbacItems[0]; // fallback to first item
+}
+
+// Account Access navigation items
+function buildAccountAccessItems(): NavigationItem[] {
+  const items: NavigationItem[] = [
+    {
+      href: "/account-access/system-views",
+      label: "System Views",
+      iconComponent: Eye,
+    },
+    {
+      href: "/account-access/custom-views",
+      label: "Custom Views",
+      iconComponent: Eye,
+    },
+    {
+      href: "/account-access/accounts",
+      label: "Accounts",
+      iconComponent: Landmark,
+    },
+  ];
+
+  return items;
+}
+
+export const accountAccessItems = buildAccountAccessItems();
+
+export function getActiveAccountAccessMenuItem(pathname: string) {
+  const found = accountAccessItems.find((item) => {
+    // Skip external links for active menu detection
+    if (item.external) {
+      return false;
+    }
+    return pathname.startsWith(item.href);
+  });
+
+  return found || accountAccessItems[0]; // fallback to first item
 }

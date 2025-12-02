@@ -8,6 +8,7 @@
     integrationItems,
     apiMetricsItems,
     rbacItems,
+    accountAccessItems,
   } from "$lib/config/navigation";
   import Toast from "$lib/components/Toast.svelte";
   import ApiActivityIndicator from "$lib/components/ApiActivityIndicator.svelte";
@@ -28,6 +29,7 @@
     Star,
     SquareTerminal,
     UserPlus,
+    Landmark,
     MessageCircleQuestion,
     ShieldUser,
     User,
@@ -62,6 +64,7 @@
   let isIntegrationExpanded = $state(false);
   let isApiMetricsExpanded = $state(false);
   let isRbacExpanded = $state(false);
+  let isAccountAccessExpanded = $state(false);
   let displayMode: "dark" | "light" = $state("dark");
 
   logger.info("🔐 Checking authentication state");
@@ -100,6 +103,10 @@
   let isRbacActive = $derived(
     page.url.pathname === "/rbac" || page.url.pathname.startsWith("/rbac/"),
   );
+  let isAccountAccessActive = $derived(
+    page.url.pathname === "/account-access" ||
+      page.url.pathname.startsWith("/account-access/"),
+  );
 
   logger.info("🧭 Navigation state initialized");
   const navStateTime = performance.now();
@@ -124,6 +131,9 @@
     }
     if (isRbacActive) {
       isRbacExpanded = true;
+    }
+    if (isAccountAccessActive) {
+      isAccountAccessExpanded = true;
     }
     logger.info(`📍 Current route: ${page.url.pathname}`);
   });
@@ -159,6 +169,10 @@
 
   function toggleRbac() {
     isRbacExpanded = !isRbacExpanded;
+  }
+
+  function toggleAccountAccess() {
+    isAccountAccessExpanded = !isAccountAccessExpanded;
   }
 
   // Some items in the menu are rendered conditionally based on the presence of URLs set in the environment variables.
@@ -490,6 +504,48 @@
             {#if isRbacExpanded}
               <Navigation.Menu class="mt-1 ml-4 flex flex-col gap-1 px-2">
                 {#each rbacItems as subItem}
+                  {@const Icon = subItem.iconComponent}
+                  <a
+                    href={subItem.href}
+                    class="btn w-full justify-start gap-3 px-2 pl-6 text-sm hover:preset-tonal"
+                    class:preset-filled-secondary-50-950={page.url.pathname ===
+                      subItem.href}
+                    class:border-l-2={page.url.pathname === subItem.href}
+                    class:border-primary-500={page.url.pathname ===
+                      subItem.href}
+                    title={subItem.label}
+                    aria-label={subItem.label}
+                  >
+                    <Icon class="size-4" />
+                    <span>{subItem.label}</span>
+                  </a>
+                {/each}
+              </Navigation.Menu>
+            {/if}
+          </Navigation.Group>
+
+          <!-- Account Access Group -->
+          <Navigation.Group>
+            <button
+              type="button"
+              class="btn w-full justify-start gap-3 px-2 hover:preset-tonal"
+              class:preset-filled-primary-50-950={isAccountAccessActive}
+              class:border={isAccountAccessActive}
+              class:border-solid-secondary-500={isAccountAccessActive}
+              onclick={toggleAccountAccess}
+            >
+              <Landmark class="size-5" />
+              <span>Account Access</span>
+              {#if isAccountAccessExpanded}
+                <ChevronDown class="h-4 w-4" />
+              {:else}
+                <ChevronRight class="h-4 w-4" />
+              {/if}
+            </button>
+
+            {#if isAccountAccessExpanded}
+              <Navigation.Menu class="mt-1 ml-4 flex flex-col gap-1 px-2">
+                {#each accountAccessItems as subItem}
                   {@const Icon = subItem.iconComponent}
                   <a
                     href={subItem.href}

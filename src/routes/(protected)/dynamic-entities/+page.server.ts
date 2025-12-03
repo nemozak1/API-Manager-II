@@ -17,69 +17,42 @@ export const load: PageServerLoad = async ({ locals }) => {
   const sessionOAuth = SessionOAuthHelper.getSessionOAuth(session);
   const accessToken = sessionOAuth?.accessToken;
 
-  // Get user entitlements from session for role checking
-  const userEntitlements = (session.data.user as any)?.entitlements?.list || [];
-
-  // Define required roles for viewing dynamic entities
-  const requiredRoles = [
-    {
-      role: "CanGetDynamicEntity",
-      description: "View dynamic entities",
-      action: "view dynamic entities",
-    },
-  ];
-
   if (!accessToken) {
     logger.warn("No access token available for dynamic entities page");
-    return {
-      userEntitlements,
-      requiredRoles,
-      hasApiAccess: false,
-      dynamicEntities: [],
-      banks: [],
-      error: "No API access token available",
-    };
+    throw error(401, "No API access token available");
   }
 
-  // Fetch available banks for filtering
-  let banks = [];
   try {
-    const banksResponse = await obp_requests.get(
-      "/obp/v6.0.0/banks",
-      accessToken,
-    );
-    banks = banksResponse.banks || [];
-  } catch (err) {
-    logger.error("Error fetching banks:", err);
-  }
-
-  // Fetch dynamic entities
-  let dynamicEntities = [];
-  try {
+    // Fetch dynamic entities from OBP API
     logger.info("Fetching dynamic entities...");
-    const response = await obp_requests.get(
+    const entitiesResponse = await obp_requests.get(
       "/obp/v6.0.0/management/dynamic-entities",
       accessToken,
     );
-    dynamicEntities = response.dynamic_entities || [];
-    logger.info(`Found ${dynamicEntities.length} dynamic entities`);
-  } catch (err) {
-    logger.error("Error fetching dynamic entities:", err);
+    const entities = entitiesResponse.dynamic_entities || [];
+    logger.info(`Found ${entities.length} dynamic entities`);
+
+    // Fetch dynamic entity definitions from OBP API
+    logger.info("Fetching dynamic entity definitions...");
+    const definitionsResponse = await obp_requests.get(
+      "/obp/v6.0.0/management/dynamic-entity-definitions",
+      accessToken,
+    );
+    const definitions = definitionsResponse.dynamic_entity_definitions || [];
+    logger.info(`Found ${definitions.length} dynamic entity definitions`);
+
     return {
-      userEntitlements,
-      requiredRoles,
-      hasApiAccess: true,
-      dynamicEntities: [],
-      banks,
-      error: err instanceof Error ? err.message : "Failed to fetch dynamic entities",
+      entities,
+      definitions,
+    };
+  } catch (err) {
+    logger.error("Error fetching dynamic entities data:", err);
+    // Return empty arrays instead of throwing error to allow page to render
+    return {
+      entities: [],
+      definitions: [],
+      error:
+        err instanceof Error ? err.message : "Failed to fetch dynamic entities",
     };
   }
-
-  return {
-    userEntitlements,
-    requiredRoles,
-    hasApiAccess: true,
-    dynamicEntities,
-    banks,
-  };
 };

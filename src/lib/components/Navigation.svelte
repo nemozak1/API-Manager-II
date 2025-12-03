@@ -39,11 +39,15 @@
             available: true,
           },
           {
-            href: "/dynamic-entities",
             label: "Dynamic Entities",
             icon: "🔷",
             available: true,
             subItems: [
+              {
+                href: "/dynamic-entities/system",
+                label: "System Dynamic Entities",
+                icon: "⚙️",
+              },
               {
                 href: "/dynamic-entities/create",
                 label: "Create Dynamic Entity",

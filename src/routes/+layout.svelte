@@ -9,6 +9,7 @@
     apiMetricsItems,
     rbacItems,
     accountAccessItems,
+    dynamicEntitiesItems,
   } from "$lib/config/navigation";
   import Toast from "$lib/components/Toast.svelte";
   import ApiActivityIndicator from "$lib/components/ApiActivityIndicator.svelte";
@@ -44,6 +45,7 @@
     Server,
     Plug,
     Database,
+    Box,
   } from "@lucide/svelte";
 
   import { env } from "$env/dynamic/public";
@@ -66,6 +68,7 @@
   let isApiMetricsExpanded = $state(false);
   let isRbacExpanded = $state(false);
   let isAccountAccessExpanded = $state(false);
+  let isDynamicEntitiesExpanded = $state(false);
   let displayMode: "dark" | "light" = $state("dark");
 
   async function clearCache() {
@@ -130,6 +133,10 @@
   let isAccountAccessActive = $derived(
     page.url.pathname === "/account-access" ||
       page.url.pathname.startsWith("/account-access/"),
+  );
+  let isDynamicEntitiesActive = $derived(
+    page.url.pathname === "/dynamic-entities" ||
+      page.url.pathname.startsWith("/dynamic-entities/"),
   );
 
   logger.info("🧭 Navigation state initialized");
@@ -197,6 +204,10 @@
 
   function toggleAccountAccess() {
     isAccountAccessExpanded = !isAccountAccessExpanded;
+  }
+
+  function toggleDynamicEntities() {
+    isDynamicEntitiesExpanded = !isDynamicEntitiesExpanded;
   }
 
   // Some items in the menu are rendered conditionally based on the presence of URLs set in the environment variables.
@@ -575,6 +586,48 @@
             {#if isAccountAccessExpanded}
               <Navigation.Menu class="mt-1 ml-4 flex flex-col gap-1 px-2">
                 {#each accountAccessItems as subItem}
+                  {@const Icon = subItem.iconComponent}
+                  <a
+                    href={subItem.href}
+                    class="btn w-full justify-start gap-3 px-2 pl-6 text-sm hover:preset-tonal"
+                    class:preset-filled-secondary-50-950={page.url.pathname ===
+                      subItem.href}
+                    class:border-l-2={page.url.pathname === subItem.href}
+                    class:border-primary-500={page.url.pathname ===
+                      subItem.href}
+                    title={subItem.label}
+                    aria-label={subItem.label}
+                  >
+                    <Icon class="size-4" />
+                    <span>{subItem.label}</span>
+                  </a>
+                {/each}
+              </Navigation.Menu>
+            {/if}
+          </Navigation.Group>
+
+          <!-- Dynamic Entities Group -->
+          <Navigation.Group>
+            <button
+              type="button"
+              class="btn w-full justify-start gap-3 px-2 hover:preset-tonal"
+              class:preset-filled-primary-50-950={isDynamicEntitiesActive}
+              class:border={isDynamicEntitiesActive}
+              class:border-solid-secondary-500={isDynamicEntitiesActive}
+              onclick={toggleDynamicEntities}
+            >
+              <Box class="size-5" />
+              <span>Dynamic Entities</span>
+              {#if isDynamicEntitiesExpanded}
+                <ChevronDown class="h-4 w-4" />
+              {:else}
+                <ChevronRight class="h-4 w-4" />
+              {/if}
+            </button>
+
+            {#if isDynamicEntitiesExpanded}
+              <Navigation.Menu class="mt-1 ml-4 flex flex-col gap-1 px-2">
+                {#each dynamicEntitiesItems as subItem}
                   {@const Icon = subItem.iconComponent}
                   <a
                     href={subItem.href}

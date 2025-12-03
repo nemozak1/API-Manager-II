@@ -18,28 +18,24 @@ export const load: PageServerLoad = async ({ locals }) => {
   const accessToken = sessionOAuth?.accessToken;
 
   if (!accessToken) {
-    logger.warn(
-      "No access token available for dynamic entity definitions page",
-    );
     throw error(401, "No API access token available");
   }
 
   try {
     // Fetch all dynamic entity definitions
-    logger.info("Fetching dynamic entity definitions...");
     const definitionsResponse = await obp_requests.get(
       "/obp/v6.0.0/management/dynamic-entity-definitions",
       accessToken,
     );
+
     const definitions = definitionsResponse.dynamic_entity_definitions || [];
-    logger.info(`Found ${definitions.length} dynamic entity definitions`);
 
     // Fetch all dynamic entities to count entities per definition
-    logger.info("Fetching dynamic entities for counts...");
     const entitiesResponse = await obp_requests.get(
       "/obp/v6.0.0/management/dynamic-entities",
       accessToken,
     );
+
     const entities = entitiesResponse.dynamic_entities || [];
 
     // Count entities per definition

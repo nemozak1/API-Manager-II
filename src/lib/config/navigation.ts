@@ -16,6 +16,9 @@ import {
   Building2,
   Eye,
   Landmark,
+  Box,
+  Settings,
+  FileText,
 } from "@lucide/svelte";
 import { env } from "$env/dynamic/public";
 
@@ -249,4 +252,41 @@ export function getActiveAccountAccessMenuItem(pathname: string) {
   });
 
   return found || accountAccessItems[0]; // fallback to first item
+}
+
+// Dynamic Entities navigation items
+function buildDynamicEntitiesItems(): NavigationItem[] {
+  const items: NavigationItem[] = [
+    {
+      href: "/dynamic-entities/system",
+      label: "System Dynamic Entities",
+      iconComponent: Settings,
+    },
+    {
+      href: "/dynamic-entities/create",
+      label: "Create Dynamic Entity",
+      iconComponent: Plus,
+    },
+    {
+      href: "/dynamic-entities/definitions",
+      label: "Dynamic Entity Definitions",
+      iconComponent: FileText,
+    },
+  ];
+
+  return items;
+}
+
+export const dynamicEntitiesItems = buildDynamicEntitiesItems();
+
+export function getActiveDynamicEntitiesMenuItem(pathname: string) {
+  const found = dynamicEntitiesItems.find((item) => {
+    // Skip external links for active menu detection
+    if (item.external) {
+      return false;
+    }
+    return pathname.startsWith(item.href);
+  });
+
+  return found || dynamicEntitiesItems[0]; // fallback to first item
 }

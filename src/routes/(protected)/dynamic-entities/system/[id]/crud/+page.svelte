@@ -50,6 +50,31 @@
     return record;
   }
 
+  // Helper function to find the ID field name (e.g., piano_id, guitar_id, etc.)
+  function getRecordIdField(record: any): string | null {
+    if (!record) return null;
+
+    // First check for common ID field patterns
+    const recordData = getRecordData(record);
+    const keys = Object.keys(recordData);
+
+    // Look for fields ending with _id
+    const idField = keys.find((key) => key.endsWith("_id"));
+    if (idField) return idField;
+
+    // Fallback to 'id' if present
+    if (keys.includes("id")) return "id";
+
+    return null;
+  }
+
+  // Helper function to get the ID value from a record
+  function getRecordId(record: any): string | null {
+    const recordData = getRecordData(record);
+    const idField = getRecordIdField(recordData);
+    return idField ? recordData[idField] : null;
+  }
+
   let dataRecords = $state(data.dataRecords || []);
   let searchQuery = $state("");
   let showCreateModal = $state(false);
@@ -251,8 +276,32 @@
         throw new Error(errorMessage);
       }
 
-      const result = await response.json();
-      dataRecords = [...dataRecords, result];
+      await response.json();
+
+      // Refetch all records to ensure correct data structure
+      const refetchResponse = await fetch(
+        `/api/dynamic-entities/${entity.dynamicEntityId}/data`,
+        {
+          credentials: "include",
+        },
+      );
+
+      if (refetchResponse.ok) {
+        const refetchData = await refetchResponse.json();
+        // Handle the same data extraction logic as the server
+        if (Array.isArray(refetchData)) {
+          dataRecords = refetchData;
+        } else {
+          const snakeCaseKey = `${entityName.toLowerCase()}_list`;
+          dataRecords =
+            refetchData.data ||
+            refetchData.records ||
+            refetchData[entityName] ||
+            refetchData[snakeCaseKey] ||
+            [];
+        }
+      }
+
       alert("Record created successfully");
       closeModals();
     } catch (error) {
@@ -271,7 +320,8 @@
       return;
     }
 
-    if (!selectedRecord?.id) {
+    const recordId = getRecordId(selectedRecord);
+    if (!recordId) {
       alert("No record ID found");
       return;
     }
@@ -282,7 +332,7 @@
       const convertedData = convertFormDataToApiFormat(formData);
 
       const response = await fetch(
-        `/api/dynamic-entities/${entity.dynamicEntityId}/data/${selectedRecord.id}`,
+        `/api/dynamic-entities/${entity.dynamicEntityId}/data/${recordId}`,
         {
           method: "PUT",
           headers: {
@@ -307,10 +357,32 @@
         throw new Error(errorMessage);
       }
 
-      const result = await response.json();
-      dataRecords = dataRecords.map((r) =>
-        r.id === selectedRecord.id ? result : r,
+      await response.json();
+
+      // Refetch all records to ensure correct data structure
+      const refetchResponse = await fetch(
+        `/api/dynamic-entities/${entity.dynamicEntityId}/data`,
+        {
+          credentials: "include",
+        },
       );
+
+      if (refetchResponse.ok) {
+        const refetchData = await refetchResponse.json();
+        // Handle the same data extraction logic as the server
+        if (Array.isArray(refetchData)) {
+          dataRecords = refetchData;
+        } else {
+          const snakeCaseKey = `${entityName.toLowerCase()}_list`;
+          dataRecords =
+            refetchData.data ||
+            refetchData.records ||
+            refetchData[entityName] ||
+            refetchData[snakeCaseKey] ||
+            [];
+        }
+      }
+
       alert("Record updated successfully");
       closeModals();
     } catch (error) {
@@ -328,9 +400,15 @@
       return;
     }
 
+    const recordId = getRecordId(record);
+    if (!recordId) {
+      alert("No record ID found");
+      return;
+    }
+
     try {
       const response = await fetch(
-        `/api/dynamic-entities/${entity.dynamicEntityId}/data/${record.id}`,
+        `/api/dynamic-entities/${entity.dynamicEntityId}/data/${recordId}`,
         {
           method: "DELETE",
           credentials: "include",

@@ -95,16 +95,22 @@
       return "This field is required";
     }
 
-    if (value && value !== "") {
+    if (value !== null && value !== undefined && value !== "") {
       switch (fieldDef.type) {
         case "integer":
-          if (!/^-?\d+$/.test(value.toString())) {
-            return "Must be a valid integer";
-          }
-          break;
         case "number":
-          if (isNaN(Number(value))) {
+          const num = Number(value);
+          if (isNaN(num)) {
             return "Must be a valid number";
+          }
+          if (fieldDef.type === "integer" && !Number.isInteger(num)) {
+            return "Must be an integer";
+          }
+          if (fieldDef.minimum !== undefined && num < fieldDef.minimum) {
+            return `Must be at least ${fieldDef.minimum}`;
+          }
+          if (fieldDef.maximum !== undefined && num > fieldDef.maximum) {
+            return `Must be at most ${fieldDef.maximum}`;
           }
           break;
         case "boolean":
@@ -115,13 +121,15 @@
             return "Must be in format YYYY-MM-DD";
           }
           break;
-      }
-
-      if (fieldDef.minLength && value.length < fieldDef.minLength) {
-        return `Must be at least ${fieldDef.minLength} characters`;
-      }
-      if (fieldDef.maxLength && value.length > fieldDef.maxLength) {
-        return `Must be at most ${fieldDef.maxLength} characters`;
+        default:
+          // String validation
+          if (fieldDef.minLength && String(value).length < fieldDef.minLength) {
+            return `Must be at least ${fieldDef.minLength} characters`;
+          }
+          if (fieldDef.maxLength && String(value).length > fieldDef.maxLength) {
+            return `Must be at most ${fieldDef.maxLength} characters`;
+          }
+          break;
       }
     }
 
@@ -143,6 +151,44 @@
     return isValid;
   }
 
+  function convertFormDataToApiFormat(
+    data: Record<string, any>,
+  ): Record<string, any> {
+    const converted: Record<string, any> = {};
+
+    Object.keys(properties).forEach((fieldName) => {
+      const fieldDef = properties[fieldName];
+      const value = data[fieldName];
+
+      // Skip empty values
+      if (value === "" || value === null || value === undefined) {
+        return;
+      }
+
+      switch (fieldDef.type) {
+        case "boolean":
+          // Convert boolean to string "true" or "false"
+          converted[fieldName] = value ? "true" : "false";
+          break;
+        case "integer":
+          // Convert to integer number
+          const intValue = Number(value);
+          converted[fieldName] = Math.round(intValue);
+          break;
+        case "number":
+          // Convert to number (JavaScript/JSON doesn't distinguish int vs float)
+          converted[fieldName] = Number(value);
+          break;
+        default:
+          // Keep as string
+          converted[fieldName] = String(value);
+          break;
+      }
+    });
+
+    return converted;
+  }
+
   async function handleCreate() {
     if (!validateAllFields()) {
       alert("Please fix validation errors");
@@ -152,6 +198,14 @@
     isSubmitting = true;
 
     try {
+      const convertedData = convertFormDataToApiFormat(formData);
+      console.log("Original formData:", formData);
+      console.log("Converted data being sent:", convertedData);
+      console.log(
+        "Converted data JSON:",
+        JSON.stringify(convertedData, null, 2),
+      );
+
       const response = await fetch(
         `/api/dynamic-entities/${entity.dynamicEntityId}/data`,
         {
@@ -159,13 +213,23 @@
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(formData),
+          credentials: "include",
+          body: JSON.stringify(convertedData),
         },
       );
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to create record");
+        let errorMessage = "Failed to create record";
+        try {
+          const error = await response.json();
+          errorMessage = error.error || error.message || errorMessage;
+          console.error("API Error Response:", error);
+        } catch (e) {
+          const text = await response.text();
+          console.error("Non-JSON Error Response:", text);
+          errorMessage = `Server error: ${response.status} ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
@@ -173,7 +237,9 @@
       alert("Record created successfully");
       closeModals();
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Failed to create record");
+      const errorMsg =
+        error instanceof Error ? error.message : "Failed to create record";
+      alert(`Error: ${errorMsg}`);
       console.error("Create error:", error);
     } finally {
       isSubmitting = false;
@@ -194,6 +260,8 @@
     isSubmitting = true;
 
     try {
+      const convertedData = convertFormDataToApiFormat(formData);
+
       const response = await fetch(
         `/api/dynamic-entities/${entity.dynamicEntityId}/data/${selectedRecord.id}`,
         {
@@ -201,13 +269,23 @@
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(formData),
+          credentials: "include",
+          body: JSON.stringify(convertedData),
         },
       );
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to update record");
+        let errorMessage = "Failed to update record";
+        try {
+          const error = await response.json();
+          errorMessage = error.error || error.message || errorMessage;
+          console.error("API Error Response:", error);
+        } catch (e) {
+          const text = await response.text();
+          console.error("Non-JSON Error Response:", text);
+          errorMessage = `Server error: ${response.status} ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
@@ -217,7 +295,9 @@
       alert("Record updated successfully");
       closeModals();
     } catch (error) {
-      alert(error instanceof Error ? error.message : "Failed to update record");
+      const errorMsg =
+        error instanceof Error ? error.message : "Failed to update record";
+      alert(`Error: ${errorMsg}`);
       console.error("Update error:", error);
     } finally {
       isSubmitting = false;
@@ -234,6 +314,7 @@
         `/api/dynamic-entities/${entity.dynamicEntityId}/data/${record.id}`,
         {
           method: "DELETE",
+          credentials: "include",
         },
       );
 
@@ -260,7 +341,7 @@
       case "number":
         return "number";
       case "DATE_WITH_DAY":
-        return "date";
+        return "text";
       default:
         return "text";
     }
@@ -605,6 +686,11 @@
                   {fieldDef.description}
                 </p>
               {/if}
+              {#if fieldDef.type === "DATE_WITH_DAY"}
+                <p class="mt-1 text-xs text-blue-600 dark:text-blue-400">
+                  Format: YYYY-MM-DD (e.g., 2023-06-15)
+                </p>
+              {/if}
               {#if inputType === "checkbox"}
                 <div class="mt-2">
                   <input
@@ -619,8 +705,26 @@
                   type={inputType}
                   id="create-{fieldName}"
                   bind:value={formData[fieldName]}
-                  placeholder={fieldDef.example ? String(fieldDef.example) : ""}
-                  class="mt-2 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                  placeholder={fieldDef.type === "DATE_WITH_DAY"
+                    ? "YYYY-MM-DD"
+                    : fieldDef.example
+                      ? String(fieldDef.example)
+                      : ""}
+                  pattern={fieldDef.type === "DATE_WITH_DAY"
+                    ? "\\d{4}-\\d{2}-\\d{2}"
+                    : undefined}
+                  step={fieldDef.type === "integer"
+                    ? "1"
+                    : fieldDef.type === "number"
+                      ? "any"
+                      : undefined}
+                  min={fieldDef.minimum !== undefined
+                    ? fieldDef.minimum
+                    : undefined}
+                  max={fieldDef.maximum !== undefined
+                    ? fieldDef.maximum
+                    : undefined}
+                  class="mt-2 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-mono text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                 />
               {/if}
               {#if validationErrors[fieldName]}
@@ -715,6 +819,11 @@
                   {fieldDef.description}
                 </p>
               {/if}
+              {#if fieldDef.type === "DATE_WITH_DAY"}
+                <p class="mt-1 text-xs text-blue-600 dark:text-blue-400">
+                  Format: YYYY-MM-DD (e.g., 2023-06-15)
+                </p>
+              {/if}
               {#if inputType === "checkbox"}
                 <div class="mt-2">
                   <input
@@ -729,8 +838,26 @@
                   type={inputType}
                   id="edit-{fieldName}"
                   bind:value={formData[fieldName]}
-                  placeholder={fieldDef.example ? String(fieldDef.example) : ""}
-                  class="mt-2 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                  placeholder={fieldDef.type === "DATE_WITH_DAY"
+                    ? "YYYY-MM-DD"
+                    : fieldDef.example
+                      ? String(fieldDef.example)
+                      : ""}
+                  pattern={fieldDef.type === "DATE_WITH_DAY"
+                    ? "\\d{4}-\\d{2}-\\d{2}"
+                    : undefined}
+                  step={fieldDef.type === "integer"
+                    ? "1"
+                    : fieldDef.type === "number"
+                      ? "any"
+                      : undefined}
+                  min={fieldDef.minimum !== undefined
+                    ? fieldDef.minimum
+                    : undefined}
+                  max={fieldDef.maximum !== undefined
+                    ? fieldDef.maximum
+                    : undefined}
+                  class="mt-2 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-mono text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                 />
               {/if}
               {#if validationErrors[fieldName]}

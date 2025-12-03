@@ -93,17 +93,27 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 
 // POST - Create a new record
 export const POST: RequestHandler = async ({ params, request, locals }) => {
+  logger.info("=== POST Create Record Request ===");
+  logger.info("Params:", params);
+
   const session = locals.session;
+  logger.info("Session exists:", !!session);
+  logger.info("Session has data:", !!session?.data);
+  logger.info("Session has user:", !!session?.data?.user);
 
   if (!session?.data?.user) {
-    return json({ error: "Unauthorized" }, { status: 401 });
+    logger.error("Unauthorized: No session or user data");
+    return json({ error: "Unauthorized - No session" }, { status: 401 });
   }
 
   const sessionOAuth = SessionOAuthHelper.getSessionOAuth(session);
+  logger.info("SessionOAuth retrieved:", !!sessionOAuth);
+
   const accessToken = sessionOAuth?.accessToken;
+  logger.info("Access token available:", !!accessToken);
 
   if (!accessToken) {
-    logger.warn("No access token available");
+    logger.error("No access token available in session");
     return json({ error: "No API access token available" }, { status: 401 });
   }
 
@@ -115,8 +125,10 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     }
 
     const body = await request.json();
+    logger.info("Request body received:", JSON.stringify(body, null, 2));
 
     if (!body || typeof body !== "object") {
+      logger.error("Invalid request body");
       return json(
         { error: "Request body must be a valid object" },
         { status: 400 },
@@ -124,18 +136,40 @@ export const POST: RequestHandler = async ({ params, request, locals }) => {
     }
 
     // Get entity name from ID
+    logger.info(`Looking up entity name for ID: ${id}`);
     const entityName = await getEntityName(id, accessToken);
+    logger.info(`Entity name resolved: ${entityName}`);
+
     if (!entityName) {
+      logger.error(`Entity not found for ID: ${id}`);
       return json({ error: "Entity not found" }, { status: 404 });
     }
 
     logger.info(`Creating record for entity: ${entityName}`);
-    logger.info(`Data: ${JSON.stringify(body)}`);
+    logger.info(`Request data: ${JSON.stringify(body)}`);
+
+    // Log detailed type information
+    Object.keys(body).forEach((key) => {
+      const value = body[key];
+      const type = typeof value;
+      logger.info(
+        `Field '${key}': value='${value}', type='${type}', isNumber=${typeof value === "number"}, isInteger=${Number.isInteger(value)}`,
+      );
+    });
 
     const endpoint = `/obp/dynamic-entity/${entityName}`;
+    logger.info(`Calling OBP endpoint: POST ${endpoint}`);
+    logger.info(`Request body being sent to OBP: ${JSON.stringify(body)}`);
+    logger.info(
+      `Stringified body type check:`,
+      typeof body,
+      Array.isArray(body),
+    );
+
     const response = await obp_requests.post(endpoint, body, accessToken);
 
     logger.info("Record created successfully");
+    logger.info("Response:", JSON.stringify(response));
     return json(response);
   } catch (err) {
     logger.error("Error creating record:", err);

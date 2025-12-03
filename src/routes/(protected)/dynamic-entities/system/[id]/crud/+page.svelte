@@ -32,6 +32,24 @@
   const properties = schema?.properties || {};
   const requiredFields = schema?.required || [];
 
+  // Helper function to extract data from record (handles potential nesting)
+  function getRecordData(record: any): any {
+    if (!record) return record;
+
+    // Check if data is nested under the entity name
+    // e.g., { "Guitar": { "name": "Fender", "price": 1000 }, "dynamic_entity_id": "123" }
+    if (
+      entityName &&
+      record[entityName] &&
+      typeof record[entityName] === "object"
+    ) {
+      return record[entityName];
+    }
+
+    // Otherwise return the record as-is (flat structure)
+    return record;
+  }
+
   let dataRecords = $state(data.dataRecords || []);
   let searchQuery = $state("");
   let showCreateModal = $state(false);
@@ -56,8 +74,9 @@
 
   function initializeFormData(record?: any) {
     formData = {};
+    const recordData = record ? getRecordData(record) : null;
     Object.keys(properties).forEach((fieldName) => {
-      formData[fieldName] = record ? record[fieldName] : "";
+      formData[fieldName] = recordData ? recordData[fieldName] : "";
     });
     validationErrors = {};
   }
@@ -534,14 +553,15 @@
             class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"
           >
             {#each filteredRecords as record, index}
+              {@const recordData = getRecordData(record)}
               <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                 {#each Object.keys(properties).slice(0, 4) as fieldName}
                   <td
                     class="max-w-xs truncate px-6 py-4 text-sm text-gray-900 dark:text-gray-100"
                   >
-                    {record[fieldName] !== undefined &&
-                    record[fieldName] !== null
-                      ? String(record[fieldName])
+                    {recordData[fieldName] !== undefined &&
+                    recordData[fieldName] !== null
+                      ? String(recordData[fieldName])
                       : "-"}
                   </td>
                 {/each}
@@ -929,6 +949,7 @@
       <div class="p-6">
         <dl class="space-y-4">
           {#each Object.entries(properties) as [fieldName, fieldDef]}
+            {@const recordData = getRecordData(selectedRecord)}
             <div>
               <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
                 {fieldName}
@@ -937,9 +958,9 @@
                 {/if}
               </dt>
               <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                {selectedRecord[fieldName] !== undefined &&
-                selectedRecord[fieldName] !== null
-                  ? String(selectedRecord[fieldName])
+                {recordData[fieldName] !== undefined &&
+                recordData[fieldName] !== null
+                  ? String(recordData[fieldName])
                   : "-"}
               </dd>
             </div>

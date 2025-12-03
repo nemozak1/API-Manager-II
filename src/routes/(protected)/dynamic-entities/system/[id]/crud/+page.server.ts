@@ -60,10 +60,13 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         if (Array.isArray(dataResponse)) {
           dataRecords = dataResponse;
         } else {
+          // Try common patterns: data, records, entityName, or snake_case version (e.g., piano_list)
+          const snakeCaseKey = `${entityName.toLowerCase()}_list`;
           dataRecords =
             dataResponse.data ||
             dataResponse.records ||
             dataResponse[entityName] ||
+            dataResponse[snakeCaseKey] ||
             [];
         }
       } catch (dataErr) {

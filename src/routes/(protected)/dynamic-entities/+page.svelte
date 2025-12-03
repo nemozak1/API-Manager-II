@@ -7,7 +7,7 @@
   let searchQuery = "";
   let selectedDefinition = "all";
 
-  $: filteredEntities = data.entities.filter((entity) => {
+  $: filteredEntities = (data.entities || []).filter((entity) => {
     const matchesSearch =
       searchQuery === "" ||
       entity.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -25,7 +25,7 @@
 
   $: definitionOptions = [
     "all",
-    ...new Set(data.entities.map((e) => e.definition_id)),
+    ...new Set((data.entities || []).map((e) => e.definition_id)),
   ];
 
   async function deleteEntity(entityId: string) {
@@ -51,7 +51,9 @@
   }
 
   function getDefinitionName(definitionId: string): string {
-    const definition = data.definitions.find((d) => d.id === definitionId);
+    const definition = (data.definitions || []).find(
+      (d) => d.id === definitionId,
+    );
     return definition?.name || definitionId;
   }
 
@@ -131,7 +133,7 @@
             Total Entities
           </p>
           <p class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
-            {data.entities.length}
+            {data.entities?.length || 0}
           </p>
           <p class="mt-1 text-xs text-gray-500 dark:text-gray-500">
             Across all definitions
@@ -164,7 +166,7 @@
             Active Definitions
           </p>
           <p class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
-            {data.definitions.length}
+            {data.definitions?.length || 0}
           </p>
           <p class="mt-1 text-xs text-gray-500 dark:text-gray-500">
             Entity type definitions
@@ -305,11 +307,11 @@
           No entities found
         </h3>
         <p class="mb-4 text-gray-600 dark:text-gray-400">
-          {data.entities.length === 0
+          {!data.entities || data.entities.length === 0
             ? "Get started by creating your first dynamic entity"
             : "Try adjusting your search or filter criteria"}
         </p>
-        {#if data.entities.length === 0}
+        {#if !data.entities || data.entities.length === 0}
           <a
             href="/dynamic-entities/create"
             class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"

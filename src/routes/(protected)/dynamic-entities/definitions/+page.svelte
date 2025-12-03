@@ -19,7 +19,7 @@
   let isSubmitting = false;
   let schemaError = "";
 
-  $: filteredDefinitions = data.definitions.filter((def) => {
+  $: filteredDefinitions = (data.definitions || []).filter((def) => {
     const query = searchQuery.toLowerCase();
     return (
       query === "" ||
@@ -29,7 +29,7 @@
     );
   });
 
-  $: totalEntities = data.definitions.reduce(
+  $: totalEntities = (data.definitions || []).reduce(
     (sum, def) => sum + (def.entity_count || 0),
     0,
   );
@@ -302,7 +302,7 @@
             Total Definitions
           </p>
           <p class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
-            {data.definitions.length}
+            {data.definitions?.length || 0}
           </p>
         </div>
         <div class="rounded-full bg-blue-100 p-3 dark:bg-blue-900/30">
@@ -432,7 +432,7 @@
       </p>
     </div>
 
-    {#if filteredDefinitions.length === 0}
+    {#if !data.definitions || filteredDefinitions.length === 0}
       <div class="flex flex-col items-center justify-center py-12 text-center">
         <svg
           class="mb-4 h-12 w-12 text-gray-400"
@@ -451,11 +451,11 @@
           No definitions found
         </h3>
         <p class="mb-4 text-gray-600 dark:text-gray-400">
-          {data.definitions.length === 0
+          {!data.definitions || data.definitions.length === 0
             ? "Get started by creating your first entity definition"
             : "Try adjusting your search criteria"}
         </p>
-        {#if data.definitions.length === 0}
+        {#if !data.definitions || data.definitions.length === 0}
           <button
             on:click={openCreateDialog}
             class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"

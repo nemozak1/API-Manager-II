@@ -8,7 +8,8 @@
 
   // Helper function to extract entity name from the entity object
   function getEntityName(entity: any): string {
-    return entity.entityName || "Unknown";
+    // The entity name is the schema key (Piano, Guitar, etc.)
+    return getSchemaKey(entity) || "Unknown";
   }
 
   // Helper function to extract the schema key (FooBar, Guitar, Piano, etc.)

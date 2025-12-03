@@ -5,7 +5,6 @@
   let { data }: { data: PageData } = $props();
 
   const entity = data.entity;
-  const entityName = entity.entityName || "Unknown";
 
   // Helper function to extract the schema key
   function getSchemaKey(entity: any): string {
@@ -28,6 +27,8 @@
   }
 
   const schema = getSchema(entity);
+  const schemaKey = getSchemaKey(entity);
+  const entityName = schemaKey || "Unknown";
   const properties = schema?.properties || {};
   const requiredFields = schema?.required || [];
 

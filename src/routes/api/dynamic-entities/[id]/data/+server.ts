@@ -7,7 +7,10 @@ import { createLogger } from "$lib/utils/logger";
 const logger = createLogger("DynamicEntityDataAPI");
 
 // Helper function to get entity name from entity ID
-async function getEntityName(entityId: string, accessToken: string): Promise<string | null> {
+async function getEntityName(
+  entityId: string,
+  accessToken: string,
+): Promise<string | null> {
   try {
     const entitiesResponse = await obp_requests.get(
       "/obp/v4.0.0/management/system-dynamic-entities",
@@ -15,7 +18,15 @@ async function getEntityName(entityId: string, accessToken: string): Promise<str
     );
     const entities = entitiesResponse.dynamic_entities || [];
     const entity = entities.find((e: any) => e.dynamicEntityId === entityId);
-    return entity?.entityName || null;
+
+    if (!entity) return null;
+
+    // The entity name is the schema key (Piano, Guitar, etc.)
+    const metadataFields = ["userId", "dynamicEntityId", "hasPersonalEntity"];
+    const keys = Object.keys(entity).filter(
+      (key) => !metadataFields.includes(key),
+    );
+    return keys[0] || null;
   } catch (err) {
     logger.error("Error fetching entity name:", err);
     return null;

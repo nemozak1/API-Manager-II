@@ -28,7 +28,7 @@
 
   const schema = getSchema(entity);
   const schemaKey = getSchemaKey(entity);
-  const entityName = entity.entityName || "Unknown";
+  const entityName = schemaKey || "Unknown";
   const properties = schema?.properties || {};
   const requiredFields = schema?.required || [];
   const description = schema?.description || "No description available";

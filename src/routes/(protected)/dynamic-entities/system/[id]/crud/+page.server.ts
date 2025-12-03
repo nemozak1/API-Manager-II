@@ -42,8 +42,12 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     }
 
     // Fetch data records for this entity
-    // Extract entity name to fetch data records
-    const entityName = entity.entityName;
+    // Extract entity name from the schema key (Piano, Guitar, etc.)
+    const metadataFields = ["userId", "dynamicEntityId", "hasPersonalEntity"];
+    const keys = Object.keys(entity).filter(
+      (key) => !metadataFields.includes(key),
+    );
+    const entityName = keys[0] || null;
     let dataRecords = [];
 
     if (entityName) {

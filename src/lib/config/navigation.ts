@@ -258,24 +258,24 @@ export function getActiveAccountAccessMenuItem(pathname: string) {
 function buildDynamicEntitiesItems(): NavigationItem[] {
   const items: NavigationItem[] = [
     {
-      href: "/dynamic-entities",
-      label: "DynEnt",
-      iconComponent: Database,
-    },
-    {
       href: "/dynamic-entities/system",
-      label: "System Dynamic Entities",
+      label: "1. System Dynamic Entities",
       iconComponent: Settings,
     },
     {
       href: "/dynamic-entities/create",
-      label: "Create Dynamic Entity",
+      label: "2. Create Dynamic Entity",
       iconComponent: Plus,
     },
     {
       href: "/dynamic-entities/definitions",
-      label: "Dynamic Entity Definitions",
+      label: "3. Dynamic Entity Definitions",
       iconComponent: FileText,
+    },
+    {
+      href: "/dynamic-entities",
+      label: "4. DynEnt",
+      iconComponent: Database,
     },
   ];
 

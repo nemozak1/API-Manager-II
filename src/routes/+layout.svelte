@@ -70,6 +70,7 @@
   let isAccountAccessExpanded = $state(false);
   let isDynamicEntitiesExpanded = $state(false);
   let displayMode: "dark" | "light" = $state("dark");
+  let systemDynamicEntities = $state<any[]>([]);
 
   async function clearCache() {
     try {
@@ -108,6 +109,26 @@
     if (isAuthenticated) {
       logger.info("🔄 Pre-warming browser resource docs cache...");
       resourceDocsCache.preWarmCache(undefined as any);
+    }
+  });
+
+  // Fetch system dynamic entities for shortcuts
+  onMount(async () => {
+    if (isAuthenticated) {
+      try {
+        const response = await fetch("/api/dynamic-entities/system/list", {
+          credentials: "include",
+        });
+        if (response.ok) {
+          const data = await response.json();
+          systemDynamicEntities = data.entities || [];
+          logger.info(
+            `✅ Loaded ${systemDynamicEntities.length} system dynamic entities`,
+          );
+        }
+      } catch (error) {
+        logger.error("Failed to fetch system dynamic entities:", error);
+      }
     }
   });
 
@@ -639,6 +660,39 @@
                     <span>{subItem.label}</span>
                   </a>
                 {/each}
+
+                {#if systemDynamicEntities.length > 0}
+                  <div
+                    class="my-2 border-t border-gray-300 dark:border-gray-600"
+                  ></div>
+                  {#each systemDynamicEntities as entity}
+                    {@const entityName =
+                      Object.keys(entity).find(
+                        (key) =>
+                          ![
+                            "userId",
+                            "dynamicEntityId",
+                            "hasPersonalEntity",
+                          ].includes(key),
+                      ) || "Unknown"}
+                    <a
+                      href="/dynamic-entities/system/{entity.dynamicEntityId}/crud"
+                      class="btn w-full justify-start gap-3 px-2 pl-6 text-sm hover:preset-tonal"
+                      class:preset-filled-secondary-50-950={page.url
+                        .pathname ===
+                        `/dynamic-entities/system/${entity.dynamicEntityId}/crud`}
+                      class:border-l-2={page.url.pathname ===
+                        `/dynamic-entities/system/${entity.dynamicEntityId}/crud`}
+                      class:border-primary-500={page.url.pathname ===
+                        `/dynamic-entities/system/${entity.dynamicEntityId}/crud`}
+                      title={entityName}
+                      aria-label={entityName}
+                    >
+                      <Database class="size-4" />
+                      <span>{entityName}</span>
+                    </a>
+                  {/each}
+                {/if}
               </Navigation.Menu>
             {/if}
           </Navigation.Group>

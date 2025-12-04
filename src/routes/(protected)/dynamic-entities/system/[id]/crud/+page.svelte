@@ -430,7 +430,17 @@
       );
 
       if (!response.ok) {
-        throw new Error("Failed to delete record");
+        let errorMessage = "Failed to delete record";
+        try {
+          const error = await response.json();
+          errorMessage = error.error || error.message || errorMessage;
+          console.error("API Error Response:", error);
+        } catch (e) {
+          const text = await response.text();
+          console.error("Non-JSON Error Response:", text);
+          errorMessage = `Server error: ${response.status} ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
 
       // Refetch all records to ensure correct data structure
@@ -459,7 +469,9 @@
 
       alert("Record deleted successfully");
     } catch (error) {
-      alert("Failed to delete record");
+      const errorMsg =
+        error instanceof Error ? error.message : "Failed to delete record";
+      alert(`Error: ${errorMsg}`);
       console.error("Delete error:", error);
     }
   }

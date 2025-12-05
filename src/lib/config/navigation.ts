@@ -267,6 +267,11 @@ function buildDynamicEntitiesItems(): NavigationItem[] {
       label: "System Dynamic Entities",
       iconComponent: Settings,
     },
+    {
+      href: "/dynamic-entities/diagnostics",
+      label: "Diagnostics",
+      iconComponent: FileCheck,
+    },
   ];
 
   return items;

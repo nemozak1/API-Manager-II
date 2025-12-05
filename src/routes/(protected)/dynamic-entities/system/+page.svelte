@@ -7,9 +7,9 @@
     logErrorDetails,
   } from "$lib/utils/errorHandler";
 
-  export let data: PageData;
+  let { data }: { data: PageData } = $props();
 
-  let searchQuery = "";
+  let searchQuery = $state("");
 
   // Helper function to extract entity name from the entity object
   function getEntityName(entity: any): string {
@@ -18,13 +18,14 @@
   }
 
   // Helper function to extract the schema key (FooBar, Guitar, Piano, etc.)
-  function getSchemaKey(entity: any): string {
+  function getSchemaKey(entity: any): string | null {
     // Find the first key that's not a known metadata field
     const metadataFields = [
       "entityName",
       "userId",
       "dynamicEntityId",
       "hasPersonalEntity",
+      "record_count",
     ];
     const keys = Object.keys(entity).filter(
       (key) => !metadataFields.includes(key),
@@ -38,31 +39,39 @@
     return schemaKey ? entity[schemaKey] : null;
   }
 
-  $: filteredEntities = (data.entities || []).filter((entity) => {
-    if (searchQuery === "") return true;
+  const filteredEntities = $derived(
+    (data.entities || []).filter((entity: any) => {
+      if (searchQuery === "") return true;
 
-    const query = searchQuery.toLowerCase();
-    const entityName = getEntityName(entity).toLowerCase();
-    const entityId = (entity.dynamicEntityId || "").toLowerCase();
-    const schema = getSchema(entity);
-    const description = schema?.description?.toLowerCase() || "";
+      const query = searchQuery.toLowerCase();
+      const entityName = getEntityName(entity).toLowerCase();
+      const entityId = (entity.dynamicEntityId || "").toLowerCase();
+      const schema = getSchema(entity);
+      const description = schema?.description?.toLowerCase() || "";
 
-    return (
-      entityName.includes(query) ||
-      entityId.includes(query) ||
-      description.includes(query)
-    );
-  });
+      return (
+        entityName.includes(query) ||
+        entityId.includes(query) ||
+        description.includes(query)
+      );
+    }),
+  );
 
-  async function deleteEntity(entityId: string) {
-    if (
-      !confirm("Are you sure you want to delete this system dynamic entity?")
-    ) {
+  async function deleteEntity(entityId: string, cascade: boolean = false) {
+    const confirmMessage = cascade
+      ? "Are you sure you want to delete this system dynamic entity AND ALL ITS DATA (cascade)? This cannot be undone!"
+      : "Are you sure you want to delete this system dynamic entity?";
+
+    if (!confirm(confirmMessage)) {
       return;
     }
 
     try {
-      const response = await fetch(`/api/dynamic-entities/${entityId}`, {
+      const url = cascade
+        ? `/api/dynamic-entities/${entityId}?cascade=true`
+        : `/api/dynamic-entities/${entityId}`;
+
+      const response = await fetch(url, {
         method: "DELETE",
       });
 
@@ -281,6 +290,11 @@
               <th
                 class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400"
               >
+                Records
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400"
+              >
                 Personal
               </th>
               <th
@@ -327,9 +341,12 @@
                     {getRequiredFieldsCount(entity)}
                   </span>
                 </td>
-                <td
-                  class="whitespace-nowrap px-6 py-4 text-sm text-gray-700 dark:text-gray-300"
-                >
+                <td class="whitespace-nowrap px-6 py-4 text-sm">
+                  <span class="font-medium text-gray-900 dark:text-gray-100">
+                    {entity.record_count}
+                  </span>
+                </td>
+                <td class="whitespace-nowrap px-6 py-4 text-sm">
                   {#if entity.hasPersonalEntity}
                     <span
                       class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-200"
@@ -377,9 +394,10 @@
                     </button>
                     <button
                       type="button"
-                      onclick={() => deleteEntity(entity.dynamicEntityId)}
+                      onclick={() =>
+                        deleteEntity(entity.dynamicEntityId, false)}
                       class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                      title="Delete Entity"
+                      title="Delete Entity Definition"
                     >
                       <svg
                         class="h-5 w-5"
@@ -392,6 +410,26 @@
                           stroke-linejoin="round"
                           stroke-width="2"
                           d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onclick={() => deleteEntity(entity.dynamicEntityId, true)}
+                      class="text-red-800 hover:text-red-950 dark:text-red-500 dark:hover:text-red-400"
+                      title="Delete Entity + All Data (CASCADE)"
+                    >
+                      <svg
+                        class="h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                         />
                       </svg>
                     </button>

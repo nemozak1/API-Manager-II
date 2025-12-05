@@ -38,7 +38,7 @@ export const load: PageServerLoad = async ({ locals }) => {
   logger.info("Access token present, fetching dynamic entities");
 
   try {
-    const endpoint = "/obp/v5.1.0/management/system-dynamic-entities";
+    const endpoint = "/obp/v6.0.0/management/system-dynamic-entities";
     logger.info(`Making API request to: ${endpoint}`);
 
     const entitiesResponse = await obp_requests.get(endpoint, accessToken);
@@ -66,85 +66,39 @@ export const load: PageServerLoad = async ({ locals }) => {
         `Checking entity: ${entityName} (ID: ${entity.dynamicEntityId})`,
       );
 
-      let recordCount = 0;
+      // v6.0.0 API MUST provide record_count in the entity definition
+      if (entity.record_count === undefined) {
+        logger.error(`  *** ERROR: record_count missing for ${entityName} ***`);
+        throw new Error(
+          `API v6.0.0 must provide record_count for entity ${entityName}`,
+        );
+      }
+
+      const recordCount = entity.record_count;
+      logger.info(
+        `  Using record_count from entity definition: ${recordCount}`,
+      );
+
+      // Still fetch raw response for debugging purposes
       let fetchError: string | undefined;
       let responseKeys: string[] = [];
       let triedKeys: string[] = [];
       let rawResponse: any = undefined;
 
       try {
-        // Fetch data records for this entity
         const dataEndpoint = `/obp/dynamic-entity/${entityName}`;
-        logger.info(`  Fetching data from: ${dataEndpoint}`);
+        logger.info(`  Fetching raw response from: ${dataEndpoint}`);
 
         const dataResponse = await obp_requests.get(dataEndpoint, accessToken);
         rawResponse = dataResponse;
         responseKeys = Object.keys(dataResponse || {});
         logger.info(`  Response keys:`, responseKeys);
-        logger.info(`  Full response:`, JSON.stringify(dataResponse, null, 2));
-
-        // Try to find the records in various possible response structures
-        let records: any[] = [];
-
-        if (Array.isArray(dataResponse)) {
-          records = dataResponse;
-        } else {
-          // Simple approach: find ANY key ending with _list that contains an array
-          const listKeys = Object.keys(dataResponse).filter((key) =>
-            key.endsWith("_list"),
-          );
-
-          logger.info(`  Found keys ending with _list:`, listKeys);
-          triedKeys = listKeys;
-
-          for (const key of listKeys) {
-            const value = dataResponse[key];
-            logger.info(
-              `  Checking key "${key}": exists=${value !== undefined}, isArray=${Array.isArray(value)}, type=${typeof value}, length=${Array.isArray(value) ? value.length : "N/A"}`,
-            );
-
-            if (value && Array.isArray(value)) {
-              records = value;
-              logger.info(
-                `  ✓ Found records under key: ${key} with ${value.length} items`,
-              );
-              break;
-            }
-          }
-
-          // If still no records, check if we found the key but it was empty vs not finding it at all
-          if (records.length === 0) {
-            // Check if any of the tried keys actually existed in the response
-            const foundKey = triedKeys.find((key) =>
-              dataResponse.hasOwnProperty(key),
-            );
-
-            if (foundKey) {
-              // Key exists but array is empty - this is valid, not an error
-              logger.info(
-                `  Key "${foundKey}" found but array is empty (0 records)`,
-              );
-            } else {
-              // Key doesn't exist at all - this is an error
-              logger.warn(
-                `  Could not find records array. Response structure:`,
-                JSON.stringify(dataResponse, null, 2),
-              );
-              fetchError = `Could not find records array. Response has keys: [${responseKeys.join(", ")}]. Tried keys: [${triedKeys.join(", ")}]`;
-            }
-          }
-        }
-
-        recordCount = records.length;
-        logger.info(`  Record count: ${recordCount}`);
       } catch (err: any) {
-        logger.error(`  *** ERROR fetching data for ${entityName} ***`);
-        logger.error(`  Error message:`, err?.message);
-        logger.error(`  Error status:`, err?.status);
-        logger.error(`  Error statusText:`, err?.statusText);
-        logger.error(`  Error response:`, err?.response);
-        logger.error(`  Full error:`, JSON.stringify(err, null, 2));
-        fetchError = err?.message || "Failed to fetch data";
+        logger.warn(
+          `  Could not fetch raw response for ${entityName}:`,
+          err?.message,
+        );
+        // Don't set fetchError - we already have the count from the entity definition
       }
 
       diagnostics.push({

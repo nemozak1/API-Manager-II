@@ -27,7 +27,7 @@ export const load: PageServerLoad = async ({ locals }) => {
   logger.info("Access token present, fetching dynamic entities");
 
   try {
-    const endpoint = "/obp/v5.1.0/management/system-dynamic-entities";
+    const endpoint = "/obp/v6.0.0/management/system-dynamic-entities";
     logger.info(`Making API request to: ${endpoint}`);
 
     const entitiesResponse = await obp_requests.get(endpoint, accessToken);
@@ -42,6 +42,29 @@ export const load: PageServerLoad = async ({ locals }) => {
     if (entities.length > 0) {
       logger.info("First entity:", JSON.stringify(entities[0], null, 2));
     }
+
+    // Sort entities alphabetically by entity name
+    entities.sort((a: any, b: any) => {
+      const getEntityName = (entity: any): string => {
+        const metadataFields = [
+          "entityName",
+          "userId",
+          "dynamicEntityId",
+          "hasPersonalEntity",
+          "record_count",
+        ];
+        const keys = Object.keys(entity).filter(
+          (key) => !metadataFields.includes(key),
+        );
+        return keys[0] || "";
+      };
+
+      const nameA = getEntityName(a).toLowerCase();
+      const nameB = getEntityName(b).toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
+
+    logger.info("Entities sorted alphabetically");
 
     return {
       entities,

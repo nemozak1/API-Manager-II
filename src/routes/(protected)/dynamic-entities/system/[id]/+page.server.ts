@@ -28,8 +28,9 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
   try {
     // Fetch all system dynamic entities
+    // Fetch all system dynamic entities to get the entity definition
     const entitiesResponse = await obp_requests.get(
-      "/obp/v4.0.0/management/system-dynamic-entities",
+      "/obp/v6.0.0/management/system-dynamic-entities",
       accessToken,
     );
     const entities = entitiesResponse.dynamic_entities || [];
@@ -47,14 +48,15 @@ export const load: PageServerLoad = async ({ params, locals }) => {
   } catch (err) {
     logger.error("Error fetching system dynamic entity:", err);
 
-    if (err && typeof err === 'object' && 'status' in err) {
+    if (err && typeof err === "object" && "status" in err) {
       throw err;
     }
 
-    throw error(500,
+    throw error(
+      500,
       err instanceof Error
         ? err.message
-        : "Failed to fetch system dynamic entity"
+        : "Failed to fetch system dynamic entity",
     );
   }
 };

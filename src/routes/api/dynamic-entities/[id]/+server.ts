@@ -118,7 +118,7 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
   }
 };
 
-export const DELETE: RequestHandler = async ({ params, locals }) => {
+export const DELETE: RequestHandler = async ({ params, locals, url }) => {
   const session = locals.session;
 
   if (!session?.data?.user) {
@@ -140,9 +140,14 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
       return json({ error: "Entity ID is required" }, { status: 400 });
     }
 
-    logger.info(`Deleting dynamic entity: ${id}`);
+    // Check if cascade parameter is provided
+    const cascade = url.searchParams.get("cascade") === "true";
 
-    const endpoint = `/obp/v4.0.0/management/system-dynamic-entities/${id}`;
+    logger.info(`Deleting dynamic entity: ${id} (cascade: ${cascade})`);
+
+    const endpoint = cascade
+      ? `/obp/v6.0.0/management/system-dynamic-entities/cascade/${id}`
+      : `/obp/v6.0.0/management/system-dynamic-entities/${id}`;
     logger.info(`Calling DELETE ${endpoint}`);
     const response = await obp_requests.delete(endpoint, accessToken);
 

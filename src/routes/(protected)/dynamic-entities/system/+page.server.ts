@@ -32,16 +32,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 
     const entitiesResponse = await obp_requests.get(endpoint, accessToken);
 
-    logger.info("API request completed successfully");
-    logger.info("Response keys:", Object.keys(entitiesResponse || {}));
-    logger.info("Full response:", JSON.stringify(entitiesResponse, null, 2));
-
     const entities = entitiesResponse.dynamic_entities || [];
+    logger.info(`Retrieved ${entities.length} system dynamic entities`);
     logger.info(`Found ${entities.length} dynamic entities`);
-
-    if (entities.length > 0) {
-      logger.info("First entity:", JSON.stringify(entities[0], null, 2));
-    }
 
     // Sort entities alphabetically by entity name
     entities.sort((a: any, b: any) => {

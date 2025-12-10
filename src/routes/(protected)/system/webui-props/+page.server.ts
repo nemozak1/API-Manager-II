@@ -39,33 +39,10 @@ export async function load(event: RequestEvent) {
 
     logger.info("=== WEBUI PROPS API RESPONSE ===");
     logger.info("API request completed successfully");
-    logger.info("Response type:", typeof webuiPropsResponse);
-    logger.info("Response keys:", Object.keys(webuiPropsResponse || {}));
-    logger.info("=== FULL JSON RESPONSE ===");
-    logger.info(JSON.stringify(webuiPropsResponse, null, 2));
-    logger.info("=== END JSON RESPONSE ===");
-
     logger.info(
       "Fetched webui props count:",
       webuiPropsResponse?.webui_props?.length || 0,
     );
-
-    if (webuiPropsResponse?.webui_props) {
-      logger.info(
-        "webui_props is array:",
-        Array.isArray(webuiPropsResponse.webui_props),
-      );
-      logger.info("webui_props length:", webuiPropsResponse.webui_props.length);
-      logger.info(
-        "Sample of first prop:",
-        webuiPropsResponse.webui_props[0]
-          ? JSON.stringify(webuiPropsResponse.webui_props[0])
-          : "No props in array",
-      );
-    } else {
-      logger.warn("Response does not contain webui_props array");
-      logger.warn("Response structure:", JSON.stringify(webuiPropsResponse));
-    }
   } catch (e: any) {
     logger.error("Error fetching webui props:", e);
     logger.error("Error details:", {

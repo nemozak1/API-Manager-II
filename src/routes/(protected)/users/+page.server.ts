@@ -48,15 +48,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 
     const response = await obp_requests.get(endpoint, accessToken);
 
-    logger.info("Raw response from OBP API:");
-    logger.info(JSON.stringify(response, null, 2));
-    logger.info(`Response type: ${typeof response}`);
-    logger.info(
-      `Response keys: ${response ? Object.keys(response).join(", ") : "none"}`,
-    );
-
     if (response?.users) {
-      logger.info(`Response: ${response.users.length} users`);
+      logger.info(`Retrieved ${response.users.length} users from OBP API`);
 
       // Sort users by created_date descending (most recent first)
       const sortedUsers = response.users.sort((a: User, b: User) => {
@@ -71,7 +64,6 @@ export const load: PageServerLoad = async ({ locals }) => {
       };
     } else {
       logger.warn("NO USERS DATA IN RESPONSE");
-      logger.warn(`Response structure: ${JSON.stringify(response, null, 2)}`);
       return {
         users: [],
         hasApiAccess: true,

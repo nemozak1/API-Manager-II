@@ -49,21 +49,12 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     logger.error("=== Error creating webui prop ===");
     logger.error("Error message:", error?.message);
     logger.error("Error status:", error?.status);
-    logger.error("Error statusText:", error?.statusText);
-    logger.error("Error response:", JSON.stringify(error?.response));
-    logger.error("Full error object:", JSON.stringify(error, null, 2));
 
     const errorMessage = error?.message || "Failed to create webui prop";
     const statusCode = error?.status || 500;
 
     // Extract more detailed error information
     const errorDetails = error?.response?.data || error?.data || error;
-
-    logger.error("Returning error to client:", {
-      message: errorMessage,
-      status: statusCode,
-      details: errorDetails,
-    });
 
     return json(
       {

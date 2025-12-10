@@ -61,18 +61,6 @@ export const load: PageServerLoad = async ({ locals }) => {
     logger.info(
       `Response: ${response.entitlement_requests?.length || 0} entitlement requests`,
     );
-    logger.info("Raw response structure:", JSON.stringify(response, null, 2));
-
-    // Log first request if available to see structure
-    if (
-      response.entitlement_requests &&
-      response.entitlement_requests.length > 0
-    ) {
-      logger.info(
-        "Sample request:",
-        JSON.stringify(response.entitlement_requests[0], null, 2),
-      );
-    }
 
     return {
       entitlementRequests: response.entitlement_requests || [],

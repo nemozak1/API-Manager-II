@@ -42,8 +42,8 @@ export const GET: RequestHandler = async ({ locals }) => {
 
     const response = await obp_requests.get(endpoint, accessToken);
 
-    logger.info("Raw response from OBP API:");
-    logger.debug(JSON.stringify(response, null, 2));
+    const migrationCount = response?.migration_script_logs?.length || 0;
+    logger.info(`Retrieved ${migrationCount} migration script logs`);
 
     return json(response);
   } catch (err) {

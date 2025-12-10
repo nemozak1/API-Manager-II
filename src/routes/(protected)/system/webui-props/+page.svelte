@@ -348,7 +348,7 @@
 <!-- Props List -->
 {#if filteredProps && filteredProps.length > 0}
   <div class="space-y-4">
-    {#each filteredProps as prop (prop.webui_props_id)}
+    {#each filteredProps as prop, index (`${prop.webui_props_id || "undefined"}-${index}`)}
       <div
         class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
       >

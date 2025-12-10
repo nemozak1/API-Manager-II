@@ -1,12 +1,10 @@
 <script lang="ts">
-  import { onMount, onDestroy } from "svelte";
-
   let logs = $state<any[]>([]);
   let logLevel = $state<string>("");
   let isLoading = $state(false);
   let error = $state<string | null>(null);
   let lastUpdated = $state<string>("");
-  let refreshInterval: NodeJS.Timeout | null = null;
+  let refreshInterval: number | undefined = undefined;
   let copiedMessageIndex = $state<number | null>(null);
 
   const logLevels = [
@@ -60,6 +58,11 @@
   }
 
   function startAutoRefresh() {
+    // Clear any existing interval
+    if (refreshInterval) {
+      clearInterval(refreshInterval);
+    }
+
     // Initial fetch
     fetchLogs();
 
@@ -72,7 +75,7 @@
   function stopAutoRefresh() {
     if (refreshInterval) {
       clearInterval(refreshInterval);
-      refreshInterval = null;
+      refreshInterval = undefined;
     }
   }
 
@@ -80,7 +83,6 @@
     const target = event.target as HTMLSelectElement;
     logLevel = target.value;
     // Restart auto-refresh with new log level
-    stopAutoRefresh();
     startAutoRefresh();
   }
 
@@ -141,12 +143,21 @@
     }
   }
 
-  onMount(() => {
-    startAutoRefresh();
+  // Initialize on mount - run only once
+  let initialized = $state(false);
+
+  $effect(() => {
+    if (typeof window !== "undefined" && !initialized) {
+      initialized = true;
+      startAutoRefresh();
+    }
   });
 
-  onDestroy(() => {
-    stopAutoRefresh();
+  // Cleanup effect
+  $effect(() => {
+    return () => {
+      stopAutoRefresh();
+    };
   });
 
   async function copyMessage(log: any, index: number) {

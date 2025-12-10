@@ -18,6 +18,7 @@ class OBPRequests {
   }
 
   async get(endpoint: string, accessToken?: string): Promise<any> {
+    const startTime = performance.now();
     logger.debug("GET", endpoint);
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -28,6 +29,15 @@ class OBPRequests {
     const response = await fetch(`${this.base_url}${endpoint}`, {
       headers,
     });
+
+    const duration = performance.now() - startTime;
+    if (duration > 400) {
+      logger.warn(
+        `⚠️ WARNING SLOW! GET ${endpoint} took ${duration.toFixed(2)}ms`,
+      );
+    } else {
+      logger.debug(`GET ${endpoint} completed in ${duration.toFixed(2)}ms`);
+    }
 
     // Log the actual HTTP status code and correlation ID
     const correlationId = response.headers.get("Correlation-Id");
@@ -96,6 +106,7 @@ class OBPRequests {
   }
 
   async post(endpoint: string, body: any, accessToken?: string): Promise<any> {
+    const startTime = performance.now();
     logger.debug("POST", endpoint, body);
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -108,6 +119,15 @@ class OBPRequests {
       headers,
       body: JSON.stringify(body),
     });
+
+    const duration = performance.now() - startTime;
+    if (duration > 400) {
+      logger.warn(
+        `⚠️ WARNING SLOW! POST ${endpoint} took ${duration.toFixed(2)}ms`,
+      );
+    } else {
+      logger.debug(`POST ${endpoint} completed in ${duration.toFixed(2)}ms`);
+    }
 
     // Log correlation ID
     const correlationId = response.headers.get("Correlation-Id");
@@ -172,6 +192,7 @@ class OBPRequests {
   }
 
   async delete(endpoint: string, accessToken?: string): Promise<any> {
+    const startTime = performance.now();
     logger.debug("DELETE", endpoint);
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -183,6 +204,15 @@ class OBPRequests {
       method: "DELETE",
       headers,
     });
+
+    const duration = performance.now() - startTime;
+    if (duration > 400) {
+      logger.warn(
+        `⚠️ WARNING SLOW! DELETE ${endpoint} took ${duration.toFixed(2)}ms`,
+      );
+    } else {
+      logger.debug(`DELETE ${endpoint} completed in ${duration.toFixed(2)}ms`);
+    }
 
     // Log correlation ID
     const correlationId = response.headers.get("Correlation-Id");
@@ -259,6 +289,7 @@ class OBPRequests {
   }
 
   async put(endpoint: string, body: any, accessToken?: string): Promise<any> {
+    const startTime = performance.now();
     logger.debug("PUT", endpoint, body);
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -271,6 +302,15 @@ class OBPRequests {
       headers,
       body: JSON.stringify(body),
     });
+
+    const duration = performance.now() - startTime;
+    if (duration > 400) {
+      logger.warn(
+        `⚠️ WARNING SLOW! PUT ${endpoint} took ${duration.toFixed(2)}ms`,
+      );
+    } else {
+      logger.debug(`PUT ${endpoint} completed in ${duration.toFixed(2)}ms`);
+    }
 
     // Log correlation ID
     const correlationId = response.headers.get("Correlation-Id");
@@ -335,6 +375,7 @@ class OBPRequests {
   }
 
   async patch(endpoint: string, body: any, accessToken?: string): Promise<any> {
+    const startTime = performance.now();
     logger.debug("PATCH", endpoint, body);
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -347,6 +388,15 @@ class OBPRequests {
       headers,
       body: JSON.stringify(body),
     });
+
+    const duration = performance.now() - startTime;
+    if (duration > 400) {
+      logger.warn(
+        `⚠️ WARNING SLOW! PATCH ${endpoint} took ${duration.toFixed(2)}ms`,
+      );
+    } else {
+      logger.debug(`PATCH ${endpoint} completed in ${duration.toFixed(2)}ms`);
+    }
 
     // Log correlation ID
     const correlationId = response.headers.get("Correlation-Id");

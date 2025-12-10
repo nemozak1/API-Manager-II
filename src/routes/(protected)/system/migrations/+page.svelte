@@ -1,11 +1,10 @@
 <script lang="ts">
-  import { onMount, onDestroy } from "svelte";
-
   let migrations = $state<any[]>([]);
   let isLoading = $state(false);
   let error = $state<string | null>(null);
   let lastUpdated = $state<string>("");
-  let refreshInterval: NodeJS.Timeout | null = null;
+  let refreshInterval: number | undefined = undefined;
+  let initialized = $state(false);
 
   async function fetchMigrations() {
     try {
@@ -64,6 +63,11 @@
   }
 
   function startAutoRefresh() {
+    // Clear any existing interval first
+    if (refreshInterval) {
+      clearInterval(refreshInterval);
+    }
+
     // Initial fetch
     fetchMigrations();
 
@@ -76,7 +80,7 @@
   function stopAutoRefresh() {
     if (refreshInterval) {
       clearInterval(refreshInterval);
-      refreshInterval = null;
+      refreshInterval = undefined;
     }
   }
 
@@ -121,12 +125,19 @@
     }
   }
 
-  onMount(() => {
-    startAutoRefresh();
+  // Initialize on mount - run only once
+  $effect(() => {
+    if (typeof window !== "undefined" && !initialized) {
+      initialized = true;
+      startAutoRefresh();
+    }
   });
 
-  onDestroy(() => {
-    stopAutoRefresh();
+  // Cleanup effect
+  $effect(() => {
+    return () => {
+      stopAutoRefresh();
+    };
   });
 </script>
 

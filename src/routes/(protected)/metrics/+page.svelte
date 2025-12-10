@@ -34,8 +34,9 @@
     });
   });
 
-  let refreshInterval: NodeJS.Timeout | undefined = undefined;
-  let countdownInterval: NodeJS.Timeout | undefined = undefined;
+  let refreshInterval: number | undefined = undefined;
+  let countdownInterval: number | undefined = undefined;
+  let timeUpdateInterval: number | undefined = undefined;
   let currentTime = $state(new Date().toLocaleString());
   let lastRefreshTime = $state(new Date().toLocaleString());
   let countdown = $state(5);
@@ -128,7 +129,7 @@
       startAutoRefresh();
 
       // Update current time every second
-      setInterval(() => {
+      timeUpdateInterval = setInterval(() => {
         currentTime = new Date().toLocaleString();
       }, 1000);
     }
@@ -142,6 +143,9 @@
       }
       if (countdownInterval) {
         clearInterval(countdownInterval);
+      }
+      if (timeUpdateInterval) {
+        clearInterval(timeUpdateInterval);
       }
     };
   });

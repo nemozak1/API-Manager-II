@@ -31,6 +31,7 @@
 
   let refreshInterval: number | undefined = undefined;
   let countdownInterval: number | undefined = undefined;
+  let timeUpdateInterval: number | undefined = undefined;
   let currentTime = $state(new Date().toLocaleString());
   let currentTimeUTC = $state(
     new Date().toISOString().replace("T", " ").slice(0, 19),
@@ -153,7 +154,7 @@
       startAutoRefresh();
 
       // Update current time every second
-      setInterval(() => {
+      timeUpdateInterval = setInterval(() => {
         currentTime = new Date().toLocaleString();
         currentTimeUTC = new Date()
           .toISOString()
@@ -171,6 +172,9 @@
       }
       if (countdownInterval) {
         clearInterval(countdownInterval);
+      }
+      if (timeUpdateInterval) {
+        clearInterval(timeUpdateInterval);
       }
     };
   });

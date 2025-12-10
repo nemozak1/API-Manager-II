@@ -269,13 +269,6 @@
               >
                 {prop.name}
               </h2>
-              <span
-                class="rounded-full px-3 py-1 text-xs font-medium {prop.is_active
-                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                  : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'}"
-              >
-                {prop.is_active ? "Active" : "Inactive"}
-              </span>
             </div>
             {#if prop.description}
               <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
@@ -304,24 +297,6 @@
         <!-- Content Section -->
         <div class="space-y-3 rounded-lg bg-gray-50 p-4 dark:bg-gray-900/50">
           <div>
-            <div
-              class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400"
-            >
-              WebUI Props ID
-            </div>
-            <code
-              class="block rounded bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-800 dark:text-gray-100"
-            >
-              {prop.webui_props_id}
-            </code>
-          </div>
-
-          <div>
-            <div
-              class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400"
-            >
-              Value
-            </div>
             <div
               class="block rounded bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-800 dark:text-gray-100"
             >

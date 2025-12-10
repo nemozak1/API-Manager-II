@@ -96,13 +96,17 @@
   }
 
   logger.info("🔐 Checking authentication state");
-  if (data.email) {
-    isAuthenticated = true;
-    logger.info(`✅ User authenticated: ${data.email}`);
-  } else {
-    isAuthenticated = false;
-    logger.info("ℹ️  User not authenticated");
-  }
+
+  // Make authentication reactive to data changes
+  $effect(() => {
+    if (data.email) {
+      isAuthenticated = true;
+      logger.info(`✅ User authenticated: ${data.email}`);
+    } else {
+      isAuthenticated = false;
+      logger.info("ℹ️  User not authenticated");
+    }
+  });
 
   // Pre-warm resource docs cache in browser for authenticated users
   onMount(() => {

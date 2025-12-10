@@ -3,11 +3,15 @@ import { obp_requests } from "$lib/obp/requests";
 import { error } from "@sveltejs/kit";
 import type { OBPWebUIPropsResponse } from "$lib/obp/types";
 import type { RequestEvent } from "@sveltejs/kit";
+import { SessionOAuthHelper } from "$lib/oauth/sessionHelper";
 
 const logger = createLogger("WebUIPropsServer");
 
 export async function load(event: RequestEvent) {
-  const token = event.locals.session.data.oauth?.access_token;
+  const session = event.locals.session;
+  const sessionOAuth = SessionOAuthHelper.getSessionOAuth(session);
+  const token = sessionOAuth?.accessToken;
+
   if (!token) {
     error(401, {
       message: "Unauthorized: No access token found in session.",
@@ -20,7 +24,8 @@ export async function load(event: RequestEvent) {
   // Validate filter
   if (!["active", "database", "config"].includes(filter)) {
     error(400, {
-      message: "Invalid filter parameter. Must be 'active', 'database', or 'config'.",
+      message:
+        "Invalid filter parameter. Must be 'active', 'database', or 'config'.",
     });
   }
 

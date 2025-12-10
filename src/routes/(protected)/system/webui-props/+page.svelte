@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
+  import { goto, invalidateAll } from "$app/navigation";
   import type { PageData } from "./$types";
   import type { OBPWebUIProp } from "$lib/obp/types";
   import {
@@ -206,9 +206,9 @@
     }
   }
 
-  function switchFilter(filter: string) {
+  async function switchFilter(filter: string) {
     currentFilter = filter;
-    goto(`/system/webui-props?what=${filter}`);
+    await goto(`/system/webui-props?what=${filter}`, { invalidateAll: true });
   }
 </script>
 
@@ -274,7 +274,7 @@
 <!-- Props List -->
 {#if filteredProps && filteredProps.length > 0}
   <div class="space-y-4">
-    {#each filteredProps as prop (prop.webui_props_id)}
+    {#each filteredProps as prop, index (prop.webui_props_id || `prop-${index}`)}
       <div
         class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
       >

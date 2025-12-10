@@ -278,7 +278,7 @@
             Value
           </div>
           <pre
-            class="overflow-x-auto rounded-lg bg-gray-50 p-4 text-sm text-gray-900 dark:bg-gray-900/50 dark:text-gray-100">{prop.value}</pre>
+            class="whitespace-pre-wrap break-words rounded-lg bg-gray-50 p-4 text-sm text-gray-900 dark:bg-gray-900/50 dark:text-gray-100">{prop.value}</pre>
         </div>
 
         <!-- Action Buttons - Only show for database source -->

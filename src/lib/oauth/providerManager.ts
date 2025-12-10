@@ -80,7 +80,9 @@ class OAuth2ProviderManager {
 
     try {
       wellKnownUris = await this.fetchWellKnownUris();
-      logger.debug("Well-known URIs fetched successfully:", wellKnownUris);
+      logger.debug(
+        `Well-known URIs fetched successfully: ${wellKnownUris.length} provider(s)`,
+      );
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);

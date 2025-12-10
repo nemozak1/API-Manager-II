@@ -37,22 +37,49 @@ export async function load(event: RequestEvent) {
 
     webuiPropsResponse = await obp_requests.get(endpoint, token);
 
-    logger.info("=== WEBUI PROPS API RESPONSE ===");
-    logger.info("API request completed successfully");
+    logger.info("=== WEBUI PROPS RESPONSE DEBUG ===");
+    logger.info(`Response exists: ${!!webuiPropsResponse}`);
+    logger.info(`Response type: ${typeof webuiPropsResponse}`);
     logger.info(
-      "Fetched webui props count:",
-      webuiPropsResponse?.webui_props?.length || 0,
+      `Response keys: ${webuiPropsResponse ? Object.keys(webuiPropsResponse).join(", ") : "NONE"}`,
+    );
+    logger.info(
+      `webui_props field exists: ${webuiPropsResponse && "webui_props" in webuiPropsResponse}`,
+    );
+    logger.info(
+      `webui_props is array: ${Array.isArray(webuiPropsResponse?.webui_props)}`,
+    );
+    logger.info(
+      `webui_props length: ${webuiPropsResponse?.webui_props?.length || 0}`,
+    );
+
+    if (
+      webuiPropsResponse?.webui_props &&
+      webuiPropsResponse.webui_props.length > 0
+    ) {
+      logger.info(
+        `First prop sample: ${JSON.stringify(webuiPropsResponse.webui_props[0]).substring(0, 200)}`,
+      );
+    }
+
+    logger.info(
+      `Retrieved ${webuiPropsResponse?.webui_props?.length || 0} webui props`,
     );
   } catch (e: any) {
     logger.error("Error fetching webui props:", e);
-    logger.error("Error details:", {
-      message: e?.message,
-      status: e?.status,
-      statusText: e?.statusText,
-      response: e?.response,
-    });
-    error(500, {
+    logger.error("Error message:", e?.message);
+
+    // Extract status code from error message if available
+    let statusCode = 500;
+    const statusMatch = e?.message?.match(/Server returned (\d+)/);
+    if (statusMatch) {
+      statusCode = parseInt(statusMatch[1], 10);
+      logger.error(`Extracted HTTP status code: ${statusCode}`);
+    }
+
+    error(statusCode, {
       message:
+        e?.message ||
         "Could not fetch webui props at this time. Please try again later.",
     });
   }
@@ -86,6 +113,7 @@ export async function load(event: RequestEvent) {
   logger.info(
     `=== Returning ${webuiProps.length} webui props to the client ===`,
   );
+  logger.info(`whatParam value: "${whatParam}"`);
 
   return {
     webuiProps,

@@ -53,12 +53,7 @@ class OBPOIDCStrategy implements OAuth2ProviderStrategy {
   }
 
   async initialize(config: WellKnownUri): Promise<OAuth2ClientWithConfig> {
-    logger.debug(`Initializing OAuth client with:`, {
-      clientId: env.OBP_OAUTH_CLIENT_ID ? "[SET]" : "[MISSING]",
-      clientSecret: env.OBP_OAUTH_CLIENT_SECRET ? "[SET]" : "[MISSING]",
-      callbackUrl: env.APP_CALLBACK_URL ? env.APP_CALLBACK_URL : "[MISSING]",
-      configUrl: config.url,
-    });
+    logger.debug(`Initializing OAuth client for provider: ${config.provider}`);
 
     const client = new OAuth2ClientWithConfig(
       env.OBP_OAUTH_CLIENT_ID,

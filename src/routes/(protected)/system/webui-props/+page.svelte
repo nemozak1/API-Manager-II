@@ -22,8 +22,6 @@
   // Form states
   let formName = $state("");
   let formValue = $state("");
-  let formDescription = $state("");
-  let formIsActive = $state(true);
   let formError = $state("");
   let isSubmitting = $state(false);
 
@@ -35,21 +33,14 @@
       const query = searchQuery.toLowerCase();
       const name = (prop.name || "").toLowerCase();
       const value = (prop.value || "").toLowerCase();
-      const description = (prop.description || "").toLowerCase();
 
-      return (
-        name.includes(query) ||
-        value.includes(query) ||
-        description.includes(query)
-      );
+      return name.includes(query) || value.includes(query);
     }),
   );
 
   function openCreateModal() {
     formName = "";
     formValue = "";
-    formDescription = "";
-    formIsActive = true;
     formError = "";
     showCreateModal = true;
   }
@@ -58,8 +49,6 @@
     selectedProp = prop;
     formName = prop.name;
     formValue = prop.value;
-    formDescription = prop.description || "";
-    formIsActive = prop.is_active;
     formError = "";
     showEditModal = true;
   }
@@ -96,8 +85,6 @@
         body: JSON.stringify({
           name: formName.trim(),
           value: formValue,
-          description: formDescription.trim(),
-          is_active: formIsActive,
         }),
       });
 
@@ -143,8 +130,6 @@
           body: JSON.stringify({
             name: formName.trim(),
             value: formValue,
-            description: formDescription.trim(),
-            is_active: formIsActive,
           }),
         },
       );
@@ -278,25 +263,11 @@
       <div
         class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
       >
-        <!-- Header with Name and Status -->
-        <div class="mb-4 flex items-start justify-between">
-          <div class="flex-1">
-            <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
-              {prop.name}
-            </h2>
-            {#if prop.description}
-              <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                {prop.description}
-              </p>
-            {/if}
-          </div>
-          <span
-            class="ml-4 rounded-full px-3 py-1 text-xs font-medium {prop.is_active
-              ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-              : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'}"
-          >
-            {prop.is_active ? "Active" : "Inactive"}
-          </span>
+        <!-- Header with Name -->
+        <div class="mb-4">
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+            {prop.name}
+          </h2>
         </div>
 
         <!-- Value -->
@@ -310,35 +281,23 @@
             class="overflow-x-auto rounded-lg bg-gray-50 p-4 text-sm text-gray-900 dark:bg-gray-900/50 dark:text-gray-100">{prop.value}</pre>
         </div>
 
-        <!-- Prop ID -->
-        <div class="mb-4">
-          <div
-            class="mb-1 text-xs font-medium text-gray-600 dark:text-gray-400"
-          >
-            Prop ID
+        <!-- Action Buttons - Only show for database source -->
+        {#if prop.source === "database"}
+          <div class="flex gap-2">
+            <button
+              onclick={() => openEditModal(prop)}
+              class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-500 dark:hover:bg-blue-600"
+            >
+              Edit
+            </button>
+            <button
+              onclick={() => openDeleteModal(prop)}
+              class="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-500 dark:hover:bg-red-600"
+            >
+              Delete
+            </button>
           </div>
-          <code
-            class="block rounded bg-gray-50 px-3 py-2 text-sm text-gray-900 dark:bg-gray-900/50 dark:text-gray-100"
-          >
-            {prop.webui_props_id}
-          </code>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="flex gap-2">
-          <button
-            onclick={() => openEditModal(prop)}
-            class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-500 dark:hover:bg-blue-600"
-          >
-            Edit
-          </button>
-          <button
-            onclick={() => openDeleteModal(prop)}
-            class="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-500 dark:hover:bg-red-600"
-          >
-            Delete
-          </button>
-        </div>
+        {/if}
       </div>
     {/each}
   </div>
@@ -423,25 +382,8 @@
               type="text"
               id="create-name"
               bind:value={formName}
-              placeholder="e.g., webui_feature_flag"
+              placeholder="e.g., webui_api_explorer_url"
               required
-              class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-            />
-          </div>
-
-          <!-- Description -->
-          <div>
-            <label
-              for="create-description"
-              class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Description
-            </label>
-            <input
-              type="text"
-              id="create-description"
-              bind:value={formDescription}
-              placeholder="Brief description of this property"
               class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
             />
           </div>
@@ -462,22 +404,6 @@
               required
               class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
             ></textarea>
-          </div>
-
-          <!-- Is Active -->
-          <div class="flex items-center">
-            <input
-              type="checkbox"
-              bind:checked={formIsActive}
-              id="create-is-active"
-              class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
-            />
-            <label
-              for="create-is-active"
-              class="ml-2 text-sm text-gray-700 dark:text-gray-300"
-            >
-              Active
-            </label>
           </div>
         </div>
 
@@ -558,22 +484,6 @@
             />
           </div>
 
-          <!-- Description -->
-          <div>
-            <label
-              for="edit-description"
-              class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Description
-            </label>
-            <input
-              type="text"
-              id="edit-description"
-              bind:value={formDescription}
-              class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-            />
-          </div>
-
           <!-- Value -->
           <div>
             <label
@@ -589,22 +499,6 @@
               required
               class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
             ></textarea>
-          </div>
-
-          <!-- Is Active -->
-          <div class="flex items-center">
-            <input
-              type="checkbox"
-              bind:checked={formIsActive}
-              id="edit-is-active"
-              class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
-            />
-            <label
-              for="edit-is-active"
-              class="ml-2 text-sm text-gray-700 dark:text-gray-300"
-            >
-              Active
-            </label>
           </div>
         </div>
 

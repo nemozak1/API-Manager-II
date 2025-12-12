@@ -186,6 +186,39 @@ export const ROLE_REQUIREMENTS = {
       action: "delete users",
     },
   ],
+
+  // WebUI Props Management
+  viewWebUIProps: [
+    {
+      role: "CanGetWebUiProps",
+      description: "View WebUI configuration properties",
+      action: "view webui props",
+    },
+  ],
+
+  createWebUIProps: [
+    {
+      role: "CanCreateWebUiProps",
+      description: "Create WebUI configuration properties",
+      action: "create webui props",
+    },
+  ],
+
+  updateWebUIProps: [
+    {
+      role: "CanUpdateWebUiProps",
+      description: "Update WebUI configuration properties",
+      action: "update webui props",
+    },
+  ],
+
+  deleteWebUIProps: [
+    {
+      role: "CanDeleteWebUiProps",
+      description: "Delete WebUI configuration properties",
+      action: "delete webui props",
+    },
+  ],
 } as const;
 
 /**
@@ -212,4 +245,32 @@ export function getEntitlementsPageRoles(): RoleRequirement[] {
  */
 export function getRolesPageRoles(): RoleRequirement[] {
   return [...ROLE_REQUIREMENTS.viewRoles];
+}
+
+/**
+ * Get role requirements for creating webui props
+ */
+export function getCreateWebUIPropsRoles(): RoleRequirement[] {
+  return [...ROLE_REQUIREMENTS.createWebUIProps];
+}
+
+/**
+ * Get role requirements for viewing webui props
+ */
+export function getViewWebUIPropsRoles(): RoleRequirement[] {
+  return [...ROLE_REQUIREMENTS.viewWebUIProps];
+}
+
+/**
+ * Get role requirements for updating webui props
+ */
+export function getUpdateWebUIPropsRoles(): RoleRequirement[] {
+  return [...ROLE_REQUIREMENTS.updateWebUIProps];
+}
+
+/**
+ * Get role requirements for deleting webui props
+ */
+export function getDeleteWebUIPropsRoles(): RoleRequirement[] {
+  return [...ROLE_REQUIREMENTS.deleteWebUIProps];
 }

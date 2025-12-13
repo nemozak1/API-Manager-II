@@ -34,7 +34,7 @@
 
     try {
       const response = await fetch("/api/webui-props", {
-        method: "POST",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },

@@ -6,7 +6,7 @@ import { createLogger } from "$lib/utils/logger";
 
 const logger = createLogger("WebUIPropsAPI");
 
-export const POST: RequestHandler = async ({ request, locals }) => {
+export const PUT: RequestHandler = async ({ request, locals }) => {
   const session = locals.session;
 
   if (!session?.data?.user) {
@@ -39,22 +39,17 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       );
     }
 
-    logger.info("Creating webui prop");
+    logger.info("Creating/updating webui prop");
     logger.info(`Name: ${name}`);
 
     const requestBody = {
-      name,
       value,
     };
 
-    const endpoint = `/obp/v6.0.0/management/webui_props`;
-    logger.info(`POST ${endpoint}`);
+    const endpoint = `/obp/v6.0.0/management/webui_props/${name}`;
+    logger.info(`PUT ${endpoint}`);
 
-    const response = await obp_requests.post(
-      endpoint,
-      requestBody,
-      accessToken,
-    );
+    const response = await obp_requests.put(endpoint, requestBody, accessToken);
 
     logger.info("WebUI prop created successfully");
     return json(response);

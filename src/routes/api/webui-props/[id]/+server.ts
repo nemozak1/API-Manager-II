@@ -25,18 +25,11 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
     const { id } = params;
 
     if (!id) {
-      return json({ error: "Prop ID is required" }, { status: 400 });
+      return json({ error: "Prop name is required" }, { status: 400 });
     }
 
     const body = await request.json();
-    const { name, value } = body;
-
-    if (!name || typeof name !== "string") {
-      return json(
-        { error: "name is required and must be a string" },
-        { status: 400 },
-      );
-    }
+    const { value } = body;
 
     if (!value || typeof value !== "string") {
       return json(
@@ -48,11 +41,10 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
     logger.info(`Updating webui prop: ${id}`);
 
     const requestBody = {
-      name,
       value,
     };
 
-    const endpoint = `/obp/v6.0.0/webui-props/${id}`;
+    const endpoint = `/obp/v6.0.0/management/webui_props/${id}`;
     const response = await obp_requests.put(endpoint, requestBody, accessToken);
 
     logger.info("WebUI prop updated successfully");
@@ -98,12 +90,12 @@ export const DELETE: RequestHandler = async ({ params, locals }) => {
     const { id } = params;
 
     if (!id) {
-      return json({ error: "Prop ID is required" }, { status: 400 });
+      return json({ error: "Prop name is required" }, { status: 400 });
     }
 
     logger.info(`Deleting webui prop: ${id}`);
 
-    const endpoint = `/obp/v6.0.0/webui-props/${id}`;
+    const endpoint = `/obp/v6.0.0/management/webui_props/${id}`;
     logger.info(`Calling DELETE ${endpoint}`);
     const response = await obp_requests.delete(endpoint, accessToken);
 

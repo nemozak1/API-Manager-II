@@ -18,11 +18,11 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     });
   }
 
-  const propId = params.id;
+  const propName = params.id;
 
-  if (!propId) {
+  if (!propName) {
     error(400, {
-      message: "WebUI Prop ID is required",
+      message: "WebUI Prop name is required",
     });
   }
 
@@ -43,13 +43,11 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     );
 
     if (propsResponse?.webui_props) {
-      prop = propsResponse.webui_props.find(
-        (p: any) => p.web_ui_props_id === propId,
-      );
+      prop = propsResponse.webui_props.find((p: any) => p.name === propName);
     }
 
     if (!prop) {
-      logger.warn(`WebUI prop not found: ${propId}`);
+      logger.warn(`WebUI prop not found: ${propName}`);
       error(404, {
         message: "WebUI prop not found",
       });

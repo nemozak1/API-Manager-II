@@ -19,11 +19,6 @@
   async function handleSubmit(event: Event) {
     event.preventDefault();
 
-    if (!formName.trim()) {
-      formError = "Property name is required";
-      return;
-    }
-
     if (!formValue.trim()) {
       formError = "Property value is required";
       return;
@@ -33,19 +28,15 @@
     formError = "";
 
     try {
-      const response = await fetch(
-        `/api/webui-props/${data.prop.web_ui_props_id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: formName,
-            value: formValue,
-          }),
+      const response = await fetch(`/api/webui-props/${data.prop.name}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          value: formValue,
+        }),
+      });
 
       if (!response.ok) {
         const errorDetails = await extractErrorFromResponse(
@@ -80,7 +71,7 @@
   <div class="container mx-auto px-4 py-8">
     <div class="mb-6">
       <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
-        Edit WebUI Prop
+        {formName}
       </h1>
       <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
         Update the configuration property for the web interface
@@ -101,47 +92,6 @@
 
         <form onsubmit={handleSubmit}>
           <div class="space-y-6">
-            <!-- Property ID (read-only) -->
-            <div>
-              <label
-                for="prop-id"
-                class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Property ID
-              </label>
-              <input
-                id="prop-id"
-                type="text"
-                value={data.prop?.web_ui_props_id || ""}
-                disabled
-                class="w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2 text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400"
-              />
-              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                This ID cannot be changed
-              </p>
-            </div>
-
-            <!-- Name Field -->
-            <div>
-              <label
-                for="name"
-                class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Property Name <span class="text-red-600">*</span>
-              </label>
-              <input
-                id="name"
-                type="text"
-                bind:value={formName}
-                required
-                placeholder="e.g., webui_feature_api_explorer"
-                class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-blue-400"
-              />
-              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Use a descriptive name, typically prefixed with "webui_"
-              </p>
-            </div>
-
             <!-- Value Field -->
             <div>
               <label
@@ -161,33 +111,6 @@
               <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 Enter any value - text, JSON, Markdown, HTML, etc.
               </p>
-            </div>
-
-            <!-- Info Box -->
-            <div
-              class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20"
-            >
-              <h3
-                class="mb-2 flex items-center text-sm font-medium text-blue-900 dark:text-blue-100"
-              >
-                <svg
-                  class="mr-2 h-5 w-5"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-                Note
-              </h3>
-              <ul class="space-y-1 text-sm text-blue-800 dark:text-blue-200">
-                <li>• Changes to this property take effect immediately</li>
-                <li>• Make sure to review your changes before saving</li>
-                <li>• You can revert changes by clicking Cancel</li>
-              </ul>
             </div>
           </div>
 

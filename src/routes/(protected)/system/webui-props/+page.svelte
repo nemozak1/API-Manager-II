@@ -26,21 +26,21 @@
   }
 
   function openEditModal(prop: OBPWebUIProp) {
-    if (!prop.web_ui_props_id) {
-      console.error("Cannot edit prop: missing web_ui_props_id", prop);
-      alert("Error: This property cannot be edited (missing ID)");
+    if (!prop.name) {
+      console.error("Cannot edit prop: missing name", prop);
+      alert("Error: This property cannot be edited (missing name)");
       return;
     }
-    goto(`/system/webui-props/${prop.web_ui_props_id}/edit`);
+    goto(`/system/webui-props/${prop.name}/edit`);
   }
 
   function openDeleteModal(prop: OBPWebUIProp) {
-    if (!prop.web_ui_props_id) {
-      console.error("Cannot delete prop: missing web_ui_props_id", prop);
-      alert("Error: This property cannot be deleted (missing ID)");
+    if (!prop.name) {
+      console.error("Cannot delete prop: missing name", prop);
+      alert("Error: This property cannot be deleted (missing name)");
       return;
     }
-    goto(`/system/webui-props/${prop.web_ui_props_id}/delete`);
+    goto(`/system/webui-props/${prop.name}/delete`);
   }
 
   async function switchFilter(filter: string) {
@@ -139,8 +139,8 @@
               class="whitespace-pre-wrap break-words rounded-lg bg-gray-50 p-4 text-sm text-gray-900 dark:bg-gray-900/50 dark:text-gray-100">{prop.value}</pre>
           </div>
 
-          <!-- Action Buttons - Only show for database source with valid ID -->
-          {#if prop.source === "database" && prop.web_ui_props_id}
+          <!-- Action Buttons - Only show for database source with valid name -->
+          {#if prop.source === "database" && prop.name}
             <div class="flex gap-2">
               <button
                 onclick={() => openEditModal(prop)}

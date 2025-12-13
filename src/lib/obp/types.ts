@@ -83,9 +83,11 @@ export interface OBPAddEntitlementBody {
 }
 
 export interface OBPWebUIProp {
-  webui_props_id?: string;
+  web_ui_props_id: string;
   name: string;
   value: string;
+  description?: string;
+  is_active?: boolean;
   source?: string;
 }
 

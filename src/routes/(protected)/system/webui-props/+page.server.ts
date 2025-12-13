@@ -56,6 +56,11 @@ export async function load(event: RequestEvent) {
 
   const props = propsResponse.webui_props;
 
+  // Debug: Log first prop to see structure
+  if (props.length > 0) {
+    logger.debug("Sample prop structure:", JSON.stringify(props[0], null, 2));
+  }
+
   // Sort props by name
   props.sort((a, b) => {
     return a.name.localeCompare(b.name);

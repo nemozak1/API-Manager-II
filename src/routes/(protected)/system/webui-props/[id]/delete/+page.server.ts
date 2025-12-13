@@ -1,0 +1,72 @@
+import type { PageServerLoad } from "./$types";
+import { error } from "@sveltejs/kit";
+import { getDeleteWebUIPropsRoles } from "$lib/utils/roleChecker";
+import { obp_requests } from "$lib/obp/requests";
+import { SessionOAuthHelper } from "$lib/oauth/sessionHelper";
+import { createLogger } from "$lib/utils/logger";
+
+const logger = createLogger("WebUIPropsDeleteServer");
+
+export const load: PageServerLoad = async ({ locals, params }) => {
+  const session = locals.session;
+  const sessionOAuth = SessionOAuthHelper.getSessionOAuth(session);
+  const token = sessionOAuth?.accessToken;
+
+  if (!token) {
+    error(401, {
+      message: "Unauthorized: No access token found in session.",
+    });
+  }
+
+  const propId = params.id;
+
+  if (!propId) {
+    error(400, {
+      message: "WebUI Prop ID is required",
+    });
+  }
+
+  // Get user entitlements from session for role checking
+  const userEntitlements = (session.data.user as any)?.entitlements?.list || [];
+
+  // Get role requirements for deleting webui props
+  const requiredRoles = getDeleteWebUIPropsRoles();
+
+  // Fetch the specific prop to delete
+  let prop = null;
+
+  try {
+    // First, get all props to find the one we want
+    const propsResponse = await obp_requests.get(
+      `/obp/v6.0.0/webui-props?what=database`,
+      token,
+    );
+
+    if (propsResponse?.webui_props) {
+      prop = propsResponse.webui_props.find(
+        (p: any) => p.web_ui_props_id === propId,
+      );
+    }
+
+    if (!prop) {
+      logger.warn(`WebUI prop not found: ${propId}`);
+      error(404, {
+        message: "WebUI prop not found",
+      });
+    }
+
+    logger.debug(`Retrieved webui prop for deletion: ${prop.name}`);
+  } catch (e) {
+    logger.error("Error fetching webui prop:", e);
+    error(500, {
+      message:
+        "Could not fetch webui prop at this time. Please try again later.",
+    });
+  }
+
+  return {
+    prop,
+    userEntitlements,
+    requiredRoles,
+  };
+};

@@ -206,7 +206,7 @@ export const ROLE_REQUIREMENTS = {
 
   updateWebUIProps: [
     {
-      role: "CanUpdateWebUiProps",
+      role: "CanCreateWebUiProps",
       description: "Update WebUI configuration properties",
       action: "update webui props",
     },

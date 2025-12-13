@@ -36,8 +36,8 @@
         throw new Error(errorMessage);
       }
 
-      // Success - redirect back to the list
-      goto("/system/webui-props");
+      // Success - redirect back to the database filter view
+      goto("/system/webui-props?what=database");
     } catch (err) {
       const errorMsg =
         err instanceof Error ? err.message : "Failed to delete webui prop";
@@ -47,7 +47,7 @@
   }
 
   function handleCancel() {
-    goto("/system/webui-props");
+    goto("/system/webui-props?what=database");
   }
 </script>
 

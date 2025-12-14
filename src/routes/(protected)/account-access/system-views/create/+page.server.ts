@@ -50,6 +50,9 @@ export const load: PageServerLoad = async ({ locals }) => {
       viewPermissions = permissions;
     }
 
+    // Sort permissions alphabetically
+    viewPermissions.sort();
+
     logger.debug(
       `Retrieved ${viewPermissions.length} view permissions from API`,
     );

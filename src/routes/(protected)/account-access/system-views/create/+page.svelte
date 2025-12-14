@@ -60,6 +60,9 @@
     formError = "";
 
     try {
+      console.log("Selected actions:", selectedActions);
+      console.log("Selected actions count:", selectedActions.length);
+
       const requestBody: any = {
         name: formName,
         description: formDescription,
@@ -69,6 +72,8 @@
         hide_metadata_if_alias_used: formHideMetadataIfAliasUsed,
         allowed_actions: selectedActions,
       };
+
+      console.log("Request body:", JSON.stringify(requestBody, null, 2));
 
       // Add grant/revoke access views if provided
       if (grantAccessViews.trim()) {
@@ -338,7 +343,7 @@
                       <input
                         type="checkbox"
                         checked={selectedActions.includes(action)}
-                        onchange={() => toggleAction(action)}
+                        onclick={() => toggleAction(action)}
                         class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
                       />
                       <span

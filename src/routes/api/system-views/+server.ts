@@ -76,6 +76,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
     const endpoint = `/obp/v6.0.0/system-views`;
     logger.info(`POST ${endpoint}`);
+    logger.info(
+      "Request body being sent to OBP:",
+      JSON.stringify(requestBody, null, 2),
+    );
 
     const response = await obp_requests.post(
       endpoint,
@@ -84,6 +88,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     );
 
     logger.info("System view created successfully");
+    logger.info("OBP API response:", JSON.stringify(response, null, 2));
     return json(response);
   } catch (err) {
     logger.error("Error creating system view:", err);

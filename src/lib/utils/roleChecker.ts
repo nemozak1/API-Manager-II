@@ -219,6 +219,14 @@ export const ROLE_REQUIREMENTS = {
       action: "delete webui props",
     },
   ],
+
+  createSystemView: [
+    {
+      role: "CanCreateSystemView",
+      description: "Create system views",
+      action: "create system views",
+    },
+  ],
 } as const;
 
 /**
@@ -273,4 +281,11 @@ export function getUpdateWebUIPropsRoles(): RoleRequirement[] {
  */
 export function getDeleteWebUIPropsRoles(): RoleRequirement[] {
   return [...ROLE_REQUIREMENTS.deleteWebUIProps];
+}
+
+/**
+ * Get role requirements for creating system views
+ */
+export function getCreateSystemViewRoles(): RoleRequirement[] {
+  return [...ROLE_REQUIREMENTS.createSystemView];
 }

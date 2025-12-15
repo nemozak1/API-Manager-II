@@ -43,7 +43,8 @@ export const load: PageServerLoad = async ({ locals }) => {
   } catch (e) {
     logger.error("Error fetching ABAC rules:", e);
     hasApiAccess = false;
-    errorMessage = e instanceof Error ? e.message : "Failed to fetch ABAC rules";
+    errorMessage =
+      e instanceof Error ? e.message : "Failed to fetch ABAC rules";
   }
 
   return {

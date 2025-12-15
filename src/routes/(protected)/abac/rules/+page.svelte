@@ -2,12 +2,16 @@
   import { goto } from "$app/navigation";
   import type { PageData } from "./$types";
   import PageRoleCheck from "$lib/components/PageRoleCheck.svelte";
-  import { Lock, Shield, Search } from "@lucide/svelte";
+  import { Lock, Shield, Search, Edit } from "@lucide/svelte";
 
   let { data } = $props<{ data: PageData }>();
 
   function handleCreateRule() {
     goto("/abac/rules/create");
+  }
+
+  function handleEditRule(ruleId: string) {
+    goto(`/abac/rules/${ruleId}/edit`);
   }
 
   let abacRules = $derived(data.abacRules || []);
@@ -24,9 +28,9 @@
     const query = searchQuery.toLowerCase();
     return abacRules.filter(
       (rule: any) =>
-        rule.name?.toLowerCase().includes(query) ||
+        rule.rule_name?.toLowerCase().includes(query) ||
         rule.description?.toLowerCase().includes(query) ||
-        rule.operation_id?.toLowerCase().includes(query),
+        rule.rule_code?.toLowerCase().includes(query),
     );
   });
 </script>
@@ -122,11 +126,18 @@
                       <Shield size={20} />
                     </div>
                     <div class="rule-title-section">
-                      <h3 class="rule-name">{rule.name || "Unnamed Rule"}</h3>
-                      {#if rule.operation_id}
-                        <span class="operation-badge">{rule.operation_id}</span>
-                      {/if}
+                      <h3 class="rule-name">
+                        {rule.rule_name || "Unnamed Rule"}
+                      </h3>
                     </div>
+                    <button
+                      onclick={() => handleEditRule(rule.abac_rule_id)}
+                      class="edit-button"
+                      title="Edit rule"
+                    >
+                      <Edit size={16} />
+                      Edit
+                    </button>
                   </div>
 
                   {#if rule.description}
@@ -134,10 +145,12 @@
                   {/if}
 
                   <div class="rule-details">
-                    {#if rule.bank_id}
+                    {#if rule.rule_code}
                       <div class="detail-item">
-                        <span class="detail-label">Bank ID:</span>
-                        <span class="detail-value">{rule.bank_id}</span>
+                        <span class="detail-label">Rule Code:</span>
+                        <code class="detail-value font-mono text-xs"
+                          >{rule.rule_code}</code
+                        >
                       </div>
                     {/if}
 
@@ -165,25 +178,6 @@
                       </div>
                     {/if}
                   </div>
-
-                  {#if rule.attributes && Array.isArray(rule.attributes) && rule.attributes.length > 0}
-                    <div class="attributes-section">
-                      <h4 class="attributes-title">Attributes</h4>
-                      <div class="attributes-list">
-                        {#each rule.attributes as attr}
-                          <div class="attribute-item">
-                            <span class="attribute-key"
-                              >{attr.key || attr.name}</span
-                            >
-                            {#if attr.value}
-                              <span class="attribute-value">= {attr.value}</span
-                              >
-                            {/if}
-                          </div>
-                        {/each}
-                      </div>
-                    </div>
-                  {/if}
                 </div>
               {/each}
             </div>
@@ -443,6 +437,41 @@
     align-items: flex-start;
     gap: 1rem;
     margin-bottom: 1rem;
+    position: relative;
+  }
+
+  .edit-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-left: auto;
+    padding: 0.375rem 0.75rem;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .edit-button:hover {
+    background: #f9fafb;
+    border-color: #3b82f6;
+    color: #3b82f6;
+  }
+
+  :global([data-mode="dark"]) .edit-button {
+    background: rgb(55, 65, 81);
+    border-color: rgb(75, 85, 99);
+    color: #d1d5db;
+  }
+
+  :global([data-mode="dark"]) .edit-button:hover {
+    background: rgb(75, 85, 99);
+    border-color: #3b82f6;
+    color: #3b82f6;
   }
 
   .rule-icon {

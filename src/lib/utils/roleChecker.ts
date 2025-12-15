@@ -259,6 +259,14 @@ export const ROLE_REQUIREMENTS = {
       action: "create ABAC rules",
     },
   ],
+
+  updateAbacRule: [
+    {
+      role: "CanUpdateAbacRule",
+      description: "Update ABAC rules",
+      action: "update ABAC rules",
+    },
+  ],
 } as const;
 
 /**
@@ -351,6 +359,13 @@ export function getAbacRulesRoles(): RoleRequirement[] {
  */
 export function getCreateAbacRuleRoles(): RoleRequirement[] {
   return [...ROLE_REQUIREMENTS.createAbacRule];
+}
+
+/**
+ * Get role requirements for updating ABAC rules
+ */
+export function getUpdateAbacRuleRoles(): RoleRequirement[] {
+  return [...ROLE_REQUIREMENTS.updateAbacRule];
 }
 
 /**

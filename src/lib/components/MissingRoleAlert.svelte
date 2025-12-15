@@ -112,11 +112,6 @@
     <MessageBox {message} type="error" />
   {/if}
 
-  <div class="tip-box">
-    <strong>💡 Tip:</strong> If you have recently been granted this entitlement,
-    you should log out and log back in again so your session is refreshed.
-  </div>
-
   {#if submitError}
     <MessageBox message={submitError} type="error" />
   {/if}
@@ -143,6 +138,11 @@
       </button>
     </div>
   {/if}
+
+  <div class="tip-box">
+    <strong>💡 Tip:</strong> If you have recently been granted this entitlement,
+    you should <strong>log out and log back in</strong> again.
+  </div>
 </div>
 
 <style>

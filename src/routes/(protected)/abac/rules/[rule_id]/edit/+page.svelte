@@ -7,15 +7,15 @@
     formatErrorForDisplay,
     logErrorDetails,
   } from "$lib/utils/errorHandler";
-  import { Code, AlertCircle, Info } from "@lucide/svelte";
+  import { Code, AlertCircle, Info, ArrowLeft } from "@lucide/svelte";
 
   let { data }: { data: PageData } = $props();
 
-  // Form states matching the actual API structure
-  let formRuleName = $state("");
-  let formRuleCode = $state("");
-  let formDescription = $state("");
-  let formIsActive = $state(true);
+  // Form states matching the actual API structure - pre-populated from loaded data
+  let formRuleName = $state(data.rule?.rule_name || "");
+  let formRuleCode = $state(data.rule?.rule_code || "");
+  let formDescription = $state(data.rule?.description || "");
+  let formIsActive = $state(data.rule?.is_active ?? true);
   let formError = $state("");
   let isSubmitting = $state(false);
 
@@ -77,8 +77,8 @@
         requestBody.description = formDescription;
       }
 
-      const response = await fetch("/api/abac-rules", {
-        method: "POST",
+      const response = await fetch(`/api/abac-rules/${data.ruleId}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -88,9 +88,9 @@
       if (!response.ok) {
         const errorDetails = await extractErrorFromResponse(
           response,
-          "Failed to create ABAC rule",
+          "Failed to update ABAC rule",
         );
-        logErrorDetails("Create ABAC Rule", errorDetails);
+        logErrorDetails("Update ABAC Rule", errorDetails);
         const errorMessage = formatErrorForDisplay(errorDetails);
 
         throw new Error(errorMessage);
@@ -100,7 +100,7 @@
       goto("/abac/rules");
     } catch (err) {
       const errorMsg =
-        err instanceof Error ? err.message : "Failed to create ABAC rule";
+        err instanceof Error ? err.message : "Failed to update ABAC rule";
       formError = errorMsg;
       isSubmitting = false;
     }
@@ -112,7 +112,7 @@
 </script>
 
 <svelte:head>
-  <title>Create ABAC Rule - API Manager II</title>
+  <title>Edit ABAC Rule - API Manager II</title>
 </svelte:head>
 
 <PageRoleCheck
@@ -121,11 +121,18 @@
 >
   <div class="container mx-auto px-4 py-8">
     <div class="mb-6">
+      <button
+        onclick={handleCancel}
+        class="mb-4 inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+      >
+        <ArrowLeft size={16} />
+        Back to Rules
+      </button>
       <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
-        Create ABAC Rule
+        Edit ABAC Rule
       </h1>
       <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-        Create a new Attribute-Based Access Control rule with custom logic
+        Update the Attribute-Based Access Control rule
       </p>
     </div>
 
@@ -347,10 +354,10 @@
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Creating...
+                  Updating...
                 </span>
               {:else}
-                Create ABAC Rule
+                Update ABAC Rule
               {/if}
             </button>
           </div>

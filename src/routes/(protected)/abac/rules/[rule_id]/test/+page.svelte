@@ -130,16 +130,17 @@
   }
 
   // Suggested properties for each top-level object
+  // Only _id fields are needed for the execute endpoint
   const suggestedProperties: Record<string, string[]> = {
-    AuthenticatedUser: ["user_id", "emailAddress", "bank_id", "username"],
-    OnBehalfOfUser: ["user_id", "emailAddress", "bank_id", "username"],
-    Context: ["timestamp", "ip_address", "method", "path"],
-    User: ["user_id", "emailAddress", "bank_id", "username"],
-    Bank: ["bank_id", "name", "full_name", "short_name"],
-    Account: ["account_id", "owner_id", "bank_id", "type"],
-    View: ["view_id", "name", "description", "is_public"],
-    Transaction: ["transaction_id", "account_id", "amount", "type"],
-    Customer: ["customer_id", "name", "emailAddress", "bank_id"],
+    AuthenticatedUser: ["user_id"],
+    OnBehalfOfUser: ["user_id"],
+    Context: ["context_id"],
+    User: ["user_id"],
+    Bank: ["bank_id"],
+    Account: ["account_id"],
+    View: ["view_id"],
+    Transaction: ["transaction_id"],
+    Customer: ["customer_id"],
   };
 
   function addTopLevelObject(topLevel: string) {

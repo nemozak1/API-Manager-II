@@ -34,22 +34,56 @@ export const POST: RequestHandler = async ({ request, locals, params }) => {
     logger.info(`Executing ABAC rule: ${ruleId}`);
     logger.info(`Parameters:`, JSON.stringify(parameters, null, 2));
 
+    // Transform nested dot notation to flat structure
+    // Only _id fields are supported by the execute endpoint
+    // e.g., "AuthenticatedUser.user_id" -> "authenticated_user_id"
+    //       "OnBehalfOfUser.user_id" -> "on_behalf_of_user_id"
+    //       "Account.account_id" -> "account_id"
+    const flatParameters: Record<string, any> = {};
+
+    Object.keys(parameters).forEach((key) => {
+      const parts = key.split(".");
+      if (parts.length === 2) {
+        const [context, property] = parts;
+
+        // Map context to snake_case parameter name
+        const contextMap: Record<string, string> = {
+          AuthenticatedUser: "authenticated_user_id",
+          OnBehalfOfUser: "on_behalf_of_user_id",
+          Context: "context_id",
+          User: "user_id",
+          Bank: "bank_id",
+          Account: "account_id",
+          View: "view_id",
+          Transaction: "transaction_id",
+          Customer: "customer_id",
+        };
+
+        const paramName = contextMap[context] || property;
+        flatParameters[paramName] = parameters[key];
+      } else {
+        // If not in expected format, just use as-is
+        flatParameters[key] = parameters[key];
+      }
+    });
+
+    logger.info(
+      `Transformed parameters:`,
+      JSON.stringify(flatParameters, null, 2),
+    );
+
     // Call the OBP API to execute the rule
     const endpoint = `/obp/v6.0.0/management/abac-rules/${ruleId}/execute`;
     logger.info(`POST ${endpoint}`);
 
-    const requestBody = {
-      parameters: parameters || {},
-    };
-
     logger.info(
       "Request body being sent to OBP:",
-      JSON.stringify(requestBody, null, 2),
+      JSON.stringify(flatParameters, null, 2),
     );
 
     const response = await obp_requests.post(
       endpoint,
-      requestBody,
+      flatParameters,
       accessToken,
     );
 

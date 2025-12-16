@@ -11,7 +11,7 @@
   }
 
   function handleViewRule(ruleId: string) {
-    goto(`/abac/rules/${ruleId}`);
+    goto(`/abac/rules/${ruleId}/test`);
   }
 
   function handleEditRule(ruleId: string) {
@@ -54,7 +54,7 @@
           <div>
             <h1 class="panel-title">ABAC Rules</h1>
             <div class="panel-subtitle">
-              Attribute-Based Access Control rules for API operations
+              Attribute-Based Access Control rules
             </div>
           </div>
           <div class="header-actions">
@@ -138,10 +138,10 @@
                       <button
                         onclick={() => handleViewRule(rule.abac_rule_id)}
                         class="action-button view-button"
-                        title="View rule details"
+                        title="Test rule"
                       >
                         <Eye size={16} />
-                        View
+                        Test
                       </button>
                       <button
                         onclick={() => handleEditRule(rule.abac_rule_id)}

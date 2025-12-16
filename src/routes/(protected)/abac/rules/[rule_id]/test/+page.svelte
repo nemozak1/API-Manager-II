@@ -14,7 +14,16 @@
     Info,
   } from "@lucide/svelte";
 
-  let { data }: { data: PageData } = $props();
+  let {
+    data,
+  }: {
+    data: PageData & {
+      rule: any;
+      ruleId: string;
+      userEntitlements: any[];
+      requiredRoles: any[];
+    };
+  } = $props();
 
   // Parameter management
   let parameters = $state<Record<string, any>>({});
@@ -135,7 +144,7 @@
 </script>
 
 <svelte:head>
-  <title>ABAC Rule Detail - API Manager II</title>
+  <title>Test ABAC Rule - API Manager II</title>
 </svelte:head>
 
 <PageRoleCheck
@@ -154,7 +163,7 @@
       <div class="flex items-start justify-between">
         <div>
           <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            {data.rule?.rule_name || "ABAC Rule"}
+            Test Rule: {data.rule?.rule_name || "ABAC Rule"}
           </h1>
           <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Rule ID: {data.ruleId}

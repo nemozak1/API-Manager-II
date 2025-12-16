@@ -59,7 +59,8 @@
 
   // Extract parameter names from rule code
   function extractParametersFromCode(code: string): string[] {
-    const paramPattern = /\b(user|account|resource|context)\.\w+(\.\w+)*/g;
+    const paramPattern =
+      /\b(authenticatedUser|onBehalfOfUser|context|user|Bank|account|View|Transaction|Customer)\.\w+(\.\w+)*/g;
     const matches = code.match(paramPattern) || [];
     return [...new Set(matches)];
   }
@@ -131,17 +132,22 @@
 
   // Suggested properties for each top-level object
   const suggestedProperties: Record<string, string[]> = {
-    user: ['user_id', 'emailAddress', 'bank_id', 'username'],
-    account: ['account_id', 'owner_id', 'bank_id', 'type'],
-    resource: ['resource_id', 'bank_id', 'type', 'owner_id'],
-    context: ['timestamp', 'ip_address', 'method', 'path'],
+    authenticatedUser: ["user_id", "emailAddress", "bank_id", "username"],
+    onBehalfOfUser: ["user_id", "emailAddress", "bank_id", "username"],
+    context: ["timestamp", "ip_address", "method", "path"],
+    user: ["user_id", "emailAddress", "bank_id", "username"],
+    Bank: ["bank_id", "name", "full_name", "short_name"],
+    account: ["account_id", "owner_id", "bank_id", "type"],
+    View: ["view_id", "name", "description", "is_public"],
+    Transaction: ["transaction_id", "account_id", "amount", "type"],
+    Customer: ["customer_id", "name", "emailAddress", "bank_id"],
   };
 
   function addTopLevelObject(topLevel: string) {
-    const props = suggestedProperties[topLevel] || ['id', 'name'];
+    const props = suggestedProperties[topLevel] || ["id", "name"];
 
     // Add common properties for this top-level object
-    props.forEach(prop => {
+    props.forEach((prop) => {
       const paramName = `${topLevel}.${prop}`;
       if (!(paramName in parameters)) {
         parameters[paramName] = "";
@@ -151,7 +157,9 @@
   }
 
   function addCustomParameter(topLevel: string) {
-    const propName = prompt(`Enter property name for ${topLevel} (e.g., custom_field):`);
+    const propName = prompt(
+      `Enter property name for ${topLevel} (e.g., custom_field):`,
+    );
     if (propName && propName.trim()) {
       const paramName = `${topLevel}.${propName.trim()}`;
       parameters[paramName] = "";
@@ -210,7 +218,9 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <!-- Status -->
           <div>
-            <div class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+            <div
+              class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1"
+            >
               Status
             </div>
             <span
@@ -225,7 +235,9 @@
           <!-- Description -->
           {#if data.rule?.description}
             <div class="md:col-span-3">
-              <div class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+              <div
+                class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1"
+              >
                 Description
               </div>
               <p class="text-sm text-gray-700 dark:text-gray-300">
@@ -237,7 +249,9 @@
 
         <!-- Rule Code - Full Width -->
         <div class="mt-4">
-          <div class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+          <div
+            class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1"
+          >
             Rule Code
           </div>
           <div
@@ -252,7 +266,9 @@
         <!-- Detected Parameters -->
         {#if detectedParameters.length > 0}
           <div class="mt-4">
-            <div class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+            <div
+              class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1"
+            >
               Detected Parameters
             </div>
             <div class="flex flex-wrap gap-1">
@@ -271,224 +287,253 @@
 
     <!-- Test Execution Panel - Full Width Below -->
     <div class="panel">
-        <div class="panel-header">
-          <div class="flex items-center gap-2">
-            <Play size={20} />
-            <h2 class="panel-title">Test Execution</h2>
-          </div>
+      <div class="panel-header">
+        <div class="flex items-center gap-2">
+          <Play size={20} />
+          <h2 class="panel-title">Test Execution</h2>
         </div>
-        <div class="panel-content">
-          <!-- Info Banner -->
-          <div
-            class="mb-4 flex items-start gap-3 rounded-lg border border-blue-300 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-900/20"
-          >
-            <Info
-              class="mt-0.5 shrink-0 text-blue-600 dark:text-blue-400"
-              size={18}
-            />
-            <p class="text-xs text-blue-800 dark:text-blue-200">
-              Test your ABAC rule by providing parameter values. The rule will
-              be evaluated with these values and return a result.
-            </p>
+      </div>
+      <div class="panel-content">
+        <!-- Parameters Form -->
+        <div class="space-y-4">
+          <div class="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Select Parameter Context
           </div>
 
-          <!-- Parameters Form -->
-          <div class="space-y-4">
-            <div class="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Select Parameter Context
-            </div>
+          <!-- Top-level object selection -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <button
+              type="button"
+              onclick={() => addTopLevelObject("authenticatedUser")}
+              class="context-button"
+            >
+              <div class="flex items-center justify-center gap-2">
+                <div class="context-icon">AU</div>
+                <span>authenticatedUser</span>
+              </div>
+            </button>
+            <button
+              type="button"
+              onclick={() => addTopLevelObject("onBehalfOfUser")}
+              class="context-button"
+            >
+              <div class="flex items-center justify-center gap-2">
+                <div class="context-icon">OB</div>
+                <span>onBehalfOfUser</span>
+              </div>
+            </button>
+            <button
+              type="button"
+              onclick={() => addTopLevelObject("context")}
+              class="context-button"
+            >
+              <div class="flex items-center justify-center gap-2">
+                <div class="context-icon">C</div>
+                <span>context</span>
+              </div>
+            </button>
+            <button
+              type="button"
+              onclick={() => addTopLevelObject("user")}
+              class="context-button"
+            >
+              <div class="flex items-center justify-center gap-2">
+                <div class="context-icon">U</div>
+                <span>user</span>
+              </div>
+            </button>
+            <button
+              type="button"
+              onclick={() => addTopLevelObject("Bank")}
+              class="context-button"
+            >
+              <div class="flex items-center justify-center gap-2">
+                <div class="context-icon">B</div>
+                <span>Bank</span>
+              </div>
+            </button>
+            <button
+              type="button"
+              onclick={() => addTopLevelObject("account")}
+              class="context-button"
+            >
+              <div class="flex items-center justify-center gap-2">
+                <div class="context-icon">A</div>
+                <span>account</span>
+              </div>
+            </button>
+            <button
+              type="button"
+              onclick={() => addTopLevelObject("View")}
+              class="context-button"
+            >
+              <div class="flex items-center justify-center gap-2">
+                <div class="context-icon">V</div>
+                <span>View</span>
+              </div>
+            </button>
+            <button
+              type="button"
+              onclick={() => addTopLevelObject("Transaction")}
+              class="context-button"
+            >
+              <div class="flex items-center justify-center gap-2">
+                <div class="context-icon">T</div>
+                <span>Transaction</span>
+              </div>
+            </button>
+            <button
+              type="button"
+              onclick={() => addTopLevelObject("Customer")}
+              class="context-button"
+            >
+              <div class="flex items-center justify-center gap-2">
+                <div class="context-icon">CU</div>
+                <span>Customer</span>
+              </div>
+            </button>
+          </div>
 
-            <!-- Top-level object selection -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-              <button
-                type="button"
-                onclick={() => addTopLevelObject('user')}
-                class="context-button"
-              >
-                <div class="flex items-center justify-center gap-2">
-                  <div class="context-icon">U</div>
-                  <span>user</span>
-                </div>
-              </button>
-              <button
-                type="button"
-                onclick={() => addTopLevelObject('account')}
-                class="context-button"
-              >
-                <div class="flex items-center justify-center gap-2">
-                  <div class="context-icon">A</div>
-                  <span>account</span>
-                </div>
-              </button>
-              <button
-                type="button"
-                onclick={() => addTopLevelObject('resource')}
-                class="context-button"
-              >
-                <div class="flex items-center justify-center gap-2">
-                  <div class="context-icon">R</div>
-                  <span>resource</span>
-                </div>
-              </button>
-              <button
-                type="button"
-                onclick={() => addTopLevelObject('context')}
-                class="context-button"
-              >
-                <div class="flex items-center justify-center gap-2">
-                  <div class="context-icon">C</div>
-                  <span>context</span>
-                </div>
-              </button>
+          <!-- Parameter inputs grouped by top-level object -->
+          {#if Object.keys(parameters).length === 0}
+            <div
+              class="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-6 text-center dark:border-gray-700 dark:bg-gray-900"
+            >
+              <Code class="mx-auto mb-2 text-gray-400" size={24} />
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                Click a parameter context above to start adding test values
+              </p>
             </div>
+          {:else}
+            {#each ["authenticatedUser", "onBehalfOfUser", "context", "user", "Bank", "account", "View", "Transaction", "Customer"] as topLevel}
+              {@const groupParams = Object.keys(parameters).filter((key) =>
+                key.startsWith(topLevel + "."),
+              )}
+              {#if groupParams.length > 0}
+                <div class="parameter-group">
+                  <div class="parameter-group-header">
+                    <span class="parameter-group-title">{topLevel}</span>
+                    <button
+                      type="button"
+                      onclick={() => addCustomParameter(topLevel)}
+                      class="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                    >
+                      + Add {topLevel} property
+                    </button>
+                  </div>
+                  <div class="space-y-2">
+                    {#each groupParams as paramName}
+                      <div class="parameter-input-row">
+                        <label for={paramName} class="parameter-label">
+                          {paramName.split(".").slice(1).join(".")}
+                        </label>
+                        <div class="flex gap-2 flex-1">
+                          <input
+                            id={paramName}
+                            type="text"
+                            bind:value={parameters[paramName]}
+                            placeholder="Enter value..."
+                            class="parameter-input"
+                          />
+                          <button
+                            type="button"
+                            onclick={() => removeParameter(paramName)}
+                            class="remove-button"
+                            title="Remove parameter"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      </div>
+                    {/each}
+                  </div>
+                </div>
+              {/if}
+            {/each}
+          {/if}
 
-            <!-- Parameter inputs grouped by top-level object -->
-            {#if Object.keys(parameters).length === 0}
-              <div
-                class="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-6 text-center dark:border-gray-700 dark:bg-gray-900"
-              >
-                <Code class="mx-auto mb-2 text-gray-400" size={24} />
-                <p class="text-sm text-gray-600 dark:text-gray-400">
-                  Click a parameter context above to start adding test values
+          <!-- Execute Button -->
+          <button
+            onclick={handleExecute}
+            disabled={isExecuting || Object.keys(parameters).length === 0}
+            class="btn-execute"
+          >
+            {#if isExecuting}
+              <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Executing...
+            {:else}
+              <Play size={16} />
+              Execute Rule
+            {/if}
+          </button>
+
+          <!-- Execution Results -->
+          {#if executeError}
+            <div
+              class="result-box result-error flex items-start gap-3 rounded-lg border border-red-300 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20"
+            >
+              <XCircle
+                class="shrink-0 text-red-600 dark:text-red-400"
+                size={20}
+              />
+              <div class="flex-1">
+                <h4
+                  class="text-sm font-semibold text-red-800 dark:text-red-200"
+                >
+                  Execution Failed
+                </h4>
+                <p class="mt-1 text-sm text-red-700 dark:text-red-300">
+                  {executeError}
                 </p>
               </div>
-            {:else}
-              {#each ['user', 'account', 'resource', 'context'] as topLevel}
-                {@const groupParams = Object.keys(parameters).filter((key) =>
-                  key.startsWith(topLevel + '.')
-                )}
-                {#if groupParams.length > 0}
-                  <div class="parameter-group">
-                    <div class="parameter-group-header">
-                      <span class="parameter-group-title">{topLevel}</span>
-                      <button
-                        type="button"
-                        onclick={() => addCustomParameter(topLevel)}
-                        class="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                      >
-                        + Add {topLevel} property
-                      </button>
-                    </div>
-                    <div class="space-y-2">
-                      {#each groupParams as paramName}
-                        <div class="parameter-input-row">
-                          <label
-                            for={paramName}
-                            class="parameter-label"
-                          >
-                            {paramName.split('.').slice(1).join('.')}
-                          </label>
-                          <div class="flex gap-2 flex-1">
-                            <input
-                              id={paramName}
-                              type="text"
-                              bind:value={parameters[paramName]}
-                              placeholder="Enter value..."
-                              class="parameter-input"
-                            />
-                            <button
-                              type="button"
-                              onclick={() => removeParameter(paramName)}
-                              class="remove-button"
-                              title="Remove parameter"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        </div>
-                      {/each}
-                    </div>
-                  </div>
-                {/if}
-              {/each}
-            {/if}
+            </div>
+          {/if}
 
-            <!-- Execute Button -->
-            <button
-              onclick={handleExecute}
-              disabled={isExecuting || Object.keys(parameters).length === 0}
-              class="btn-execute"
+          {#if executeResult}
+            <div
+              class="result-box result-success flex items-start gap-3 rounded-lg border border-green-300 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20"
             >
-              {#if isExecuting}
-                <svg
-                  class="h-4 w-4 animate-spin"
-                  fill="none"
-                  viewBox="0 0 24 24"
+              <CheckCircle
+                class="shrink-0 text-green-600 dark:text-green-400"
+                size={20}
+              />
+              <div class="flex-1">
+                <h4
+                  class="text-sm font-semibold text-green-800 dark:text-green-200"
                 >
-                  <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                  ></circle>
-                  <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                Executing...
-              {:else}
-                <Play size={16} />
-                Execute Rule
-              {/if}
-            </button>
-
-            <!-- Execution Results -->
-            {#if executeError}
-              <div
-                class="result-box result-error flex items-start gap-3 rounded-lg border border-red-300 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20"
-              >
-                <XCircle
-                  class="shrink-0 text-red-600 dark:text-red-400"
-                  size={20}
-                />
-                <div class="flex-1">
-                  <h4
-                    class="text-sm font-semibold text-red-800 dark:text-red-200"
-                  >
-                    Execution Failed
-                  </h4>
-                  <p class="mt-1 text-sm text-red-700 dark:text-red-300">
-                    {executeError}
-                  </p>
+                  Execution Result
+                </h4>
+                <div
+                  class="mt-2 rounded border border-green-200 bg-white p-3 dark:border-green-700 dark:bg-gray-800"
+                >
+                  <pre
+                    class="overflow-x-auto text-xs text-gray-800 dark:text-gray-200">{JSON.stringify(
+                      executeResult,
+                      null,
+                      2,
+                    )}</pre>
                 </div>
               </div>
-            {/if}
-
-            {#if executeResult}
-              <div
-                class="result-box result-success flex items-start gap-3 rounded-lg border border-green-300 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20"
-              >
-                <CheckCircle
-                  class="shrink-0 text-green-600 dark:text-green-400"
-                  size={20}
-                />
-                <div class="flex-1">
-                  <h4
-                    class="text-sm font-semibold text-green-800 dark:text-green-200"
-                  >
-                    Execution Result
-                  </h4>
-                  <div
-                    class="mt-2 rounded border border-green-200 bg-white p-3 dark:border-green-700 dark:bg-gray-800"
-                  >
-                    <pre
-                      class="overflow-x-auto text-xs text-gray-800 dark:text-gray-200">{JSON.stringify(
-                        executeResult,
-                        null,
-                        2,
-                      )}</pre>
-                  </div>
-                </div>
-              </div>
-            {/if}
-          </div>
+            </div>
+          {/if}
         </div>
       </div>
     </div>
+  </div>
 </PageRoleCheck>
 
 <style>

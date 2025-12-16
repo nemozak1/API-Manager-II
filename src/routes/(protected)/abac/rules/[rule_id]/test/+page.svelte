@@ -93,7 +93,6 @@
     try {
       // Build the execution payload
       const payload = {
-        rule_code: data.rule.rule_code,
         parameters: parameters,
       };
 

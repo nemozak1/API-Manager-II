@@ -7,7 +7,16 @@
     formatErrorForDisplay,
     logErrorDetails,
   } from "$lib/utils/errorHandler";
-  import { Code, AlertCircle, Info, ArrowLeft, Copy } from "@lucide/svelte";
+  import {
+    Code,
+    AlertCircle,
+    Info,
+    ArrowLeft,
+    Copy,
+    CheckCircle,
+    XCircle,
+    Loader2,
+  } from "@lucide/svelte";
 
   let { data }: { data: PageData } = $props();
 
@@ -21,6 +30,13 @@
   let formIsActive = $state(data.rule?.is_active ?? true);
   let formError = $state("");
   let isSubmitting = $state(false);
+
+  // Validation states
+  let validationStatus = $state<"idle" | "validating" | "valid" | "invalid">(
+    "idle",
+  );
+  let validationError = $state<string | null>(null);
+  let validationTimeout: ReturnType<typeof setTimeout> | null = null;
 
   // Available objects and their fields for ABAC rules
   const availableObjects = [
@@ -142,6 +158,64 @@
     }
     expandedObjects = new Set(expandedObjects);
   }
+
+  // Debounced validation function
+  async function validateRuleCode(code: string) {
+    if (!code.trim()) {
+      validationStatus = "idle";
+      validationError = null;
+      return;
+    }
+
+    validationStatus = "validating";
+
+    try {
+      const response = await fetch("/api/abac-rules/validate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ rule_code: code }),
+      });
+
+      const result = await response.json();
+
+      if (result.valid) {
+        validationStatus = "valid";
+        validationError = null;
+      } else {
+        validationStatus = "invalid";
+        validationError =
+          result.error || result.message || "Rule validation failed";
+      }
+    } catch (err) {
+      validationStatus = "invalid";
+      validationError =
+        err instanceof Error ? err.message : "Validation request failed";
+    }
+  }
+
+  // Watch for rule code changes and validate with debounce
+  $effect(() => {
+    if (validationTimeout) {
+      clearTimeout(validationTimeout);
+    }
+
+    if (formRuleCode.trim()) {
+      validationTimeout = setTimeout(() => {
+        validateRuleCode(formRuleCode);
+      }, 800); // 800ms debounce
+    } else {
+      validationStatus = "idle";
+      validationError = null;
+    }
+
+    return () => {
+      if (validationTimeout) {
+        clearTimeout(validationTimeout);
+      }
+    };
+  });
 
   function insertFieldReference(objectName: string, fieldName: string) {
     const reference = `${objectName}.${fieldName}`;
@@ -493,13 +567,54 @@
                     required
                     rows="6"
                     placeholder="e.g., AuthenticatedUser.emailAddress.contains('admin')"
-                    class="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 font-mono text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-blue-400"
+                    class="w-full rounded-lg border {validationStatus ===
+                    'invalid'
+                      ? 'border-red-500'
+                      : validationStatus === 'valid'
+                        ? 'border-green-500'
+                        : 'border-gray-300'} bg-white py-2 pl-10 pr-10 font-mono text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-blue-400"
                   ></textarea>
+
+                  <!-- Validation Status Icon -->
+                  <div class="absolute right-3 top-3">
+                    {#if validationStatus === "validating"}
+                      <Loader2 class="animate-spin text-blue-500" size={18} />
+                    {:else if validationStatus === "valid"}
+                      <CheckCircle class="text-green-500" size={18} />
+                    {:else if validationStatus === "invalid"}
+                      <XCircle class="text-red-500" size={18} />
+                    {/if}
+                  </div>
                 </div>
-                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Click fields from the sidebar to insert references, or type
-                  your own expression
-                </p>
+
+                <!-- Validation Messages -->
+                {#if validationStatus === "valid"}
+                  <p
+                    class="mt-1 text-xs text-green-600 dark:text-green-400 flex items-center gap-1"
+                  >
+                    <CheckCircle size={12} />
+                    Rule code is valid
+                  </p>
+                {:else if validationStatus === "invalid" && validationError}
+                  <p
+                    class="mt-1 text-xs text-red-600 dark:text-red-400 flex items-start gap-1"
+                  >
+                    <XCircle size={12} class="mt-0.5 shrink-0" />
+                    <span>{validationError}</span>
+                  </p>
+                {:else if validationStatus === "validating"}
+                  <p
+                    class="mt-1 text-xs text-blue-600 dark:text-blue-400 flex items-center gap-1"
+                  >
+                    <Loader2 size={12} class="animate-spin" />
+                    Validating rule...
+                  </p>
+                {:else}
+                  <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Click fields from the sidebar to insert references, or type
+                    your own expression
+                  </p>
+                {/if}
               </div>
 
               <!-- Description Field -->

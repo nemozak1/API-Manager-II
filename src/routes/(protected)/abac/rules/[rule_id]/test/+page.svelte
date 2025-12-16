@@ -129,10 +129,32 @@
     goto("/abac/rules");
   }
 
-  function addParameter() {
-    const paramName = prompt("Enter parameter name (e.g., user.email):");
-    if (paramName && paramName.trim()) {
-      parameters[paramName.trim()] = "";
+  // Suggested properties for each top-level object
+  const suggestedProperties: Record<string, string[]> = {
+    user: ['user_id', 'emailAddress', 'bank_id', 'username'],
+    account: ['account_id', 'owner_id', 'bank_id', 'type'],
+    resource: ['resource_id', 'bank_id', 'type', 'owner_id'],
+    context: ['timestamp', 'ip_address', 'method', 'path'],
+  };
+
+  function addTopLevelObject(topLevel: string) {
+    const props = suggestedProperties[topLevel] || ['id', 'name'];
+
+    // Add common properties for this top-level object
+    props.forEach(prop => {
+      const paramName = `${topLevel}.${prop}`;
+      if (!(paramName in parameters)) {
+        parameters[paramName] = "";
+      }
+    });
+    parameters = { ...parameters };
+  }
+
+  function addCustomParameter(topLevel: string) {
+    const propName = prompt(`Enter property name for ${topLevel} (e.g., custom_field):`);
+    if (propName && propName.trim()) {
+      const paramName = `${topLevel}.${propName.trim()}`;
+      parameters[paramName] = "";
       parameters = { ...parameters };
     }
   }
@@ -176,91 +198,79 @@
       </div>
     </div>
 
-    <div class="grid gap-6 lg:grid-cols-2">
-      <!-- Rule Details Panel -->
-      <div class="panel">
-        <div class="panel-header">
-          <div class="flex items-center gap-2">
-            <Shield size={20} />
-            <h2 class="panel-title">Rule Details</h2>
-          </div>
+    <!-- Rule Details Panel - Full Width at Top -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="flex items-center gap-2">
+          <Shield size={18} />
+          <h2 class="panel-title text-base">Rule Details</h2>
         </div>
-        <div class="panel-content space-y-4">
+      </div>
+      <div class="panel-content">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <!-- Status -->
-          <div class="detail-group">
-            <div class="detail-label">Status</div>
-            <div>
-              <span
-                class="status-badge {data.rule?.is_active
-                  ? 'status-active'
-                  : 'status-inactive'}"
-              >
-                {data.rule?.is_active ? "Active" : "Inactive"}
-              </span>
+          <div>
+            <div class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+              Status
             </div>
+            <span
+              class="status-badge-small {data.rule?.is_active
+                ? 'status-active'
+                : 'status-inactive'}"
+            >
+              {data.rule?.is_active ? "Active" : "Inactive"}
+            </span>
           </div>
 
           <!-- Description -->
           {#if data.rule?.description}
-            <div class="detail-group">
-              <div class="detail-label">Description</div>
-              <p class="detail-value">{data.rule.description}</p>
-            </div>
-          {/if}
-
-          <!-- Rule Code -->
-          <div class="detail-group">
-            <div class="detail-label">Rule Code</div>
-            <div
-              class="code-block rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900"
-            >
-              <pre class="overflow-x-auto text-sm"><code
-                  >{data.rule?.rule_code}</code
-                ></pre>
-            </div>
-          </div>
-
-          <!-- Detected Parameters -->
-          {#if detectedParameters.length > 0}
-            <div class="detail-group">
-              <div class="detail-label">Detected Parameters</div>
-              <div class="flex flex-wrap gap-2">
-                {#each detectedParameters as param}
-                  <span
-                    class="inline-flex items-center rounded-md bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
-                  >
-                    {param}
-                  </span>
-                {/each}
+            <div class="md:col-span-3">
+              <div class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                Description
               </div>
-            </div>
-          {/if}
-
-          <!-- Metadata -->
-          <div class="detail-group">
-            <div class="detail-label">Created</div>
-            <p class="detail-value">
-              {#if data.rule?.created_at}
-                {new Date(data.rule.created_at).toLocaleString()}
-              {:else}
-                N/A
-              {/if}
-            </p>
-          </div>
-
-          {#if data.rule?.updated_at}
-            <div class="detail-group">
-              <div class="detail-label">Last Updated</div>
-              <p class="detail-value">
-                {new Date(data.rule.updated_at).toLocaleString()}
+              <p class="text-sm text-gray-700 dark:text-gray-300">
+                {data.rule.description}
               </p>
             </div>
           {/if}
         </div>
-      </div>
 
-      <!-- Execute Panel -->
-      <div class="panel">
+        <!-- Rule Code - Full Width -->
+        <div class="mt-4">
+          <div class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+            Rule Code
+          </div>
+          <div
+            class="code-block rounded border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-900"
+          >
+            <pre class="overflow-x-auto text-xs"><code
+                >{data.rule?.rule_code}</code
+              ></pre>
+          </div>
+        </div>
+
+        <!-- Detected Parameters -->
+        {#if detectedParameters.length > 0}
+          <div class="mt-4">
+            <div class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+              Detected Parameters
+            </div>
+            <div class="flex flex-wrap gap-1">
+              {#each detectedParameters as param}
+                <span
+                  class="inline-flex items-center rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                >
+                  {param}
+                </span>
+              {/each}
+            </div>
+          </div>
+        {/if}
+      </div>
+    </div>
+
+    <!-- Test Execution Panel - Full Width Below -->
+    <div class="panel">
         <div class="panel-header">
           <div class="flex items-center gap-2">
             <Play size={20} />
@@ -284,58 +294,113 @@
 
           <!-- Parameters Form -->
           <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <div class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Parameters
-              </div>
+            <div class="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Select Parameter Context
+            </div>
+
+            <!-- Top-level object selection -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
               <button
                 type="button"
-                onclick={addParameter}
-                class="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                onclick={() => addTopLevelObject('user')}
+                class="context-button"
               >
-                + Add Parameter
+                <div class="flex items-center justify-center gap-2">
+                  <div class="context-icon">U</div>
+                  <span>user</span>
+                </div>
+              </button>
+              <button
+                type="button"
+                onclick={() => addTopLevelObject('account')}
+                class="context-button"
+              >
+                <div class="flex items-center justify-center gap-2">
+                  <div class="context-icon">A</div>
+                  <span>account</span>
+                </div>
+              </button>
+              <button
+                type="button"
+                onclick={() => addTopLevelObject('resource')}
+                class="context-button"
+              >
+                <div class="flex items-center justify-center gap-2">
+                  <div class="context-icon">R</div>
+                  <span>resource</span>
+                </div>
+              </button>
+              <button
+                type="button"
+                onclick={() => addTopLevelObject('context')}
+                class="context-button"
+              >
+                <div class="flex items-center justify-center gap-2">
+                  <div class="context-icon">C</div>
+                  <span>context</span>
+                </div>
               </button>
             </div>
 
+            <!-- Parameter inputs grouped by top-level object -->
             {#if Object.keys(parameters).length === 0}
               <div
                 class="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-6 text-center dark:border-gray-700 dark:bg-gray-900"
               >
                 <Code class="mx-auto mb-2 text-gray-400" size={24} />
                 <p class="text-sm text-gray-600 dark:text-gray-400">
-                  No parameters detected. Add parameters manually to test the
-                  rule.
+                  Click a parameter context above to start adding test values
                 </p>
               </div>
             {:else}
-              <div class="space-y-3">
-                {#each Object.keys(parameters) as paramName}
-                  <div class="parameter-input-group">
-                    <div class="flex items-center justify-between mb-1">
-                      <label
-                        for={paramName}
-                        class="text-xs font-medium text-gray-700 dark:text-gray-300"
-                      >
-                        {paramName}
-                      </label>
+              {#each ['user', 'account', 'resource', 'context'] as topLevel}
+                {@const groupParams = Object.keys(parameters).filter((key) =>
+                  key.startsWith(topLevel + '.')
+                )}
+                {#if groupParams.length > 0}
+                  <div class="parameter-group">
+                    <div class="parameter-group-header">
+                      <span class="parameter-group-title">{topLevel}</span>
                       <button
                         type="button"
-                        onclick={() => removeParameter(paramName)}
-                        class="text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                        onclick={() => addCustomParameter(topLevel)}
+                        class="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                       >
-                        Remove
+                        + Add {topLevel} property
                       </button>
                     </div>
-                    <input
-                      id={paramName}
-                      type="text"
-                      bind:value={parameters[paramName]}
-                      placeholder="Enter value..."
-                      class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-                    />
+                    <div class="space-y-2">
+                      {#each groupParams as paramName}
+                        <div class="parameter-input-row">
+                          <label
+                            for={paramName}
+                            class="parameter-label"
+                          >
+                            {paramName.split('.').slice(1).join('.')}
+                          </label>
+                          <div class="flex gap-2 flex-1">
+                            <input
+                              id={paramName}
+                              type="text"
+                              bind:value={parameters[paramName]}
+                              placeholder="Enter value..."
+                              class="parameter-input"
+                            />
+                            <button
+                              type="button"
+                              onclick={() => removeParameter(paramName)}
+                              class="remove-button"
+                              title="Remove parameter"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        </div>
+                      {/each}
+                    </div>
                   </div>
-                {/each}
-              </div>
+                {/if}
+              {/each}
             {/if}
 
             <!-- Execute Button -->
@@ -424,7 +489,6 @@
         </div>
       </div>
     </div>
-  </div>
 </PageRoleCheck>
 
 <style>
@@ -516,42 +580,14 @@
     cursor: not-allowed;
   }
 
-  .detail-group {
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #f3f4f6;
-  }
-
-  .detail-group:last-child {
-    padding-bottom: 0;
-    border-bottom: none;
-  }
-
-  :global([data-mode="dark"]) .detail-group {
-    border-bottom-color: rgb(55, 65, 81);
-  }
-
-  .detail-label {
-    display: block;
-    font-size: 0.75rem;
+  .status-badge-small {
+    display: inline-flex;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.625rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #6b7280;
-    margin-bottom: 0.5rem;
-  }
-
-  :global([data-mode="dark"]) .detail-label {
-    color: #9ca3af;
-  }
-
-  .detail-value {
-    font-size: 0.875rem;
-    color: #111827;
-    line-height: 1.5;
-  }
-
-  :global([data-mode="dark"]) .detail-value {
-    color: #f9fafb;
   }
 
   .code-block {
@@ -566,16 +602,6 @@
     color: #f9fafb;
   }
 
-  .status-badge {
-    display: inline-flex;
-    padding: 0.375rem 0.75rem;
-    border-radius: 0.375rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
   .status-active {
     background: #10b981;
     color: #ffffff;
@@ -586,16 +612,163 @@
     color: #ffffff;
   }
 
-  .parameter-input-group {
-    padding: 0.75rem;
+  .context-button {
+    padding: 0.75rem 1rem;
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .context-button:hover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+    color: #3b82f6;
+  }
+
+  :global([data-mode="dark"]) .context-button {
+    background: rgb(31, 41, 55);
+    border-color: rgb(55, 65, 81);
+    color: #d1d5db;
+  }
+
+  :global([data-mode="dark"]) .context-button:hover {
+    border-color: #3b82f6;
+    background: rgb(30, 58, 138);
+    color: #3b82f6;
+  }
+
+  .context-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    background: #dbeafe;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #1e40af;
+  }
+
+  :global([data-mode="dark"]) .context-icon {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+  }
+
+  .parameter-group {
+    padding: 1rem;
     background: #f9fafb;
     border-radius: 0.5rem;
     border: 1px solid #e5e7eb;
   }
 
-  :global([data-mode="dark"]) .parameter-input-group {
+  :global([data-mode="dark"]) .parameter-group {
     background: rgb(17, 24, 39);
     border-color: rgb(55, 65, 81);
+  }
+
+  .parameter-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  :global([data-mode="dark"]) .parameter-group-header {
+    border-bottom-color: rgb(55, 65, 81);
+  }
+
+  .parameter-group-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #111827;
+    font-family: monospace;
+  }
+
+  :global([data-mode="dark"]) .parameter-group-title {
+    color: #f9fafb;
+  }
+
+  .parameter-input-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .parameter-label {
+    min-width: 120px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #6b7280;
+    font-family: monospace;
+  }
+
+  :global([data-mode="dark"]) .parameter-label {
+    color: #9ca3af;
+  }
+
+  .parameter-input {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    background: white;
+    color: #111827;
+  }
+
+  .parameter-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  }
+
+  :global([data-mode="dark"]) .parameter-input {
+    background: rgb(31, 41, 55);
+    border-color: rgb(75, 85, 99);
+    color: #f9fafb;
+  }
+
+  .remove-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 1.25rem;
+    font-weight: 400;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .remove-button:hover {
+    background: #fee2e2;
+    border-color: #ef4444;
+    color: #ef4444;
+  }
+
+  :global([data-mode="dark"]) .remove-button {
+    background: rgb(31, 41, 55);
+    border-color: rgb(75, 85, 99);
+    color: #9ca3af;
+  }
+
+  :global([data-mode="dark"]) .remove-button:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+    color: #ef4444;
   }
 
   .result-box {
@@ -614,9 +787,15 @@
     }
   }
 
-  @media (max-width: 1024px) {
-    .grid {
-      grid-template-columns: 1fr;
+  @media (max-width: 768px) {
+    .parameter-input-row {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .parameter-label {
+      min-width: auto;
+      width: 100%;
     }
   }
 </style>

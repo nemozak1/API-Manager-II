@@ -314,7 +314,7 @@ ${diag.triedKeys ? `Tried Keys: ${diag.triedKeys.join(", ")}` : ""}
           <div class="mt-4">
             <details class="group">
               <summary
-                class="cursor-pointer rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                class="list-none cursor-pointer rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
               >
                 <span class="inline-flex items-center gap-2">
                   <svg
@@ -419,3 +419,12 @@ ${diag.triedKeys ? `Tried Keys: ${diag.triedKeys.join(", ")}` : ""}
     </div>
   </div>
 </div>
+
+<style>
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary::marker {
+    display: none;
+  }
+</style>

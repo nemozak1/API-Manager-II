@@ -34,14 +34,56 @@ export const load: PageServerLoad = async ({ locals }) => {
     const endpoint = "/obp/v6.0.0/management/abac-rules";
     const response = await obp_requests.get(endpoint, token);
 
-    logger.debug("ABAC rules response:", JSON.stringify(response, null, 2));
+    logger.info("ABAC rules response received");
+    logger.debug("Response type:", typeof response);
+    logger.debug("Response keys:", response ? Object.keys(response) : "null");
+    logger.debug("Full response:", JSON.stringify(response, null, 2));
 
     // The response should contain an array of rules
-    abacRules = response.abac_rules || response.rules || response || [];
+    if (response && typeof response === "object") {
+      if (Array.isArray(response.abac_rules)) {
+        abacRules = response.abac_rules;
+        logger.info(
+          `Retrieved ${abacRules.length} ABAC rules from response.abac_rules`,
+        );
+      } else if (Array.isArray(response.rules)) {
+        abacRules = response.rules;
+        logger.info(
+          `Retrieved ${abacRules.length} ABAC rules from response.rules`,
+        );
+      } else if (Array.isArray(response)) {
+        abacRules = response;
+        logger.info(
+          `Retrieved ${abacRules.length} ABAC rules from array response`,
+        );
+      } else {
+        logger.warn(
+          "Response does not contain abac_rules, rules, or is not an array",
+        );
+        logger.warn("Response structure:", JSON.stringify(response, null, 2));
+        abacRules = [];
+        errorMessage =
+          "API returned unexpected response format. Check server logs for details.";
+      }
+    } else {
+      logger.error("Response is not an object:", response);
+      abacRules = [];
+      errorMessage = "API returned invalid response";
+    }
 
-    logger.info(`Retrieved ${abacRules.length} ABAC rules`);
+    if (abacRules.length === 0 && !errorMessage) {
+      logger.warn("Successfully fetched but got 0 ABAC rules");
+    }
   } catch (e) {
     logger.error("Error fetching ABAC rules:", e);
+    logger.error(
+      "Error type:",
+      e instanceof Error ? e.constructor.name : typeof e,
+    );
+    if (e instanceof Error) {
+      logger.error("Error message:", e.message);
+      logger.error("Error stack:", e.stack);
+    }
     hasApiAccess = false;
     errorMessage =
       e instanceof Error ? e.message : "Failed to fetch ABAC rules";

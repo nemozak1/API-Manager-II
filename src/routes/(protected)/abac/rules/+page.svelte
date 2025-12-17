@@ -66,9 +66,13 @@
       </div>
 
       <div class="panel-content">
-        {#if error && !hasApiAccess}
+        {#if error}
           <div class="error-message">
             <p>⚠️ {error}</p>
+            <p class="error-details">
+              <strong>API Access:</strong>
+              {hasApiAccess ? "Yes" : "No"}
+            </p>
           </div>
         {/if}
 
@@ -86,6 +90,10 @@
               <p><strong>API Access:</strong> {hasApiAccess ? "Yes" : "No"}</p>
               <p><strong>Rules Count:</strong> {abacRules.length}</p>
               <p><strong>Error:</strong> {error || "None"}</p>
+              <p class="debug-hint">
+                Check browser console and server logs for detailed error
+                information
+              </p>
             </div>
           </div>
         {:else}
@@ -295,12 +303,19 @@
     border: 1px solid #fecaca;
     border-radius: 0.5rem;
     color: #991b1b;
+    margin-bottom: 1rem;
   }
 
   :global([data-mode="dark"]) .error-message {
     background: rgba(220, 38, 38, 0.1);
     border-color: rgba(220, 38, 38, 0.3);
     color: #fca5a5;
+  }
+
+  .error-details {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    opacity: 0.9;
   }
 
   .empty-state {
@@ -354,6 +369,19 @@
 
   :global([data-mode="dark"]) .debug-info {
     background: rgb(17, 24, 39);
+  }
+
+  .debug-hint {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e5e7eb;
+    font-style: italic;
+    color: #6b7280;
+  }
+
+  :global([data-mode="dark"]) .debug-hint {
+    border-top-color: rgb(55, 65, 81);
+    color: #9ca3af;
   }
 
   .search-bar {

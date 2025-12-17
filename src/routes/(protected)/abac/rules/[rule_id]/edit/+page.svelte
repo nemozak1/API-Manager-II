@@ -38,9 +38,60 @@
   let validationError = $state<string | null>(null);
   let validationDetails = $state<any>(null);
   let validationTimeout: ReturnType<typeof setTimeout> | null = null;
+  let copiedValidationError = $state(false);
+  let copiedSchemaError = $state(false);
 
-  // Available objects and their fields for ABAC rules
-  const availableObjects = [
+  // Available objects and their fields for ABAC rules - fetched from OBP
+  let availableObjects = $state<any[]>([]);
+  let schemaLoading = $state(true);
+  let schemaError = $state<string | null>(null);
+
+  // Fetch schema from OBP on mount
+  async function fetchSchema() {
+    schemaLoading = true;
+    schemaError = null;
+    try {
+      const response = await fetch("/api/abac-rules/schema");
+      const schema = await response.json();
+
+      if (!response.ok) {
+        // Show full error from API
+        const errorMsg =
+          schema.error || schema.message || "Failed to fetch ABAC schema";
+        const fullDetails = schema.fullError
+          ? JSON.parse(schema.fullError)
+          : schema;
+        console.error("ABAC Schema fetch error:", fullDetails);
+        throw new Error(
+          `${errorMsg}\n\nFull error: ${JSON.stringify(fullDetails, null, 2)}`,
+        );
+      }
+
+      // Transform OBP schema to our format
+      if (schema.objects && Array.isArray(schema.objects)) {
+        availableObjects = schema.objects;
+      } else {
+        // Fallback to hardcoded if schema format is unexpected
+        console.warn("Unexpected schema format:", schema);
+        availableObjects = defaultObjects;
+      }
+      schemaLoading = false;
+    } catch (err) {
+      console.error("Error fetching ABAC schema:", err);
+      schemaError = err instanceof Error ? err.message : String(err);
+      // Use hardcoded fallback
+      availableObjects = defaultObjects;
+      schemaLoading = false;
+    }
+  }
+
+  // Call fetchSchema on mount
+  $effect(() => {
+    fetchSchema();
+  });
+
+  // Fallback hardcoded objects in case API fails
+  const defaultObjects = [
     {
       name: "AuthenticatedUser",
       description: "The user making the API call",
@@ -375,6 +426,66 @@
             Click fields to insert into rule code
           </p>
 
+          {#if schemaLoading}
+            <div class="flex items-center justify-center py-8">
+              <Loader2 class="animate-spin text-blue-500" size={24} />
+              <span class="ml-2 text-sm text-gray-600 dark:text-gray-400"
+                >Loading schema...</span
+              >
+            </div>
+          {:else if schemaError}
+            <div
+              class="rounded-lg border border-red-300 bg-red-50 p-3 dark:border-red-700 dark:bg-red-900/20"
+            >
+              <div class="flex items-start justify-between mb-2">
+                <p class="text-xs text-red-800 dark:text-red-200 font-semibold">
+                  Schema Fetch Error
+                </p>
+                <button
+                  type="button"
+                  onclick={async () => {
+                    const errorText = schemaError || "Schema fetch error";
+                    await navigator.clipboard.writeText(errorText);
+                    copiedSchemaError = true;
+                    setTimeout(() => {
+                      copiedSchemaError = false;
+                    }, 2000);
+                  }}
+                  class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200"
+                  title="Copy error to clipboard"
+                >
+                  {#if copiedSchemaError}
+                    <CheckCircle size={14} class="text-green-600" />
+                  {:else}
+                    <Copy size={14} />
+                  {/if}
+                </button>
+              </div>
+              <p class="text-xs text-red-700 dark:text-red-300 mb-2">
+                {schemaError}
+              </p>
+              <details class="text-xs">
+                <summary
+                  class="cursor-pointer text-red-600 dark:text-red-400 hover:underline"
+                >
+                  Show full error details
+                </summary>
+                <div class="mt-2">
+                  <p class="text-xs text-yellow-600 dark:text-yellow-400 mb-2">
+                    Using fallback schema
+                  </p>
+                  <button
+                    type="button"
+                    onclick={() => fetchSchema()}
+                    class="mt-2 px-3 py-1 text-xs bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 rounded border border-red-300 dark:border-red-700"
+                  >
+                    Retry fetch schema
+                  </button>
+                </div>
+              </details>
+            </div>
+          {/if}
+
           <div class="space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto">
             {#each availableObjects as obj}
               <div class="border border-gray-200 dark:border-gray-700 rounded">
@@ -603,12 +714,35 @@
                   <div
                     class="mt-2 rounded-lg border border-red-300 bg-red-50 p-3 dark:border-red-700 dark:bg-red-900/20"
                   >
-                    <p
-                      class="text-xs text-red-600 dark:text-red-400 flex items-start gap-1 font-semibold mb-2"
-                    >
-                      <XCircle size={14} class="mt-0.5 shrink-0" />
-                      <span>Validation Error</span>
-                    </p>
+                    <div class="flex items-start justify-between mb-2">
+                      <p
+                        class="text-xs text-red-600 dark:text-red-400 flex items-start gap-1 font-semibold"
+                      >
+                        <XCircle size={14} class="mt-0.5 shrink-0" />
+                        <span>Validation Error</span>
+                      </p>
+                      <button
+                        type="button"
+                        onclick={async () => {
+                          const errorText = validationDetails
+                            ? JSON.stringify(validationDetails, null, 2)
+                            : validationError || "Validation error";
+                          await navigator.clipboard.writeText(errorText);
+                          copiedValidationError = true;
+                          setTimeout(() => {
+                            copiedValidationError = false;
+                          }, 2000);
+                        }}
+                        class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200 relative"
+                        title="Copy error to clipboard"
+                      >
+                        {#if copiedValidationError}
+                          <CheckCircle size={14} class="text-green-600" />
+                        {:else}
+                          <Copy size={14} />
+                        {/if}
+                      </button>
+                    </div>
                     <div class="ml-5 space-y-2">
                       <p class="text-xs text-red-700 dark:text-red-300">
                         {validationError}

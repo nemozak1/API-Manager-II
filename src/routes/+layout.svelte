@@ -350,9 +350,9 @@
 </script>
 
 <div
-  class="grid h-screen w-full grid-cols-[auto_1fr] divide-x divide-solid divide-surface-100-900 overflow-hidden"
+  class="grid min-h-screen w-full grid-cols-[auto_1fr] divide-x divide-solid divide-surface-100-900"
 >
-  <div class="h-full">
+  <div class="sticky top-0 h-screen">
     <Navigation
       layout="sidebar"
       class="grid h-full grid-rows-[auto_1fr_auto] gap-4 preset-filled-primary-50-950"

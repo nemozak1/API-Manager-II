@@ -112,6 +112,8 @@
     if (schemaKey) {
       exportDef[schemaKey] = schema;
     }
+    // Include hasPersonalEntity field
+    exportDef.hasPersonalEntity = entity.hasPersonalEntity || false;
     return exportDef;
   }
 

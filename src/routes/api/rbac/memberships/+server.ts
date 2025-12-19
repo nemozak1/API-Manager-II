@@ -6,25 +6,29 @@ import { createLogger } from "$lib/utils/logger";
 
 const logger = createLogger("MembershipsAPI");
 
-interface User {
-  user_id: string;
-  username: string;
-  email: string;
-}
-
-interface GroupMembership {
+interface Group {
   group_id: string;
-  user_id: string;
   bank_id: string;
   group_name: string;
+  group_description: string;
+  is_enabled: boolean;
+  list_of_roles?: string[];
 }
 
-interface Membership {
-  user_id: string;
-  username: string;
-  group_id: string;
-  group_name: string;
+interface GroupsResponse {
+  groups: Group[];
+}
+
+interface Entitlement {
+  entitlement_id: string;
+  role_name: string;
   bank_id: string;
+  user_id?: string;
+  username?: string;
+}
+
+interface GroupWithEntitlements extends Group {
+  entitlements: Entitlement[];
 }
 
 // POST - Create a new group membership
@@ -138,53 +142,63 @@ export const GET: RequestHandler = async ({ locals }) => {
   }
 
   try {
-    logger.info("=== FETCHING ALL GROUP MEMBERSHIPS ===");
+    logger.info("=== FETCHING GROUPS AND THEIR ENTITLEMENTS ===");
 
-    // First, get all users
-    const usersEndpoint = `/obp/v6.0.0/users`;
-    logger.info(`Fetching users: ${usersEndpoint}`);
-    const usersResponse = await obp_requests.get(usersEndpoint, accessToken);
-    const users: User[] = usersResponse.users || [];
+    // Step 1: Get all groups
+    const groupsEndpoint = `/obp/v6.0.0/management/groups`;
+    logger.info(`Fetching groups: ${groupsEndpoint}`);
+    const groupsResponse: GroupsResponse = await obp_requests.get(
+      groupsEndpoint,
+      accessToken,
+    );
 
-    logger.info(`Found ${users.length} users`);
+    const groups = groupsResponse.groups || [];
+    logger.info(`Found ${groups.length} groups`);
 
-    // For each user, fetch their group memberships
-    const allMemberships: Membership[] = [];
+    // Step 2: For each group, fetch its entitlements
+    const groupsWithEntitlements: GroupWithEntitlements[] = [];
 
-    for (const user of users) {
+    for (const group of groups) {
       try {
-        const membershipEndpoint = `/obp/v6.0.0/users/${user.user_id}/group-memberships`;
-        const membershipResponse = await obp_requests.get(
-          membershipEndpoint,
+        const entitlementsEndpoint = `/obp/v6.0.0/management/groups/${group.group_id}/entitlements`;
+        logger.info(
+          `Fetching entitlements for group ${group.group_id}: ${entitlementsEndpoint}`,
+        );
+
+        const entitlementsResponse = await obp_requests.get(
+          entitlementsEndpoint,
           accessToken,
         );
 
-        if (
-          membershipResponse.group_memberships &&
-          Array.isArray(membershipResponse.group_memberships)
-        ) {
-          const userMemberships = membershipResponse.group_memberships.map(
-            (gm: GroupMembership) => ({
-              user_id: user.user_id,
-              username: user.username,
-              group_id: gm.group_id,
-              group_name: gm.group_name,
-              bank_id: gm.bank_id,
-            }),
-          );
-          allMemberships.push(...userMemberships);
-        }
+        const entitlements = entitlementsResponse.list || [];
+        logger.info(
+          `Group ${group.group_id} has ${entitlements.length} entitlements`,
+        );
+
+        groupsWithEntitlements.push({
+          ...group,
+          entitlements: entitlements,
+        });
       } catch (err) {
-        // User might not have any group memberships, which is fine
-        logger.debug(`No group memberships found for user ${user.user_id}`);
+        logger.error(
+          `Error fetching entitlements for group ${group.group_id}:`,
+          err,
+        );
+        // Still add the group but with empty entitlements
+        groupsWithEntitlements.push({
+          ...group,
+          entitlements: [],
+        });
       }
     }
 
-    logger.info(`Found ${allMemberships.length} total group memberships`);
+    logger.info(
+      `Successfully fetched ${groupsWithEntitlements.length} groups with their entitlements`,
+    );
 
-    return json({ memberships: allMemberships });
+    return json({ groupsWithEntitlements });
   } catch (err) {
-    logger.error("Error fetching group memberships:", err);
+    logger.error("Error fetching groups and entitlements:", err);
 
     let errorMessage = "Failed to fetch group memberships";
     let obpErrorCode = undefined;

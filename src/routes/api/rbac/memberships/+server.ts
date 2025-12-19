@@ -6,6 +6,27 @@ import { createLogger } from "$lib/utils/logger";
 
 const logger = createLogger("MembershipsAPI");
 
+interface User {
+  user_id: string;
+  username: string;
+  email: string;
+}
+
+interface GroupMembership {
+  group_id: string;
+  user_id: string;
+  bank_id: string;
+  group_name: string;
+}
+
+interface Membership {
+  user_id: string;
+  username: string;
+  group_id: string;
+  group_name: string;
+  bank_id: string;
+}
+
 // POST - Create a new group membership
 export const POST: RequestHandler = async ({ request, locals }) => {
   const session = locals.session;
@@ -43,7 +64,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       group_id,
     };
 
-    const endpoint = `/obp/v6.0.0/users/${user_id}/group-memberships`;
+    const endpoint = `/obp/v6.0.0/users/${user_id}/group-entitlements`;
     logger.info(`POST ${endpoint}`);
     logger.info(`Request body: ${JSON.stringify(requestBody)}`);
 
@@ -55,6 +76,25 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
     logger.info("Group membership created successfully");
     logger.info(`Response: ${JSON.stringify(response)}`);
+
+    // Log entitlements created and skipped
+    if (
+      response.entitlements_created &&
+      response.entitlements_created.length > 0
+    ) {
+      logger.info(
+        `Entitlements created: ${response.entitlements_created.join(", ")}`,
+      );
+    }
+
+    if (
+      response.entitlements_skipped &&
+      response.entitlements_skipped.length > 0
+    ) {
+      logger.info(
+        `Entitlements skipped: ${response.entitlements_skipped.join(", ")}`,
+      );
+    }
 
     return json(response);
   } catch (err) {
@@ -100,21 +140,49 @@ export const GET: RequestHandler = async ({ locals }) => {
   try {
     logger.info("=== FETCHING ALL GROUP MEMBERSHIPS ===");
 
-    // We need to get all entitlements and filter those with group_id set
-    const endpoint = `/obp/v6.0.0/entitlements`;
-    logger.info(`GET ${endpoint}`);
+    // First, get all users
+    const usersEndpoint = `/obp/v6.0.0/users`;
+    logger.info(`Fetching users: ${usersEndpoint}`);
+    const usersResponse = await obp_requests.get(usersEndpoint, accessToken);
+    const users: User[] = usersResponse.users || [];
 
-    const response = await obp_requests.get(endpoint, accessToken);
+    logger.info(`Found ${users.length} users`);
 
-    // Filter entitlements that have a group_id (these are group memberships)
-    const entitlements = response.list || [];
-    const memberships = entitlements.filter(
-      (ent: any) => ent.group_id && ent.group_id.trim() !== "",
-    );
+    // For each user, fetch their group memberships
+    const allMemberships: Membership[] = [];
 
-    logger.info(`Found ${memberships.length} group memberships`);
+    for (const user of users) {
+      try {
+        const membershipEndpoint = `/obp/v6.0.0/users/${user.user_id}/group-memberships`;
+        const membershipResponse = await obp_requests.get(
+          membershipEndpoint,
+          accessToken,
+        );
 
-    return json({ memberships });
+        if (
+          membershipResponse.group_memberships &&
+          Array.isArray(membershipResponse.group_memberships)
+        ) {
+          const userMemberships = membershipResponse.group_memberships.map(
+            (gm: GroupMembership) => ({
+              user_id: user.user_id,
+              username: user.username,
+              group_id: gm.group_id,
+              group_name: gm.group_name,
+              bank_id: gm.bank_id,
+            }),
+          );
+          allMemberships.push(...userMemberships);
+        }
+      } catch (err) {
+        // User might not have any group memberships, which is fine
+        logger.debug(`No group memberships found for user ${user.user_id}`);
+      }
+    }
+
+    logger.info(`Found ${allMemberships.length} total group memberships`);
+
+    return json({ memberships: allMemberships });
   } catch (err) {
     logger.error("Error fetching group memberships:", err);
 

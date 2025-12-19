@@ -6,12 +6,24 @@ import { SessionOAuthHelper } from "$lib/oauth/sessionHelper";
 
 const logger = createLogger("MembershipsPageServer");
 
+interface User {
+  user_id: string;
+  username: string;
+  email: string;
+}
+
+interface GroupMembership {
+  group_id: string;
+  user_id: string;
+  bank_id: string;
+  group_name: string;
+}
+
 interface Membership {
-  entitlement_id: string;
   user_id: string;
   username: string;
   group_id: string;
-  role_name: string;
+  group_name: string;
   bank_id: string;
 }
 
@@ -37,21 +49,53 @@ export const load: PageServerLoad = async ({ locals }) => {
 
   try {
     logger.info("=== FETCHING GROUP MEMBERSHIPS ===");
-    const endpoint = `/obp/v6.0.0/entitlements`;
-    logger.info(`Request: ${endpoint}`);
 
-    const response = await obp_requests.get(endpoint, accessToken);
+    // First, get all users
+    const usersEndpoint = `/obp/v6.0.0/users`;
+    logger.info(`Fetching users: ${usersEndpoint}`);
+    const usersResponse = await obp_requests.get(usersEndpoint, accessToken);
+    const users: User[] = usersResponse.users || [];
 
-    // Filter entitlements that have a group_id (these are group memberships)
-    const entitlements = response.list || [];
-    const memberships = entitlements.filter(
-      (ent: any) => ent.group_id && ent.group_id.trim() !== "",
+    logger.info(`Found ${users.length} users`);
+
+    // For each user, fetch their group memberships
+    const allMemberships: Membership[] = [];
+
+    for (const user of users) {
+      try {
+        const membershipEndpoint = `/obp/v6.0.0/users/${user.user_id}/group-memberships`;
+        const membershipResponse = await obp_requests.get(
+          membershipEndpoint,
+          accessToken,
+        );
+
+        if (
+          membershipResponse.group_memberships &&
+          Array.isArray(membershipResponse.group_memberships)
+        ) {
+          const userMemberships = membershipResponse.group_memberships.map(
+            (gm: GroupMembership) => ({
+              user_id: user.user_id,
+              username: user.username,
+              group_id: gm.group_id,
+              group_name: gm.group_name,
+              bank_id: gm.bank_id,
+            }),
+          );
+          allMemberships.push(...userMemberships);
+        }
+      } catch (err) {
+        // User might not have any group memberships, which is fine
+        logger.debug(`No group memberships found for user ${user.user_id}`);
+      }
+    }
+
+    logger.info(
+      `Response: ${allMemberships.length} total group memberships found`,
     );
 
-    logger.info(`Response: ${memberships.length} group memberships found`);
-
     return {
-      memberships: memberships as Membership[],
+      memberships: allMemberships,
       hasApiAccess: true,
     };
   } catch (err) {

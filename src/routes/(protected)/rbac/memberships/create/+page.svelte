@@ -1,7 +1,13 @@
 <script lang="ts">
   import type { PageData } from "./$types";
   import { goto } from "$app/navigation";
-  import { Users, ArrowLeft, UserCircle } from "@lucide/svelte";
+  import {
+    Users,
+    ArrowLeft,
+    UserCircle,
+    CheckCircle,
+    AlertCircle,
+  } from "@lucide/svelte";
   import { toast } from "$lib/utils/toastService";
   import { trackedFetch } from "$lib/utils/trackedFetch";
   import PageRoleCheck from "$lib/components/PageRoleCheck.svelte";
@@ -21,13 +27,25 @@
   let selectedGroupId = $state("");
   let isSubmitting = $state(false);
 
+  // Result state
+  let membershipResult = $state<any>(null);
+  let showResult = $state(false);
+
   // Group search
   let groupSearchQuery = $state("");
 
   function handleUserSelect(user: any) {
     selectedUserId = user.user_id;
     selectedUsername = user.username;
+    // Hide previous result when selecting a new user
+    showResult = false;
   }
+
+  // Get selected group details
+  let selectedGroup = $derived.by(() => {
+    if (!selectedGroupId) return null;
+    return groups.find((g: any) => g.group_id === selectedGroupId);
+  });
 
   let filteredGroups = $derived.by(() => {
     if (!groupSearchQuery.trim()) {
@@ -74,12 +92,23 @@
         throw new Error(errorData.error || "Failed to create membership");
       }
 
-      toast.success("Membership Created", `User successfully added to group`);
+      const responseData = await response.json();
 
-      // Redirect to memberships list after short delay
-      setTimeout(() => {
-        goto("/rbac/memberships");
-      }, 1000);
+      // Store the result to display on page
+      membershipResult = {
+        ...responseData,
+        username: selectedUsername,
+        user_id: selectedUserId,
+      };
+      showResult = true;
+
+      toast.success("Membership Created", "User successfully added to group");
+
+      // Reset form
+      selectedUserId = "";
+      selectedUsername = "";
+      selectedGroupId = "";
+      groupSearchQuery = "";
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to create membership";
@@ -89,8 +118,13 @@
     }
   }
 
-  function handleCancel() {
-    goto("/rbac/memberships");
+  function handleCreateAnother() {
+    showResult = false;
+    membershipResult = null;
+    selectedUserId = "";
+    selectedUsername = "";
+    selectedGroupId = "";
+    groupSearchQuery = "";
   }
 </script>
 
@@ -101,13 +135,6 @@
 <div class="container mx-auto px-4 py-8">
   <!-- Role Check -->
   <PageRoleCheck {userEntitlements} {requiredRoles} />
-
-  <!-- Breadcrumb Navigation -->
-  <nav class="breadcrumb mb-6">
-    <a href="/rbac/memberships" class="breadcrumb-link">Memberships</a>
-    <span class="breadcrumb-separator">›</span>
-    <span class="breadcrumb-current">Create Membership</span>
-  </nav>
 
   <div class="panel">
     <div class="panel-header">
@@ -227,15 +254,6 @@
 
         <!-- Action Buttons -->
         <div class="form-actions">
-          <button
-            type="button"
-            class="btn-secondary"
-            onclick={handleCancel}
-            disabled={isSubmitting}
-          >
-            <ArrowLeft size={16} />
-            Cancel
-          </button>
           <button type="submit" class="btn-primary" disabled={isSubmitting}>
             {#if isSubmitting}
               ⏳ Creating...
@@ -246,6 +264,102 @@
           </button>
         </div>
       </form>
+
+      <!-- Result Display -->
+      {#if showResult && membershipResult}
+        <div class="result-panel">
+          <div class="result-header">
+            <div class="result-icon success">
+              <CheckCircle size={32} />
+            </div>
+            <div>
+              <h3 class="result-title">Membership Created Successfully</h3>
+              <p class="result-subtitle">User has been added to the group</p>
+            </div>
+          </div>
+
+          <div class="result-content">
+            <div class="result-section">
+              <h4 class="result-section-title">User Information</h4>
+              <div class="result-grid">
+                <div class="result-item">
+                  <span class="result-label">Username:</span>
+                  <span class="result-value">{membershipResult.username}</span>
+                </div>
+                <div class="result-item">
+                  <span class="result-label">User ID:</span>
+                  <span class="result-value">{membershipResult.user_id}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="result-section">
+              <h4 class="result-section-title">Group Information</h4>
+              <div class="result-grid">
+                <div class="result-item">
+                  <span class="result-label">Group ID:</span>
+                  <span class="result-value">{membershipResult.group_id}</span>
+                </div>
+                <div class="result-item">
+                  <span class="result-label">Group Name:</span>
+                  <span class="result-value">{membershipResult.group_name}</span
+                  >
+                </div>
+                <div class="result-item">
+                  <span class="result-label">Bank ID:</span>
+                  <span class="result-value">{membershipResult.bank_id}</span>
+                </div>
+              </div>
+            </div>
+
+            {#if membershipResult.entitlements_created && membershipResult.entitlements_created.length > 0}
+              <div class="result-section">
+                <h4 class="result-section-title success-text">
+                  <CheckCircle size={18} />
+                  Entitlements Created
+                </h4>
+                <div class="entitlement-list">
+                  {#each membershipResult.entitlements_created as entitlement}
+                    <span class="entitlement-badge success">{entitlement}</span>
+                  {/each}
+                </div>
+              </div>
+            {/if}
+
+            {#if membershipResult.entitlements_skipped && membershipResult.entitlements_skipped.length > 0}
+              <div class="result-section">
+                <h4 class="result-section-title warning-text">
+                  <AlertCircle size={18} />
+                  Entitlements Skipped
+                </h4>
+                <div class="entitlement-list">
+                  {#each membershipResult.entitlements_skipped as entitlement}
+                    <span class="entitlement-badge warning">{entitlement}</span>
+                  {/each}
+                </div>
+              </div>
+            {/if}
+
+            {#if membershipResult.target_entitlements && membershipResult.target_entitlements.length > 0}
+              <div class="result-section">
+                <h4 class="result-section-title">Target Entitlements</h4>
+                <div class="entitlement-list">
+                  {#each membershipResult.target_entitlements as entitlement}
+                    <span class="entitlement-badge">{entitlement}</span>
+                  {/each}
+                </div>
+              </div>
+            {/if}
+          </div>
+
+          <div class="result-actions">
+            <button class="btn-primary" onclick={handleCreateAnother}>
+              <Users size={16} />
+              Create Another Membership
+            </button>
+          </div>
+        </div>
+      {/if}
     </div>
   </div>
 </div>
@@ -253,42 +367,6 @@
 <style>
   .container {
     max-width: 900px;
-  }
-
-  .breadcrumb {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-  }
-
-  .breadcrumb-link {
-    color: #3b82f6;
-    text-decoration: none;
-  }
-
-  .breadcrumb-link:hover {
-    text-decoration: underline;
-  }
-
-  :global([data-mode="dark"]) .breadcrumb-link {
-    color: rgb(var(--color-primary-400));
-  }
-
-  .breadcrumb-separator {
-    color: #9ca3af;
-  }
-
-  :global([data-mode="dark"]) .breadcrumb-separator {
-    color: var(--color-surface-500);
-  }
-
-  .breadcrumb-current {
-    color: #6b7280;
-  }
-
-  :global([data-mode="dark"]) .breadcrumb-current {
-    color: var(--color-surface-400);
   }
 
   .panel {
@@ -616,8 +694,7 @@
     border-top-color: rgb(var(--color-surface-700));
   }
 
-  .btn-primary,
-  .btn-secondary {
+  .btn-primary {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
@@ -628,9 +705,6 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
-  }
-
-  .btn-primary {
     background: #3b82f6;
     color: white;
   }
@@ -652,36 +726,12 @@
     background: rgb(var(--color-primary-700));
   }
 
-  .btn-secondary {
-    background: #f3f4f6;
-    color: #374151;
-  }
-
-  .btn-secondary:hover:not(:disabled) {
-    background: #e5e7eb;
-  }
-
-  .btn-secondary:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  :global([data-mode="dark"]) .btn-secondary {
-    background: rgb(var(--color-surface-700));
-    color: var(--color-surface-200);
-  }
-
-  :global([data-mode="dark"]) .btn-secondary:hover:not(:disabled) {
-    background: rgb(var(--color-surface-600));
-  }
-
   @media (max-width: 640px) {
     .form-actions {
       flex-direction: column-reverse;
     }
 
-    .btn-primary,
-    .btn-secondary {
+    .btn-primary {
       width: 100%;
       justify-content: center;
     }
@@ -690,5 +740,212 @@
       flex-direction: column;
       text-align: center;
     }
+  }
+
+  /* Result Panel Styles */
+  .result-panel {
+    background: #f9fafb;
+    border: 2px solid #22c55e;
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  :global([data-mode="dark"]) .result-panel {
+    background: rgb(var(--color-surface-900));
+    border-color: rgb(var(--color-success-500));
+  }
+
+  .result-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .result-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .result-icon.success {
+    background: #dcfce7;
+    color: #16a34a;
+  }
+
+  :global([data-mode="dark"]) .result-icon.success {
+    background: rgba(34, 197, 94, 0.2);
+    color: rgb(var(--color-success-400));
+  }
+
+  .result-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 0.25rem 0;
+  }
+
+  :global([data-mode="dark"]) .result-title {
+    color: var(--color-surface-100);
+  }
+
+  .result-subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0;
+  }
+
+  :global([data-mode="dark"]) .result-subtitle {
+    color: var(--color-surface-400);
+  }
+
+  .result-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .result-section {
+    padding: 1rem;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+  }
+
+  :global([data-mode="dark"]) .result-section {
+    background: rgb(var(--color-surface-800));
+    border-color: rgb(var(--color-surface-700));
+  }
+
+  .result-section-title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #374151;
+    margin: 0 0 0.75rem 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  :global([data-mode="dark"]) .result-section-title {
+    color: var(--color-surface-300);
+  }
+
+  .result-section-title.success-text {
+    color: #16a34a;
+  }
+
+  :global([data-mode="dark"]) .result-section-title.success-text {
+    color: rgb(var(--color-success-400));
+  }
+
+  .result-section-title.warning-text {
+    color: #d97706;
+  }
+
+  :global([data-mode="dark"]) .result-section-title.warning-text {
+    color: rgb(var(--color-warning-400));
+  }
+
+  .result-grid {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .result-item:last-child {
+    border-bottom: none;
+  }
+
+  :global([data-mode="dark"]) .result-item {
+    border-bottom-color: rgb(var(--color-surface-700));
+  }
+
+  .result-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6b7280;
+  }
+
+  :global([data-mode="dark"]) .result-label {
+    color: var(--color-surface-400);
+  }
+
+  .result-value {
+    font-size: 0.875rem;
+    color: #111827;
+    font-family: monospace;
+    word-break: break-all;
+  }
+
+  :global([data-mode="dark"]) .result-value {
+    color: var(--color-surface-100);
+  }
+
+  .entitlement-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .entitlement-badge {
+    display: inline-block;
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: #ede9fe;
+    color: #6b21a8;
+  }
+
+  :global([data-mode="dark"]) .entitlement-badge {
+    background: rgba(139, 92, 246, 0.2);
+    color: rgb(var(--color-primary-300));
+  }
+
+  .entitlement-badge.success {
+    background: #dcfce7;
+    color: #16a34a;
+  }
+
+  :global([data-mode="dark"]) .entitlement-badge.success {
+    background: rgba(34, 197, 94, 0.2);
+    color: rgb(var(--color-success-300));
+  }
+
+  .entitlement-badge.warning {
+    background: #fef3c7;
+    color: #d97706;
+  }
+
+  :global([data-mode="dark"]) .entitlement-badge.warning {
+    background: rgba(251, 191, 36, 0.2);
+    color: rgb(var(--color-warning-300));
+  }
+
+  .result-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  :global([data-mode="dark"]) .result-actions {
+    border-top-color: rgb(var(--color-surface-700));
   }
 </style>

@@ -99,9 +99,17 @@ export const load: PageServerLoad = async ({ locals }) => {
           accessToken,
         );
 
-        const entitlements = entitlementsResponse.list || [];
         logger.info(
-          `Group ${group.group_id} has ${entitlements.length} entitlements`,
+          `Raw entitlements response for group ${group.group_id}:`,
+          JSON.stringify(entitlementsResponse, null, 2),
+        );
+        logger.info(
+          `Response keys: ${Object.keys(entitlementsResponse).join(", ")}`,
+        );
+
+        const entitlements = entitlementsResponse.entitlements || [];
+        logger.info(
+          `Group ${group.group_id} (${group.group_name}) has ${entitlements.length} entitlements`,
         );
 
         groupsWithEntitlements.push({

@@ -7,6 +7,7 @@
     ChevronDown,
     ChevronUp,
     AlertCircle,
+    Plus,
   } from "@lucide/svelte";
   import PageRoleCheck from "$lib/components/PageRoleCheck.svelte";
 
@@ -17,6 +18,25 @@
   let error = $derived(data.error);
   let userEntitlements = $derived(data.userEntitlements || []);
   let requiredRoles = $derived(data.requiredRoles || []);
+
+  // Debug logging
+  $effect(() => {
+    console.log("=== MEMBERSHIPS PAGE DEBUG ===");
+    console.log("groupsWithEntitlements:", groupsWithEntitlements);
+    console.log(
+      "groupsWithEntitlements.length:",
+      groupsWithEntitlements.length,
+    );
+    console.log("hasApiAccess:", hasApiAccess);
+    console.log("error:", error);
+    if (groupsWithEntitlements.length > 0) {
+      console.log("First group:", groupsWithEntitlements[0]);
+      console.log(
+        "First group entitlements:",
+        groupsWithEntitlements[0].entitlements,
+      );
+    }
+  });
 
   // Track expanded groups
   let expandedGroups = $state<Set<string>>(new Set());
@@ -54,15 +74,21 @@
   <div class="panel">
     <div class="panel-header">
       <div class="header-content">
-        <div class="header-icon">
-          <Users size={32} />
-        </div>
-        <div>
-          <h1 class="panel-title">Group Memberships</h1>
-          <div class="panel-subtitle">
-            View groups and their assigned entitlements
+        <div class="header-left">
+          <div class="header-icon">
+            <Users size={32} />
+          </div>
+          <div>
+            <h1 class="panel-title">Group Memberships</h1>
+            <div class="panel-subtitle">
+              View groups and their assigned entitlements
+            </div>
           </div>
         </div>
+        <a href="/rbac/memberships/create" class="btn-create">
+          <Plus size={16} />
+          Create Membership
+        </a>
       </div>
     </div>
 
@@ -224,8 +250,16 @@
 
   .header-content {
     display: flex;
-    align-items: center;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2rem;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: flex-start;
     gap: 1rem;
+    flex: 1;
   }
 
   .header-icon {
@@ -621,10 +655,49 @@
     color: rgb(var(--color-primary-300));
   }
 
+  .btn-create {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: #22c55e;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .btn-create:hover {
+    background: #16a34a;
+  }
+
+  :global([data-mode="dark"]) .btn-create {
+    background: #22c55e;
+  }
+
+  :global([data-mode="dark"]) .btn-create:hover {
+    background: #16a34a;
+  }
+
   @media (max-width: 768px) {
     .header-content {
       flex-direction: column;
-      align-items: flex-start;
+      align-items: stretch;
+    }
+
+    .header-left {
+      width: 100%;
+    }
+
+    .btn-create {
+      width: 100%;
+      justify-content: center;
     }
 
     .stats {

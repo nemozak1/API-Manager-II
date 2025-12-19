@@ -170,7 +170,7 @@ export const GET: RequestHandler = async ({ locals }) => {
           accessToken,
         );
 
-        const entitlements = entitlementsResponse.list || [];
+        const entitlements = entitlementsResponse.entitlements || [];
         logger.info(
           `Group ${group.group_id} has ${entitlements.length} entitlements`,
         );

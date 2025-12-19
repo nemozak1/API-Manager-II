@@ -85,7 +85,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
         entitlementsEndpoint,
         accessToken,
       );
-      entitlements = entitlementsResponse.list || [];
+      entitlements = entitlementsResponse.entitlements || [];
       logger.info(`Response: ${entitlements.length} entitlements found`);
     } catch (err) {
       logger.error("Error fetching group entitlements:", err);

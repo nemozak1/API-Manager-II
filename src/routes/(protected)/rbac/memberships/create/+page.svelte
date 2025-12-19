@@ -312,6 +312,17 @@
               </div>
             </div>
 
+            {#if membershipResult.target_entitlements && membershipResult.target_entitlements.length > 0}
+              <div class="result-section">
+                <h4 class="result-section-title">Target Entitlements</h4>
+                <div class="entitlement-list">
+                  {#each membershipResult.target_entitlements as entitlement}
+                    <span class="entitlement-badge">{entitlement}</span>
+                  {/each}
+                </div>
+              </div>
+            {/if}
+
             {#if membershipResult.entitlements_created && membershipResult.entitlements_created.length > 0}
               <div class="result-section">
                 <h4 class="result-section-title success-text">
@@ -335,17 +346,6 @@
                 <div class="entitlement-list">
                   {#each membershipResult.entitlements_skipped as entitlement}
                     <span class="entitlement-badge warning">{entitlement}</span>
-                  {/each}
-                </div>
-              </div>
-            {/if}
-
-            {#if membershipResult.target_entitlements && membershipResult.target_entitlements.length > 0}
-              <div class="result-section">
-                <h4 class="result-section-title">Target Entitlements</h4>
-                <div class="entitlement-list">
-                  {#each membershipResult.target_entitlements as entitlement}
-                    <span class="entitlement-badge">{entitlement}</span>
                   {/each}
                 </div>
               </div>
@@ -918,13 +918,13 @@
   }
 
   .entitlement-badge.success {
-    background: #dcfce7;
-    color: #16a34a;
+    background: #22c55e;
+    color: white;
   }
 
   :global([data-mode="dark"]) .entitlement-badge.success {
-    background: rgba(34, 197, 94, 0.2);
-    color: rgb(var(--color-success-300));
+    background: #22c55e;
+    color: white;
   }
 
   .entitlement-badge.warning {

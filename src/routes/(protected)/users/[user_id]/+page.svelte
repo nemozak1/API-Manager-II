@@ -170,6 +170,18 @@
                     <span class="system-wide-badge">System-wide</span>
                   {/if}
                 </div>
+                {#if entitlement.entitlement_request_process}
+                  <div class="entitlement-detail">
+                    <span class="detail-label">Process:</span>
+                    {entitlement.entitlement_request_process}
+                  </div>
+                {/if}
+                {#if entitlement.group_id}
+                  <div class="entitlement-detail">
+                    <span class="detail-label">Group:</span>
+                    <span class="group-badge">{entitlement.group_id}</span>
+                  </div>
+                {/if}
                 {#if entitlement.created_date}
                   <div class="entitlement-detail">
                     <span class="detail-label">Added:</span>
@@ -458,6 +470,21 @@
   :global([data-mode="dark"]) .system-wide-badge {
     background: rgb(var(--color-surface-700));
     color: var(--color-surface-300);
+  }
+
+  .group-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    background: #dcfce7;
+    color: #166534;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  :global([data-mode="dark"]) .group-badge {
+    background: rgba(34, 197, 94, 0.2);
+    color: rgb(var(--color-success-300));
   }
 
   .empty-state {

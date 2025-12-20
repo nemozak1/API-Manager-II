@@ -50,6 +50,9 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
     return {
       openApiYaml,
+      tags: tags || null,
+      characterCount: openApiYaml.length,
+      apiUrl: apiUrl,
     };
   } catch (err) {
     logger.error("Error fetching OpenAPI YAML:", err);

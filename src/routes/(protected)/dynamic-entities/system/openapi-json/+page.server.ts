@@ -61,6 +61,9 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
     return {
       openApiJson,
+      tags: tags || null,
+      characterCount: openApiJson.length,
+      apiUrl: apiUrl,
     };
   } catch (err) {
     logger.error("Error fetching OpenAPI JSON:", err);

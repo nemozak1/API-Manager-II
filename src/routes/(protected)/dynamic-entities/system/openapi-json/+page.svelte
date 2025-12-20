@@ -1,7 +1,15 @@
 <script lang="ts">
   import type { PageData } from "./$types";
 
-  let { data }: { data: PageData } = $props();
+  let {
+    data,
+  }: {
+    data: PageData & {
+      tags?: string | null;
+      characterCount?: number;
+      apiUrl?: string;
+    };
+  } = $props();
 
   let copied = $state(false);
 
@@ -33,6 +41,21 @@
         <p class="mt-1 text-gray-600 dark:text-gray-400">
           OpenAPI specification for dynamic entity endpoints
         </p>
+        {#if data.tags}
+          <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            <span class="font-semibold">Tag:</span>
+            {data.tags}
+          </p>
+        {/if}
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          <span class="font-semibold">Character count:</span>
+          {data.characterCount?.toLocaleString()}
+        </p>
+        {#if data.apiUrl}
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-500 font-mono">
+            API: {data.apiUrl}
+          </p>
+        {/if}
       </div>
       <div class="flex gap-2">
         <a

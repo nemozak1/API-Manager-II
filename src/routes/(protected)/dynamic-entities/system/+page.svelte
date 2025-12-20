@@ -6,8 +6,16 @@
     formatErrorForDisplay,
     logErrorDetails,
   } from "$lib/utils/errorHandler";
+  import { page } from "$app/stores";
 
   let { data }: { data: PageData } = $props();
+
+  const apiExplorerUrl =
+    $page.data.externalLinks?.API_EXPLORER_URL ||
+    "https://apiexplorer-ii-sandbox.openbankproject.com";
+
+  // Construct API Explorer URL for dynamic entities
+  const apiExplorerDynamicEntityUrl = `${apiExplorerUrl}/resource-docs/OBPdynamic-entity`;
 
   let searchQuery = $state("");
 
@@ -149,7 +157,7 @@
   </div>
 
   <!-- Stats -->
-  <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+  <div class="mb-6 flex items-center gap-4">
     <div
       class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800"
     >
@@ -157,6 +165,74 @@
       <div class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">
         {data.entities?.length || 0}
       </div>
+    </div>
+    <div class="flex gap-2">
+      <a
+        href={apiExplorerDynamicEntityUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center rounded-lg border border-purple-300 bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 dark:border-purple-600 dark:bg-purple-500 dark:hover:bg-purple-600"
+        title="Open in API Explorer"
+      >
+        <svg
+          class="mr-2 h-4 w-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+          />
+        </svg>
+        API Explorer
+      </a>
+      <a
+        href="/dynamic-entities/system/openapi-json"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+        title="View OpenAPI JSON"
+      >
+        <svg
+          class="mr-2 h-4 w-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
+        </svg>
+        OpenAPI JSON
+      </a>
+      <a
+        href="/dynamic-entities/system/openapi-yaml"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+        title="View OpenAPI YAML"
+      >
+        <svg
+          class="mr-2 h-4 w-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
+        </svg>
+        OpenAPI YAML
+      </a>
     </div>
   </div>
 
@@ -398,7 +474,6 @@
                     </button>
                     <button
                       type="button"
-                      ell
                       onclick={() =>
                         deleteEntity(
                           entity.dynamicEntityId,

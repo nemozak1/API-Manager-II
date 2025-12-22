@@ -3,46 +3,53 @@ import { obp_requests } from "$lib/obp/requests";
 import { error } from "@sveltejs/kit";
 import type { OBPConsumer } from "$lib/obp/types";
 import type { RequestEvent } from "@sveltejs/kit";
+import { SessionOAuthHelper } from "$lib/oauth/sessionHelper";
 
-const logger = createLogger("UserConsumersServer");
+const logger = createLogger("ConsumersServer");
 
 export async function load(event: RequestEvent) {
-  const token = event.locals.session.data.oauth?.access_token;
-  if (!token) {
-    error(401, {
-      message: "Unauthorized: No access token found in session.",
-    });
+  const session = event.locals.session;
+
+  if (!session?.data?.user) {
+    throw error(401, "Unauthorized");
   }
 
-  let consumersResponse: { consumers: OBPConsumer[] } | undefined = undefined;
+  // Get the OAuth session data
+  const sessionOAuth = SessionOAuthHelper.getSessionOAuth(session);
+  const accessToken = sessionOAuth?.accessToken;
+
+  if (!accessToken) {
+    logger.warn("No access token available for consumers API calls");
+    return {
+      consumers: [],
+      userEntitlements: [],
+      requiredRoles: [{ role: "CanGetConsumers" }],
+      hasApiAccess: false,
+      error: "No API access token available",
+    };
+  }
+
+  // Get user entitlements from session for role checking
+  const userEntitlements = (session.data.user as any)?.entitlements?.list || [];
+  const requiredRoles = [{ role: "CanGetConsumers" }];
+
+  let consumers: OBPConsumer[] = [];
+  let errorMessage: string | null = null;
 
   try {
-    consumersResponse = await obp_requests.get(
-      "/obp/v6.0.0/management/users/current/consumers",
-      token,
-    );
-    logger.debug(
-      `Retrieved ${consumersResponse?.consumers?.length || 0} consumers`,
-    );
-  } catch (e) {
+    logger.info("=== GET ALL CONSUMERS API CALL ===");
+    const endpoint = `/obp/v6.0.0/management/consumers`;
+    logger.info(`Request: ${endpoint}`);
+
+    const consumersResponse = await obp_requests.get(endpoint, accessToken);
+
+    consumers = consumersResponse?.consumers || [];
+    logger.info(`Response: ${consumers.length} consumers`);
+  } catch (e: any) {
     logger.error("Error fetching consumers:", e);
-    error(500, {
-      message:
-        "Could not fetch consumers at this time. Please try again later.",
-    });
+    errorMessage =
+      e?.message || "Could not fetch consumers. Please try again later.";
   }
-
-  if (!consumersResponse || !consumersResponse.consumers) {
-    error(500, {
-      message:
-        "Could not fetch consumers at this time. Please try again later.",
-    });
-  }
-
-  const consumers = consumersResponse.consumers;
-
-  // Log first consumer for debugging
-  logger.debug(`Total consumers after processing: ${consumers.length}`);
 
   // Sort consumers by created date, most recent first
   consumers.sort((a: OBPConsumer, b: OBPConsumer) => {
@@ -53,5 +60,9 @@ export async function load(event: RequestEvent) {
 
   return {
     consumers,
+    userEntitlements,
+    requiredRoles,
+    hasApiAccess: true,
+    error: errorMessage,
   };
 }

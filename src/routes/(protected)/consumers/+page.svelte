@@ -1,6 +1,13 @@
 <script lang="ts">
+  import PageRoleCheck from "$lib/components/PageRoleCheck.svelte";
+
   let { data } = $props();
   const consumers = data.consumers;
+  const errorMessage = data.errorMessage;
+  const userEntitlements = data.userEntitlements || [];
+  const requiredRoles = data.requiredRoles || [];
+
+  let searchQuery = $state("");
 
   function formatDate(dateString: string): string {
     try {
@@ -16,226 +23,252 @@
       return "Unknown date";
     }
   }
+
+  let filteredConsumers = $derived(
+    !consumers || !searchQuery.trim()
+      ? consumers
+      : consumers.filter((consumer: any) => {
+          const query = searchQuery.toLowerCase();
+          return (
+            consumer.app_name?.toLowerCase().includes(query) ||
+            consumer.consumer_id?.toLowerCase().includes(query) ||
+            consumer.description?.toLowerCase().includes(query) ||
+            consumer.company?.toLowerCase().includes(query) ||
+            consumer.developer_email?.toLowerCase().includes(query) ||
+            consumer.app_type?.toLowerCase().includes(query)
+          );
+        }),
+  );
 </script>
 
-<h1 class="text-gray-900 dark:text-gray-100">API Consumers</h1>
+<PageRoleCheck {userEntitlements} {requiredRoles}>
+  <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+    API Consumers
+  </h1>
 
-<p class="mb-4 text-gray-700 dark:text-gray-300">
-  Here you can view your registered API consumers.
-</p>
-
-<!-- Security Notice -->
-<div
-  class="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20"
->
-  <div class="flex items-start">
-    <svg
-      class="mr-3 mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400"
-      fill="currentColor"
-      viewBox="0 0 20 20"
-    >
-      <path
-        fill-rule="evenodd"
-        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-        clip-rule="evenodd"
-      />
-    </svg>
-    <div>
-      <h3 class="text-sm font-medium text-blue-900 dark:text-blue-100">
-        Important: Credential Security
-      </h3>
-      <p class="mt-1 text-sm text-blue-800 dark:text-blue-200">
-        Consumer keys and secrets are only displayed once at creation time for
-        security reasons. Make sure to save them securely when creating a new
-        consumer. If you lose your credentials, you'll need to <a
-          href="/consumers/register"
-          class="underline font-medium hover:text-blue-900 dark:hover:text-blue-100"
-          >create a new consumer</a
-        >.
-      </p>
-    </div>
-  </div>
-</div>
-
-{#if consumers && consumers.length > 0}
-  <div class="space-y-4">
-    {#each consumers as consumer (consumer.consumer_id)}
-      <div
-        class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
-      >
-        <!-- Header with App Name and Status -->
-        <div class="mb-4 flex items-start justify-between">
-          <div>
-            <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
-              {consumer.app_name}
-            </h2>
-            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-              Created: {formatDate(consumer.created)}
-            </p>
-          </div>
-          <div class="flex items-center gap-2">
-            <a
-              href="/consumers/{consumer.consumer_id}/rate-limits"
-              class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-            >
-              <svg
-                class="mr-1.5 h-3.5 w-3.5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              Rate Limits
-            </a>
-            <span
-              class="rounded-full px-3 py-1 text-xs font-medium {consumer.enabled
-                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}"
-            >
-              {consumer.enabled ? "Enabled" : "Disabled"}
-            </span>
-            <span
-              class="rounded-full px-3 py-1 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
-            >
-              {consumer.app_type}
-            </span>
-          </div>
+  <!-- Search Box -->
+  {#if consumers && consumers.length > 0}
+    <div class="mb-3">
+      <div class="relative">
+        <div
+          class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
+        >
+          <svg
+            class="h-4 w-4 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
         </div>
-
-        <!-- Description -->
-        {#if consumer.description}
-          <p class="mb-4 text-sm text-gray-700 dark:text-gray-300">
-            {consumer.description}
-          </p>
+        <input
+          type="text"
+          bind:value={searchQuery}
+          placeholder="Search consumers by name, ID, company, email, or type..."
+          class="block w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-3 text-sm text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400"
+        />
+        {#if searchQuery}
+          <button
+            onclick={() => (searchQuery = "")}
+            class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          >
+            <svg
+              class="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
         {/if}
+      </div>
+      {#if searchQuery && filteredConsumers}
+        <p class="mt-1 text-xs text-gray-600 dark:text-gray-400">
+          Found {filteredConsumers.length} of {consumers.length} consumers
+        </p>
+      {/if}
+    </div>
+  {/if}
 
-        <!-- Credentials Section -->
-        <div class="space-y-3 rounded-lg bg-gray-50 p-4 dark:bg-gray-900/50">
-          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <!-- Consumer ID -->
-            <div class="sm:col-span-2">
-              <div
-                class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400"
+  {#if filteredConsumers && filteredConsumers.length > 0}
+    <div class="space-y-2">
+      {#each filteredConsumers as consumer (consumer.consumer_id)}
+        <div
+          class="rounded-lg border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+        >
+          <!-- Header with App Name and Status -->
+          <div class="mb-2 flex items-start justify-between">
+            <div class="flex-1 min-w-0">
+              <h2
+                class="text-base font-semibold text-gray-900 dark:text-gray-100 truncate"
               >
-                Consumer ID
-              </div>
-              <code
-                class="block rounded bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-800 dark:text-gray-100"
-              >
-                {consumer.consumer_id}
-              </code>
+                {consumer.app_name}
+              </h2>
+              <p class="text-xs text-gray-600 dark:text-gray-400">
+                Created: {formatDate(consumer.created)}
+              </p>
             </div>
-
-            {#if consumer.key && consumer.secret}
-              <!-- Key -->
-              <div>
-                <div
-                  class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400"
+            <div class="flex items-center gap-1.5 flex-shrink-0 ml-2">
+              <a
+                href="/consumers/{consumer.consumer_id}/rate-limits"
+                class="inline-flex items-center rounded border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+              >
+                <svg
+                  class="mr-1 h-3 w-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  Key
-                </div>
-                <code
-                  class="block rounded bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-800 dark:text-gray-100"
-                >
-                  {consumer.key}
-                </code>
-              </div>
-
-              <!-- Secret -->
-              <div>
-                <div
-                  class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400"
-                >
-                  Secret
-                </div>
-                <code
-                  class="block rounded bg-white px-3 py-2 text-sm text-gray-900 dark:bg-gray-800 dark:text-gray-100"
-                >
-                  {consumer.secret}
-                </code>
-              </div>
-            {:else}
-              <div class="sm:col-span-2">
-                <div
-                  class="rounded-lg border border-yellow-200 bg-yellow-50 p-3 dark:border-yellow-800 dark:bg-yellow-900/20"
-                >
-                  <p class="text-sm text-yellow-800 dark:text-yellow-200">
-                    <strong>Note:</strong> Consumer credentials (key and secret)
-                    are only shown once during creation for security reasons. If
-                    you've lost your credentials, you'll need to create a new consumer.
-                  </p>
-                </div>
-              </div>
-            {/if}
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                Rate Limits
+              </a>
+              <span
+                class="rounded-full px-2 py-0.5 text-xs font-medium {consumer.enabled
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                  : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}"
+              >
+                {consumer.enabled ? "Enabled" : "Disabled"}
+              </span>
+              <span
+                class="rounded-full px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+              >
+                {consumer.app_type}
+              </span>
+            </div>
           </div>
-        </div>
 
-        <!-- Additional Details -->
-        <div class="mt-4 space-y-2 text-sm">
-          {#if consumer.company}
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-1">
-              <span class="font-medium text-gray-600 dark:text-gray-400"
-                >Company:</span
-              >
-              <span class="sm:col-span-2 text-gray-900 dark:text-gray-100"
-                >{consumer.company}</span
-              >
+          <!-- Description -->
+          {#if consumer.description}
+            <p class="mb-2 text-xs text-gray-700 dark:text-gray-300">
+              {consumer.description}
+            </p>
+          {/if}
+
+          <!-- Credentials Section -->
+          {#if consumer.key && consumer.secret}
+            <div
+              class="space-y-2 rounded-lg bg-gray-50 p-2 dark:bg-gray-900/50 mb-2"
+            >
+              <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <!-- Key -->
+                <div>
+                  <div
+                    class="mb-0.5 block text-xs font-medium text-gray-600 dark:text-gray-400"
+                  >
+                    Key
+                  </div>
+                  <code
+                    class="block rounded bg-white px-2 py-1 text-xs text-gray-900 dark:bg-gray-800 dark:text-gray-100"
+                  >
+                    {consumer.key}
+                  </code>
+                </div>
+
+                <!-- Secret -->
+                <div>
+                  <div
+                    class="mb-0.5 block text-xs font-medium text-gray-600 dark:text-gray-400"
+                  >
+                    Secret
+                  </div>
+                  <code
+                    class="block rounded bg-white px-2 py-1 text-xs text-gray-900 dark:bg-gray-800 dark:text-gray-100"
+                  >
+                    {consumer.secret}
+                  </code>
+                </div>
+              </div>
             </div>
           {/if}
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-1">
-            <span class="font-medium text-gray-600 dark:text-gray-400"
-              >Developer Email:</span
-            >
-            <span class="sm:col-span-2 text-gray-900 dark:text-gray-100"
-              >{consumer.developer_email}</span
-            >
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-1">
-            <span class="font-medium text-gray-600 dark:text-gray-400"
-              >Redirect URL:</span
-            >
-            <span
-              class="sm:col-span-2 text-gray-900 dark:text-gray-100 break-all"
-            >
-              {consumer.redirect_url || "Not specified"}
-            </span>
+
+          <!-- Additional Details -->
+          <div class="mt-2 space-y-1 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-1">
+              <span class="font-medium text-gray-600 dark:text-gray-400"
+                >Consumer ID:</span
+              >
+              <span
+                class="sm:col-span-2 text-gray-900 dark:text-gray-100 font-mono"
+                >{consumer.consumer_id}</span
+              >
+            </div>
+            {#if consumer.company}
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-1">
+                <span class="font-medium text-gray-600 dark:text-gray-400"
+                  >Company:</span
+                >
+                <span class="sm:col-span-2 text-gray-900 dark:text-gray-100"
+                  >{consumer.company}</span
+                >
+              </div>
+            {/if}
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-1">
+              <span class="font-medium text-gray-600 dark:text-gray-400"
+                >Developer Email:</span
+              >
+              <span class="sm:col-span-2 text-gray-900 dark:text-gray-100"
+                >{consumer.developer_email}</span
+              >
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-1">
+              <span class="font-medium text-gray-600 dark:text-gray-400"
+                >Redirect URL:</span
+              >
+              <span
+                class="sm:col-span-2 text-gray-900 dark:text-gray-100 break-all"
+              >
+                {consumer.redirect_url || "Not specified"}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
-    {/each}
-  </div>
-{:else}
-  <div class="rounded-lg bg-gray-100 p-8 text-center dark:bg-gray-800">
-    <svg
-      class="mx-auto mb-4 h-16 w-16 text-gray-400"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        stroke-width="2"
-        d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
-      />
-    </svg>
-    <p class="mb-2 text-lg font-medium text-gray-700 dark:text-gray-300">
-      No API consumers found
-    </p>
-    <p class="mb-4 text-gray-600 dark:text-gray-400">
-      You haven't registered any API consumers yet.
-    </p>
-    <a
-      href="/consumers/register"
-      class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-500 dark:hover:bg-blue-600"
-    >
-      Register Your First Consumer
-    </a>
-  </div>
-{/if}
+      {/each}
+    </div>
+  {:else}
+    <div class="rounded-lg bg-gray-100 p-8 text-center dark:bg-gray-800">
+      <svg
+        class="mx-auto mb-4 h-16 w-16 text-gray-400"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
+        />
+      </svg>
+      <p class="mb-2 text-lg font-medium text-gray-700 dark:text-gray-300">
+        No API consumers found
+      </p>
+      <p class="mb-4 text-gray-600 dark:text-gray-400">
+        You haven't registered any API consumers yet.
+      </p>
+      <a
+        href="/consumers/register"
+        class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-500 dark:hover:bg-blue-600"
+      >
+        Register Your First Consumer
+      </a>
+    </div>
+  {/if}
+</PageRoleCheck>

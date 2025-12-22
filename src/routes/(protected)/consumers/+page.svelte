@@ -39,15 +39,57 @@
           );
         }),
   );
+
+  $effect(() => {
+    console.log("Consumers:", consumers?.length || 0);
+    console.log("Search query:", searchQuery);
+    console.log("Filtered consumers:", filteredConsumers?.length || 0);
+  });
 </script>
 
 <PageRoleCheck {userEntitlements} {requiredRoles}>
-  <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-    API Consumers
-  </h1>
+  <div class="flex items-center justify-between mb-4">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+      API Consumers
+    </h1>
+    {#if consumers && consumers.length > 0}
+      <span class="text-sm text-gray-600 dark:text-gray-400">
+        Total: {consumers.length}
+      </span>
+    {/if}
+  </div>
+
+  <!-- Error Message -->
+  {#if errorMessage}
+    <div
+      class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20"
+    >
+      <div class="flex items-start">
+        <svg
+          class="mr-3 h-5 w-5 flex-shrink-0 text-red-600 dark:text-red-400"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        <div>
+          <h3 class="text-sm font-medium text-red-900 dark:text-red-100">
+            Error Loading Consumers
+          </h3>
+          <p class="mt-1 text-sm text-red-800 dark:text-red-200">
+            {errorMessage}
+          </p>
+        </div>
+      </div>
+    </div>
+  {/if}
 
   <!-- Search Box -->
-  {#if consumers && consumers.length > 0}
+  {#if !errorMessage && consumers && consumers.length > 0}
     <div class="mb-3">
       <div class="relative">
         <div
@@ -96,13 +138,13 @@
       </div>
       {#if searchQuery && filteredConsumers}
         <p class="mt-1 text-xs text-gray-600 dark:text-gray-400">
-          Found {filteredConsumers.length} of {consumers.length} consumers
+          Showing {filteredConsumers.length} of {consumers.length} consumers
         </p>
       {/if}
     </div>
   {/if}
 
-  {#if filteredConsumers && filteredConsumers.length > 0}
+  {#if !errorMessage && filteredConsumers && filteredConsumers.length > 0}
     <div class="space-y-2">
       {#each filteredConsumers as consumer (consumer.consumer_id)}
         <div
@@ -242,7 +284,7 @@
         </div>
       {/each}
     </div>
-  {:else}
+  {:else if !errorMessage}
     <div class="rounded-lg bg-gray-100 p-8 text-center dark:bg-gray-800">
       <svg
         class="mx-auto mb-4 h-16 w-16 text-gray-400"

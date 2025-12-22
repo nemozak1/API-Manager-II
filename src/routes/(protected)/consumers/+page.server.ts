@@ -38,7 +38,7 @@ export async function load(event: RequestEvent) {
 
   try {
     logger.info("=== GET ALL CONSUMERS API CALL ===");
-    const endpoint = `/obp/v6.0.0/management/consumers`;
+    const endpoint = `/obp/v6.0.0/management/consumers?limit=500&offset=0&from_date=1970-01-01T00:00:00.000Z`;
     logger.info(`Request: ${endpoint}`);
 
     const consumersResponse = await obp_requests.get(endpoint, accessToken);

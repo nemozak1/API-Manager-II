@@ -49,15 +49,19 @@ interface Consumer {
   enabled: boolean;
 }
 
-interface CurrentUsage {
+interface PeriodUsage {
   calls_made: number;
-  per_second: number;
-  per_minute: number;
-  per_hour: number;
-  per_day: number;
-  per_week: number;
-  per_month: number;
   reset_in_seconds: number;
+  status: string;
+}
+
+interface CurrentUsage {
+  per_second: PeriodUsage;
+  per_minute: PeriodUsage;
+  per_hour: PeriodUsage;
+  per_day: PeriodUsage;
+  per_week: PeriodUsage;
+  per_month: PeriodUsage;
 }
 
 interface RateLimitingInfo {
@@ -156,16 +160,32 @@ export async function load(event: RequestEvent) {
     // Fetch current usage if consumer is enabled
     if (consumer.enabled) {
       try {
+        logger.debug(
+          `Attempting to fetch call-counters for consumer ${consumerId}`,
+        );
         currentUsage = await obp_requests.get(
-          `/obp/v6.0.0/management/consumers/${consumerId}/consumer/current-usage`,
+          `/obp/v6.0.0/management/consumers/${consumerId}/call-counters`,
           token,
         );
         logger.debug(
           `Retrieved current usage: ${JSON.stringify(currentUsage)}`,
         );
+        if (!currentUsage) {
+          logger.warn(
+            `Call-counters endpoint returned undefined/null for consumer ${consumerId}`,
+          );
+        }
       } catch (e) {
-        logger.warn(`Could not fetch current usage for consumer:`, e);
+        logger.error(
+          `Error fetching call-counters for consumer ${consumerId}:`,
+          e,
+        );
+        logger.error(`Error details: ${JSON.stringify(e)}`);
       }
+    } else {
+      logger.debug(
+        `Skipping call-counters fetch - consumer ${consumerId} is not enabled`,
+      );
     }
   } catch (e) {
     logger.warn(`Could not fetch rate limits for consumer:`, e);

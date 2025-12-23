@@ -6,6 +6,10 @@
   const activeRateLimits = data.activeRateLimits;
   const rateLimitingInfo = data.rateLimitingInfo;
 
+  // Debug logging
+  console.log("Current Usage Data:", currentUsage);
+  console.log("Active Rate Limits:", activeRateLimits);
+
   function formatShortDate(dateString: string): string {
     try {
       const date = new Date(dateString);
@@ -61,11 +65,27 @@
     if (typeof value === "object" && value.calls_made !== undefined) {
       return String(value.calls_made);
     }
-    // Handle simple numeric value
+    // Handle simple numeric value (legacy format)
     if (typeof value === "number") {
       return String(value);
     }
     return "0";
+  }
+
+  function getCallsMade(usageData: any, period: string): number {
+    const value = usageData[period];
+    if (value === undefined || value === null) {
+      return 0;
+    }
+    // Handle nested object structure with calls_made property
+    if (typeof value === "object" && value.calls_made !== undefined) {
+      return value.calls_made;
+    }
+    // Handle simple numeric value (legacy format)
+    if (typeof value === "number") {
+      return value;
+    }
+    return 0;
   }
 
   function isUsageActive(usageData: any, period: string): boolean {
@@ -199,13 +219,13 @@
 </div>
 
 <!-- Current Usage Card -->
-{#if currentUsage && activeRateLimits}
+{#if currentUsage && Object.keys(currentUsage).length > 0}
   <div
     class="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-6 dark:border-blue-700 dark:bg-blue-900/20"
   >
     <div class="mb-4 flex items-center justify-between">
       <h2 class="text-lg font-semibold text-blue-900 dark:text-blue-100">
-        Current Usage (Active Limit)
+        Current Usage {activeRateLimits ? "(Active Limit)" : ""}
       </h2>
       <span
         class="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400"
@@ -214,21 +234,24 @@
       </span>
     </div>
 
-    <div class="mb-4 text-sm text-blue-800 dark:text-blue-200">
-      Active as of {formatShortDate(activeRateLimits.active_at_date)}
-    </div>
+    {#if activeRateLimits}
+      <div class="mb-4 text-sm text-blue-800 dark:text-blue-200">
+        Active as of {formatShortDate(activeRateLimits.active_at_date)}
+      </div>
+    {/if}
 
     <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
       <!-- Per Second -->
-      {#if activeRateLimits.active_per_second_rate_limit > 0}
+      {#if !activeRateLimits || activeRateLimits.active_per_second_rate_limit > 0}
         <div>
           <div class="mb-1 text-xs text-blue-700 dark:text-blue-300">
             Per Second
           </div>
           <div class="text-sm font-medium text-blue-900 dark:text-blue-100">
-            {formatUsageValue(currentUsage, "per_second")} / {formatNumber(
-              activeRateLimits.active_per_second_rate_limit,
-            )}
+            {formatUsageValue(currentUsage, "per_second")}
+            {#if activeRateLimits}
+              / {formatNumber(activeRateLimits.active_per_second_rate_limit)}
+            {/if}
           </div>
           <div
             class="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-blue-200 dark:bg-blue-800"
@@ -237,14 +260,14 @@
               class="{isUsageActive(currentUsage, 'per_second')
                 ? getUsageColor(
                     getUsagePercentage(
-                      currentUsage.per_second || 0,
+                      getCallsMade(currentUsage, 'per_second'),
                       activeRateLimits.active_per_second_rate_limit,
                     ),
                   )
                 : 'bg-gray-400'} h-full transition-all"
               style="width: {isUsageActive(currentUsage, 'per_second')
                 ? getUsagePercentage(
-                    currentUsage.per_second || 0,
+                    getCallsMade(currentUsage, 'per_second'),
                     activeRateLimits.active_per_second_rate_limit,
                   )
                 : 0}%"
@@ -254,15 +277,16 @@
       {/if}
 
       <!-- Per Minute -->
-      {#if activeRateLimits.active_per_minute_rate_limit > 0}
+      {#if !activeRateLimits || activeRateLimits.active_per_minute_rate_limit > 0}
         <div>
           <div class="mb-1 text-xs text-blue-700 dark:text-blue-300">
             Per Minute
           </div>
           <div class="text-sm font-medium text-blue-900 dark:text-blue-100">
-            {formatUsageValue(currentUsage, "per_minute")} / {formatNumber(
-              activeRateLimits.active_per_minute_rate_limit,
-            )}
+            {formatUsageValue(currentUsage, "per_minute")}
+            {#if activeRateLimits}
+              / {formatNumber(activeRateLimits.active_per_minute_rate_limit)}
+            {/if}
           </div>
           <div
             class="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-blue-200 dark:bg-blue-800"
@@ -271,14 +295,14 @@
               class="{isUsageActive(currentUsage, 'per_minute')
                 ? getUsageColor(
                     getUsagePercentage(
-                      currentUsage.per_minute || 0,
+                      getCallsMade(currentUsage, 'per_minute'),
                       activeRateLimits.active_per_minute_rate_limit,
                     ),
                   )
                 : 'bg-gray-400'} h-full transition-all"
               style="width: {isUsageActive(currentUsage, 'per_minute')
                 ? getUsagePercentage(
-                    currentUsage.per_minute || 0,
+                    getCallsMade(currentUsage, 'per_minute'),
                     activeRateLimits.active_per_minute_rate_limit,
                   )
                 : 0}%"
@@ -288,15 +312,16 @@
       {/if}
 
       <!-- Per Hour -->
-      {#if activeRateLimits.active_per_hour_rate_limit > 0}
+      {#if !activeRateLimits || activeRateLimits.active_per_hour_rate_limit > 0}
         <div>
           <div class="mb-1 text-xs text-blue-700 dark:text-blue-300">
             Per Hour
           </div>
           <div class="text-sm font-medium text-blue-900 dark:text-blue-100">
-            {formatUsageValue(currentUsage, "per_hour")} / {formatNumber(
-              activeRateLimits.active_per_hour_rate_limit,
-            )}
+            {formatUsageValue(currentUsage, "per_hour")}
+            {#if activeRateLimits}
+              / {formatNumber(activeRateLimits.active_per_hour_rate_limit)}
+            {/if}
           </div>
           <div
             class="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-blue-200 dark:bg-blue-800"
@@ -305,14 +330,14 @@
               class="{isUsageActive(currentUsage, 'per_hour')
                 ? getUsageColor(
                     getUsagePercentage(
-                      currentUsage.per_hour || 0,
+                      getCallsMade(currentUsage, 'per_hour'),
                       activeRateLimits.active_per_hour_rate_limit,
                     ),
                   )
                 : 'bg-gray-400'} h-full transition-all"
               style="width: {isUsageActive(currentUsage, 'per_hour')
                 ? getUsagePercentage(
-                    currentUsage.per_hour || 0,
+                    getCallsMade(currentUsage, 'per_hour'),
                     activeRateLimits.active_per_hour_rate_limit,
                   )
                 : 0}%"
@@ -322,15 +347,16 @@
       {/if}
 
       <!-- Per Day -->
-      {#if activeRateLimits.active_per_day_rate_limit > 0}
+      {#if !activeRateLimits || activeRateLimits.active_per_day_rate_limit > 0}
         <div>
           <div class="mb-1 text-xs text-blue-700 dark:text-blue-300">
             Per Day
           </div>
           <div class="text-sm font-medium text-blue-900 dark:text-blue-100">
-            {formatUsageValue(currentUsage, "per_day")} / {formatNumber(
-              activeRateLimits.active_per_day_rate_limit,
-            )}
+            {formatUsageValue(currentUsage, "per_day")}
+            {#if activeRateLimits}
+              / {formatNumber(activeRateLimits.active_per_day_rate_limit)}
+            {/if}
           </div>
           <div
             class="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-blue-200 dark:bg-blue-800"
@@ -339,14 +365,14 @@
               class="{isUsageActive(currentUsage, 'per_day')
                 ? getUsageColor(
                     getUsagePercentage(
-                      currentUsage.per_day || 0,
+                      getCallsMade(currentUsage, 'per_day'),
                       activeRateLimits.active_per_day_rate_limit,
                     ),
                   )
                 : 'bg-gray-400'} h-full transition-all"
               style="width: {isUsageActive(currentUsage, 'per_day')
                 ? getUsagePercentage(
-                    currentUsage.per_day || 0,
+                    getCallsMade(currentUsage, 'per_day'),
                     activeRateLimits.active_per_day_rate_limit,
                   )
                 : 0}%"
@@ -356,15 +382,16 @@
       {/if}
 
       <!-- Per Week -->
-      {#if activeRateLimits.active_per_week_rate_limit > 0}
+      {#if !activeRateLimits || activeRateLimits.active_per_week_rate_limit > 0}
         <div>
           <div class="mb-1 text-xs text-blue-700 dark:text-blue-300">
             Per Week
           </div>
           <div class="text-sm font-medium text-blue-900 dark:text-blue-100">
-            {formatUsageValue(currentUsage, "per_week")} / {formatNumber(
-              activeRateLimits.active_per_week_rate_limit,
-            )}
+            {formatUsageValue(currentUsage, "per_week")}
+            {#if activeRateLimits}
+              / {formatNumber(activeRateLimits.active_per_week_rate_limit)}
+            {/if}
           </div>
           <div
             class="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-blue-200 dark:bg-blue-800"
@@ -373,14 +400,14 @@
               class="{isUsageActive(currentUsage, 'per_week')
                 ? getUsageColor(
                     getUsagePercentage(
-                      currentUsage.per_week || 0,
+                      getCallsMade(currentUsage, 'per_week'),
                       activeRateLimits.active_per_week_rate_limit,
                     ),
                   )
                 : 'bg-gray-400'} h-full transition-all"
               style="width: {isUsageActive(currentUsage, 'per_week')
                 ? getUsagePercentage(
-                    currentUsage.per_week || 0,
+                    getCallsMade(currentUsage, 'per_week'),
                     activeRateLimits.active_per_week_rate_limit,
                   )
                 : 0}%"
@@ -390,15 +417,16 @@
       {/if}
 
       <!-- Per Month -->
-      {#if activeRateLimits.active_per_month_rate_limit > 0}
+      {#if !activeRateLimits || activeRateLimits.active_per_month_rate_limit > 0}
         <div>
           <div class="mb-1 text-xs text-blue-700 dark:text-blue-300">
             Per Month
           </div>
           <div class="text-sm font-medium text-blue-900 dark:text-blue-100">
-            {formatUsageValue(currentUsage, "per_month")} / {formatNumber(
-              activeRateLimits.active_per_month_rate_limit,
-            )}
+            {formatUsageValue(currentUsage, "per_month")}
+            {#if activeRateLimits}
+              / {formatNumber(activeRateLimits.active_per_month_rate_limit)}
+            {/if}
           </div>
           <div
             class="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-blue-200 dark:bg-blue-800"
@@ -407,14 +435,14 @@
               class="{isUsageActive(currentUsage, 'per_month')
                 ? getUsageColor(
                     getUsagePercentage(
-                      currentUsage.per_month || 0,
+                      getCallsMade(currentUsage, 'per_month'),
                       activeRateLimits.active_per_month_rate_limit,
                     ),
                   )
                 : 'bg-gray-400'} h-full transition-all"
               style="width: {isUsageActive(currentUsage, 'per_month')
                 ? getUsagePercentage(
-                    currentUsage.per_month || 0,
+                    getCallsMade(currentUsage, 'per_month'),
                     activeRateLimits.active_per_month_rate_limit,
                   )
                 : 0}%"

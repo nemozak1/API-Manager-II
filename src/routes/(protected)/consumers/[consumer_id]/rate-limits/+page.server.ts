@@ -23,6 +23,17 @@ interface RateLimit {
   bank_id?: string;
 }
 
+interface ActiveRateLimits {
+  considered_rate_limit_ids: string[];
+  active_at_date: string;
+  active_per_second_rate_limit: number;
+  active_per_minute_rate_limit: number;
+  active_per_hour_rate_limit: number;
+  active_per_day_rate_limit: number;
+  active_per_week_rate_limit: number;
+  active_per_month_rate_limit: number;
+}
+
 interface Consumer {
   consumer_id: string;
   key?: string;
@@ -83,7 +94,7 @@ export async function load(event: RequestEvent) {
   let consumer: Consumer | undefined = undefined;
   let rateLimits: RateLimit[] = [];
   let currentUsage: CurrentUsage | undefined = undefined;
-  let activeLimit: RateLimit | undefined = undefined;
+  let activeRateLimits: ActiveRateLimits | undefined = undefined;
   let rateLimitingInfo: RateLimitingInfo | undefined = undefined;
 
   // Fetch rate limiting system info
@@ -130,16 +141,16 @@ export async function load(event: RequestEvent) {
     rateLimits = rateLimitsResponse?.limits || [];
     logger.debug(`Retrieved ${rateLimits.length} rate limits for consumer`);
 
-    // Determine active limit (current date falls between from_date and to_date)
-    const now = new Date();
-    activeLimit = rateLimits.find((limit) => {
-      const fromDate = new Date(limit.from_date);
-      const toDate = new Date(limit.to_date);
-      return now >= fromDate && now <= toDate;
-    });
+    // Get active rate limits at current date using the API
+    try {
+      activeRateLimits = await obp_requests.get(
+        `/obp/v6.0.0/management/consumers/${consumerId}/active-rate-limits`,
+        token,
+      );
 
-    if (activeLimit) {
-      logger.debug(`Found active limit: ${activeLimit.rate_limiting_id}`);
+      logger.debug(`Active rate limits: ${JSON.stringify(activeRateLimits)}`);
+    } catch (e) {
+      logger.error(`Error fetching active rate limits:`, e);
     }
 
     // Fetch current usage if consumer is enabled
@@ -169,7 +180,7 @@ export async function load(event: RequestEvent) {
     consumer,
     rateLimits,
     currentUsage,
-    activeLimit,
+    activeRateLimits,
     rateLimitingInfo,
   };
 }

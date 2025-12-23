@@ -267,6 +267,39 @@ export const ROLE_REQUIREMENTS = {
       action: "update ABAC rules",
     },
   ],
+
+  // Rate Limiting
+  createRateLimit: [
+    {
+      role: "CanCreateRateLimits",
+      description: "Create rate limits for consumers",
+      action: "create rate limits",
+    },
+  ],
+
+  updateRateLimit: [
+    {
+      role: "CanUpdateRateLimits",
+      description: "Update rate limits for consumers",
+      action: "update rate limits",
+    },
+  ],
+
+  deleteRateLimit: [
+    {
+      role: "CanDeleteRateLimits",
+      description: "Delete rate limits for consumers",
+      action: "delete rate limits",
+    },
+  ],
+
+  viewRateLimit: [
+    {
+      role: "CanGetRateLimits",
+      description: "View rate limits for consumers",
+      action: "view rate limits",
+    },
+  ],
 } as const;
 
 /**
@@ -383,4 +416,32 @@ export function getUpdateSystemViewPageRoles(): RoleRequirement[] {
     ...ROLE_REQUIREMENTS.updateSystemView,
     ...ROLE_REQUIREMENTS.getViewPermissions,
   ];
+}
+
+/**
+ * Get role requirements for creating rate limits
+ */
+export function getCreateRateLimitRoles(): RoleRequirement[] {
+  return [...ROLE_REQUIREMENTS.createRateLimit];
+}
+
+/**
+ * Get role requirements for updating rate limits
+ */
+export function getUpdateRateLimitRoles(): RoleRequirement[] {
+  return [...ROLE_REQUIREMENTS.updateRateLimit];
+}
+
+/**
+ * Get role requirements for deleting rate limits
+ */
+export function getDeleteRateLimitRoles(): RoleRequirement[] {
+  return [...ROLE_REQUIREMENTS.deleteRateLimit];
+}
+
+/**
+ * Get role requirements for viewing rate limits
+ */
+export function getViewRateLimitRoles(): RoleRequirement[] {
+  return [...ROLE_REQUIREMENTS.viewRateLimit];
 }

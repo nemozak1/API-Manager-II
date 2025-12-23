@@ -49,6 +49,13 @@ interface CurrentUsage {
   reset_in_seconds: number;
 }
 
+interface RateLimitingInfo {
+  enabled: boolean;
+  is_active: boolean;
+  service_available: boolean;
+  technology: string;
+}
+
 export async function load(event: RequestEvent) {
   const session = event.locals.session;
 
@@ -77,6 +84,20 @@ export async function load(event: RequestEvent) {
   let rateLimits: RateLimit[] = [];
   let currentUsage: CurrentUsage | undefined = undefined;
   let activeLimit: RateLimit | undefined = undefined;
+  let rateLimitingInfo: RateLimitingInfo | undefined = undefined;
+
+  // Fetch rate limiting system info
+  try {
+    rateLimitingInfo = await obp_requests.get(
+      `/obp/v6.0.0/rate-limiting`,
+      token,
+    );
+    logger.debug(
+      `Rate limiting enabled: ${rateLimitingInfo?.enabled}, active: ${rateLimitingInfo?.is_active}`,
+    );
+  } catch (e) {
+    logger.warn("Could not fetch rate limiting info:", e);
+  }
 
   try {
     // Fetch consumer details
@@ -149,5 +170,6 @@ export async function load(event: RequestEvent) {
     rateLimits,
     currentUsage,
     activeLimit,
+    rateLimitingInfo,
   };
 }

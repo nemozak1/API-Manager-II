@@ -4,6 +4,7 @@
   const rateLimits = data.rateLimits;
   const currentUsage = data.currentUsage;
   const activeLimit = data.activeLimit;
+  const rateLimitingInfo = data.rateLimitingInfo;
 
   function formatShortDate(dateString: string): string {
     try {
@@ -64,6 +65,78 @@
     ← Back to Consumers
   </a>
 </div>
+
+<!-- Rate Limiting System Status -->
+{#if rateLimitingInfo}
+  <div
+    class="mb-4 rounded-lg border p-3 {rateLimitingInfo.enabled &&
+    rateLimitingInfo.is_active
+      ? 'border-green-200 bg-green-50 dark:border-green-700 dark:bg-green-900/20'
+      : 'border-yellow-200 bg-yellow-50 dark:border-yellow-700 dark:bg-yellow-900/20'}"
+  >
+    <div class="flex items-start gap-3">
+      <svg
+        class="h-5 w-5 flex-shrink-0 {rateLimitingInfo.enabled &&
+        rateLimitingInfo.is_active
+          ? 'text-green-600 dark:text-green-400'
+          : 'text-yellow-600 dark:text-yellow-400'}"
+        fill="currentColor"
+        viewBox="0 0 20 20"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+          clip-rule="evenodd"
+        />
+      </svg>
+      <div class="flex-1">
+        <div class="flex items-center gap-2">
+          <h3
+            class="text-sm font-medium {rateLimitingInfo.enabled &&
+            rateLimitingInfo.is_active
+              ? 'text-green-900 dark:text-green-100'
+              : 'text-yellow-900 dark:text-yellow-100'}"
+          >
+            Rate Limiting System Status
+          </h3>
+          <span
+            class="rounded-full px-2 py-0.5 text-xs font-medium {rateLimitingInfo.enabled &&
+            rateLimitingInfo.is_active
+              ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300'
+              : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300'}"
+          >
+            {rateLimitingInfo.enabled && rateLimitingInfo.is_active
+              ? "Active"
+              : "Inactive"}
+          </span>
+        </div>
+        <div
+          class="mt-1 grid grid-cols-2 gap-x-4 gap-y-1 text-xs {rateLimitingInfo.enabled &&
+          rateLimitingInfo.is_active
+            ? 'text-green-800 dark:text-green-200'
+            : 'text-yellow-800 dark:text-yellow-200'}"
+        >
+          <div>
+            <span class="font-medium">Enabled:</span>
+            {rateLimitingInfo.enabled ? "Yes" : "No"}
+          </div>
+          <div>
+            <span class="font-medium">Active:</span>
+            {rateLimitingInfo.is_active ? "Yes" : "No"}
+          </div>
+          <div>
+            <span class="font-medium">Service Available:</span>
+            {rateLimitingInfo.service_available ? "Yes" : "No"}
+          </div>
+          <div>
+            <span class="font-medium">Technology:</span>
+            {rateLimitingInfo.technology || "N/A"}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{/if}
 
 <!-- Consumer Header -->
 <div class="mb-6">
@@ -364,12 +437,20 @@
                 )}
               </div>
             </div>
-            <a
-              href="/consumers/{consumer.consumer_id}/rate-limits/{limit.rate_limiting_id}/edit"
-              class="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-            >
-              Edit
-            </a>
+            <div class="flex gap-2">
+              <a
+                href="/consumers/{consumer.consumer_id}/rate-limits/{limit.rate_limiting_id}/edit"
+                class="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                Edit
+              </a>
+              <a
+                href="/consumers/{consumer.consumer_id}/rate-limits/{limit.rate_limiting_id}/delete"
+                class="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+              >
+                Delete
+              </a>
+            </div>
           </div>
 
           <div

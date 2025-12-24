@@ -64,6 +64,8 @@ interface CurrentUsage {
   per_month: PeriodUsage;
 }
 
+type CurrentUsageOrError = CurrentUsage | "ERROR";
+
 interface RateLimitingInfo {
   enabled: boolean;
   is_active: boolean;
@@ -97,7 +99,7 @@ export async function load(event: RequestEvent) {
 
   let consumer: Consumer | undefined = undefined;
   let rateLimits: RateLimit[] = [];
-  let currentUsage: CurrentUsage | undefined = undefined;
+  let currentUsage: CurrentUsageOrError | undefined = undefined;
   let activeRateLimits: ActiveRateLimits | undefined = undefined;
   let rateLimitingInfo: RateLimitingInfo | undefined = undefined;
 
@@ -181,6 +183,8 @@ export async function load(event: RequestEvent) {
           e,
         );
         logger.error(`Error details: ${JSON.stringify(e)}`);
+        // Set to ERROR so UI can display error message
+        currentUsage = "ERROR";
       }
     } else {
       logger.debug(

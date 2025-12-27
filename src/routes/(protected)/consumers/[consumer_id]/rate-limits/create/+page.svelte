@@ -44,7 +44,9 @@
   </a>
 </div>
 
-<h1 class="text-gray-900 dark:text-gray-100">Create Rate Limit</h1>
+<h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+  Create Rate Limit
+</h1>
 
 <p class="mb-2 text-gray-700 dark:text-gray-300">
   Configure rate limits for <strong>{consumer.app_name}</strong> to control API call
@@ -106,13 +108,10 @@
       </h3>
       <div class="mt-2 text-sm text-blue-800 dark:text-blue-200">
         <ul class="list-inside list-disc space-y-1">
-          <li>At least one rate limit period must be specified</li>
           <li>
-            Leave a field empty or set to 0 for unlimited access in that time
-            period
+            Rate Limit records are summed for a time period. Use -1 for
+            unlimited.
           </li>
-          <li>Rate limits are enforced based on the date range specified</li>
-          <li></li>
         </ul>
       </div>
     </div>

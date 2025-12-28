@@ -219,7 +219,7 @@
 <div class="mb-6">
   <div class="flex items-start justify-between">
     <div>
-      <h1 class="text-gray-900 dark:text-gray-100">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
         Rate Limits: {consumer.app_name}
       </h1>
       <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
@@ -244,6 +244,22 @@
       </span>
     </div>
   </div>
+
+  <!-- Caching Information -->
+  <div class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+    <svg
+      class="inline-block mr-1 h-4 w-4"
+      fill="currentColor"
+      viewBox="0 0 20 20"
+    >
+      <path
+        fill-rule="evenodd"
+        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+        clip-rule="evenodd"
+      />
+    </svg>
+    Note: Rate limit records and active rate limits are cached for up to an hour.
+  </div>
 </div>
 
 <!-- Current Usage Card -->
@@ -263,92 +279,74 @@
 
   <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
     <!-- Per Second -->
-    {#if !activeRateLimits || activeRateLimits.active_per_second_rate_limit > 0}
-      <div>
-        <div class="mb-1 text-xs text-blue-700 dark:text-blue-300">
-          Per Second
-        </div>
-        <div class="text-sm font-medium text-blue-900 dark:text-blue-100">
-          {formatUsageValue(callCounters, "per_second")}
-          {#if activeRateLimits}
-            / {formatNumber(activeRateLimits.active_per_second_rate_limit)}
-          {/if}
-        </div>
+    <div>
+      <div class="mb-1 text-xs text-blue-700 dark:text-blue-300">
+        Per Second
       </div>
-    {/if}
+      <div class="text-sm font-medium text-blue-900 dark:text-blue-100">
+        {formatUsageValue(callCounters, "per_second")}
+        {#if activeRateLimits && activeRateLimits.active_per_second_rate_limit > 0}
+          / {formatNumber(activeRateLimits.active_per_second_rate_limit)}
+        {/if}
+      </div>
+    </div>
 
     <!-- Per Minute -->
-    {#if !activeRateLimits || activeRateLimits.active_per_minute_rate_limit > 0}
-      <div>
-        <div class="mb-1 text-xs text-blue-700 dark:text-blue-300">
-          Per Minute
-        </div>
-        <div class="text-sm font-medium text-blue-900 dark:text-blue-100">
-          {formatUsageValue(callCounters, "per_minute")}
-          {#if activeRateLimits}
-            / {formatNumber(activeRateLimits.active_per_minute_rate_limit)}
-          {/if}
-        </div>
+    <div>
+      <div class="mb-1 text-xs text-blue-700 dark:text-blue-300">
+        Per Minute
       </div>
-    {/if}
+      <div class="text-sm font-medium text-blue-900 dark:text-blue-100">
+        {formatUsageValue(callCounters, "per_minute")}
+        {#if activeRateLimits && activeRateLimits.active_per_minute_rate_limit > 0}
+          / {formatNumber(activeRateLimits.active_per_minute_rate_limit)}
+        {/if}
+      </div>
+    </div>
 
     <!-- Per Hour -->
-    {#if !activeRateLimits || activeRateLimits.active_per_hour_rate_limit > 0}
-      <div>
-        <div class="mb-1 text-xs text-blue-700 dark:text-blue-300">
-          Per Hour
-        </div>
-        <div class="text-sm font-medium text-blue-900 dark:text-blue-100">
-          {formatUsageValue(callCounters, "per_hour")}
-          {#if activeRateLimits}
-            / {formatNumber(activeRateLimits.active_per_hour_rate_limit)}
-          {/if}
-        </div>
+    <div>
+      <div class="mb-1 text-xs text-blue-700 dark:text-blue-300">Per Hour</div>
+      <div class="text-sm font-medium text-blue-900 dark:text-blue-100">
+        {formatUsageValue(callCounters, "per_hour")}
+        {#if activeRateLimits && activeRateLimits.active_per_hour_rate_limit > 0}
+          / {formatNumber(activeRateLimits.active_per_hour_rate_limit)}
+        {/if}
       </div>
-    {/if}
+    </div>
 
     <!-- Per Day -->
-    {#if !activeRateLimits || activeRateLimits.active_per_day_rate_limit > 0}
-      <div>
-        <div class="mb-1 text-xs text-blue-700 dark:text-blue-300">Per Day</div>
-        <div class="text-sm font-medium text-blue-900 dark:text-blue-100">
-          {formatUsageValue(callCounters, "per_day")}
-          {#if activeRateLimits}
-            / {formatNumber(activeRateLimits.active_per_day_rate_limit)}
-          {/if}
-        </div>
+    <div>
+      <div class="mb-1 text-xs text-blue-700 dark:text-blue-300">Per Day</div>
+      <div class="text-sm font-medium text-blue-900 dark:text-blue-100">
+        {formatUsageValue(callCounters, "per_day")}
+        {#if activeRateLimits && activeRateLimits.active_per_day_rate_limit > 0}
+          / {formatNumber(activeRateLimits.active_per_day_rate_limit)}
+        {/if}
       </div>
-    {/if}
+    </div>
 
     <!-- Per Week -->
-    {#if !activeRateLimits || activeRateLimits.active_per_week_rate_limit > 0}
-      <div>
-        <div class="mb-1 text-xs text-blue-700 dark:text-blue-300">
-          Per Week
-        </div>
-        <div class="text-sm font-medium text-blue-900 dark:text-blue-100">
-          {formatUsageValue(callCounters, "per_week")}
-          {#if activeRateLimits}
-            / {formatNumber(activeRateLimits.active_per_week_rate_limit)}
-          {/if}
-        </div>
+    <div>
+      <div class="mb-1 text-xs text-blue-700 dark:text-blue-300">Per Week</div>
+      <div class="text-sm font-medium text-blue-900 dark:text-blue-100">
+        {formatUsageValue(callCounters, "per_week")}
+        {#if activeRateLimits && activeRateLimits.active_per_week_rate_limit > 0}
+          / {formatNumber(activeRateLimits.active_per_week_rate_limit)}
+        {/if}
       </div>
-    {/if}
+    </div>
 
     <!-- Per Month -->
-    {#if !activeRateLimits || activeRateLimits.active_per_month_rate_limit > 0}
-      <div>
-        <div class="mb-1 text-xs text-blue-700 dark:text-blue-300">
-          Per Month
-        </div>
-        <div class="text-sm font-medium text-blue-900 dark:text-blue-100">
-          {formatUsageValue(callCounters, "per_month")}
-          {#if activeRateLimits}
-            / {formatNumber(activeRateLimits.active_per_month_rate_limit)}
-          {/if}
-        </div>
+    <div>
+      <div class="mb-1 text-xs text-blue-700 dark:text-blue-300">Per Month</div>
+      <div class="text-sm font-medium text-blue-900 dark:text-blue-100">
+        {formatUsageValue(callCounters, "per_month")}
+        {#if activeRateLimits && activeRateLimits.active_per_month_rate_limit > 0}
+          / {formatNumber(activeRateLimits.active_per_month_rate_limit)}
+        {/if}
       </div>
-    {/if}
+    </div>
   </div>
 </div>
 

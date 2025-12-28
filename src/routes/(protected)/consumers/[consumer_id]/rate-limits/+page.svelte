@@ -143,6 +143,53 @@
   </a>
 </div>
 
+<!-- Consumer Header -->
+<div class="mb-6">
+  <div class="flex items-start justify-between">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+        Rate Limits: {consumer.app_name}
+      </h1>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+        Consumer ID: <code
+          class="rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-gray-900"
+          >{consumer.consumer_id}</code
+        >
+      </p>
+    </div>
+    <div class="flex items-center gap-2">
+      <span
+        class="rounded-full px-3 py-1 text-xs font-medium {consumer.enabled
+          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+          : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}"
+      >
+        {consumer.enabled ? "Enabled" : "Disabled"}
+      </span>
+      <span
+        class="rounded-full px-3 py-1 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+      >
+        {consumer.app_type}
+      </span>
+    </div>
+  </div>
+
+  <!-- Caching Information -->
+  <div class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+    <svg
+      class="inline-block mr-1 h-4 w-4"
+      fill="currentColor"
+      viewBox="0 0 20 20"
+    >
+      <path
+        fill-rule="evenodd"
+        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+        clip-rule="evenodd"
+      />
+    </svg>
+    Note: Rate limit records and active rate limits are cached for up to an hour.
+  </div>
+</div>
+
 <!-- Rate Limiting System Status -->
 {#if rateLimitingInfo}
   <div
@@ -214,53 +261,6 @@
     </div>
   </div>
 {/if}
-
-<!-- Consumer Header -->
-<div class="mb-6">
-  <div class="flex items-start justify-between">
-    <div>
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-        Rate Limits: {consumer.app_name}
-      </h1>
-      <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-        Consumer ID: <code
-          class="rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-gray-900"
-          >{consumer.consumer_id}</code
-        >
-      </p>
-    </div>
-    <div class="flex items-center gap-2">
-      <span
-        class="rounded-full px-3 py-1 text-xs font-medium {consumer.enabled
-          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-          : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}"
-      >
-        {consumer.enabled ? "Enabled" : "Disabled"}
-      </span>
-      <span
-        class="rounded-full px-3 py-1 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
-      >
-        {consumer.app_type}
-      </span>
-    </div>
-  </div>
-
-  <!-- Caching Information -->
-  <div class="mt-4 text-sm text-gray-600 dark:text-gray-400">
-    <svg
-      class="inline-block mr-1 h-4 w-4"
-      fill="currentColor"
-      viewBox="0 0 20 20"
-    >
-      <path
-        fill-rule="evenodd"
-        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-        clip-rule="evenodd"
-      />
-    </svg>
-    Note: Rate limit records and active rate limits are cached for up to an hour.
-  </div>
-</div>
 
 <!-- Current Usage Card -->
 <div

@@ -44,7 +44,14 @@
 
   // Available objects and their fields for ABAC rules - fetched from OBP
   let availableObjects = $state<any[]>([]);
-  let schemaExamples = $state<string[]>([]);
+  let schemaExamples = $state<
+    Array<{
+      category?: string;
+      title: string;
+      code: string;
+      description?: string;
+    }>
+  >([]);
   let schemaOperators = $state<string[]>([]);
   let schemaNotes = $state<string[]>([]);
   let schemaLoading = $state(true);
@@ -367,29 +374,19 @@
     }
   }
 
-  // Example rule codes for guidance
-  const exampleRuleCodes = [
-    {
-      title: "Admin Only",
-      code: 'user.emailAddress.contains("admin")',
-      description: "Only allow users with admin in their email",
-    },
-    {
-      title: "Owner Access",
-      code: "user.user_id == account.owner_id",
-      description: "Only allow account owners to access",
-    },
-    {
-      title: "Role Based",
-      code: 'user.hasRole("CanAccessAllAccounts")',
-      description: "Check if user has specific role",
-    },
-    {
-      title: "Bank Restriction",
-      code: "user.bank_id == resource.bank_id",
-      description: "Restrict to same bank as resource",
-    },
-  ];
+  // Group examples by category for organized display
+  // schemaExamples now comes from the API with structure: { category, title, code, description }
+  const examplesByCategory = $derived(() => {
+    const grouped = new Map<string, typeof schemaExamples>();
+    schemaExamples.forEach((example) => {
+      const category = example.category || "Other";
+      if (!grouped.has(category)) {
+        grouped.set(category, []);
+      }
+      grouped.get(category)!.push(example);
+    });
+    return grouped;
+  });
 
   let showExamples = $state(false);
 
@@ -707,14 +704,20 @@
                   <button
                     type="button"
                     onclick={() => {
-                      formRuleCode = example;
+                      formRuleCode = example.code;
                       if (ruleCodeTextarea) {
                         ruleCodeTextarea.focus();
                       }
                     }}
-                    class="block w-full text-left px-2 py-1 text-xs font-mono bg-green-100 dark:bg-green-950 rounded hover:bg-green-200 dark:hover:bg-green-900 text-green-900 dark:text-green-100"
+                    class="block w-full text-left px-2 py-1 text-xs bg-green-100 dark:bg-green-950 rounded hover:bg-green-200 dark:hover:bg-green-900 text-green-900 dark:text-green-100"
+                    title={example.description || ""}
                   >
-                    {example}
+                    <div class="font-semibold">{example.title}</div>
+                    <div
+                      class="font-mono text-xxs mt-0.5 break-all whitespace-pre-wrap"
+                    >
+                      {example.code}
+                    </div>
                   </button>
                 {/each}
               </div>
@@ -820,43 +823,62 @@
                   <div
                     class="mb-3 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900"
                   >
-                    <p
-                      class="mb-2 text-xs font-medium text-gray-700 dark:text-gray-300"
-                    >
-                      Example Rule Codes:
-                    </p>
-                    <div class="space-y-2">
-                      {#each exampleRuleCodes as example}
-                        <div
-                          class="rounded border border-gray-200 bg-white p-2 dark:border-gray-600 dark:bg-gray-800"
-                        >
-                          <div class="mb-1 flex items-center justify-between">
-                            <span
-                              class="text-xs font-medium text-gray-700 dark:text-gray-300"
+                    {#if schemaExamples.length === 0}
+                      <p class="text-xs text-gray-500 dark:text-gray-400">
+                        No examples available. Fetch schema to load examples.
+                      </p>
+                    {:else}
+                      <p
+                        class="mb-3 text-xs font-medium text-gray-700 dark:text-gray-300"
+                      >
+                        Example Rule Codes (organized by category):
+                      </p>
+                      <div class="space-y-3 max-h-96 overflow-y-auto">
+                        {#each [...examplesByCategory()] as [category, examples]}
+                          <div class="space-y-2">
+                            <div
+                              class="sticky top-0 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-xs font-semibold text-gray-700 dark:text-gray-300"
                             >
-                              {example.title}
-                            </span>
-                            <button
-                              type="button"
-                              onclick={() => insertExample(example.code)}
-                              class="text-xs text-blue-600 hover:underline dark:text-blue-400"
-                            >
-                              Use this
-                            </button>
+                              {category}
+                            </div>
+                            {#each examples as example}
+                              <div
+                                class="rounded border border-gray-200 bg-white p-2 dark:border-gray-600 dark:bg-gray-800 ml-2"
+                              >
+                                <div
+                                  class="mb-1 flex items-center justify-between"
+                                >
+                                  <span
+                                    class="text-xs font-medium text-gray-700 dark:text-gray-300"
+                                  >
+                                    {example.title}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onclick={() => insertExample(example.code)}
+                                    class="text-xs text-blue-600 hover:underline dark:text-blue-400"
+                                  >
+                                    Use this
+                                  </button>
+                                </div>
+                                <code
+                                  class="block text-xs text-gray-600 dark:text-gray-400 break-all"
+                                >
+                                  {example.code}
+                                </code>
+                                {#if example.description}
+                                  <p
+                                    class="mt-1 text-xs text-gray-500 dark:text-gray-500"
+                                  >
+                                    {example.description}
+                                  </p>
+                                {/if}
+                              </div>
+                            {/each}
                           </div>
-                          <code
-                            class="block text-xs text-gray-600 dark:text-gray-400"
-                          >
-                            {example.code}
-                          </code>
-                          <p
-                            class="mt-1 text-xs text-gray-500 dark:text-gray-500"
-                          >
-                            {example.description}
-                          </p>
-                        </div>
-                      {/each}
-                    </div>
+                        {/each}
+                      </div>
+                    {/if}
                   </div>
                 {/if}
 

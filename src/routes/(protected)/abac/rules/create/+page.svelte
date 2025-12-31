@@ -233,7 +233,7 @@
                           </button>
                         </div>
                         <code
-                          class="block text-xs text-gray-600 dark:text-gray-400"
+                          class="block text-xs text-gray-600 dark:text-gray-400 break-all whitespace-pre-wrap"
                         >
                           {example.code}
                         </code>

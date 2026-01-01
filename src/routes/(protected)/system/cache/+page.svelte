@@ -139,6 +139,28 @@
     await Promise.all([fetchCacheConfig(), fetchCacheInfo()]);
   }
 
+  // Compute storage location statistics
+  let storageStats = $derived.by(() => {
+    if (!cacheInfo?.namespaces) return null;
+
+    const stats = {
+      redis: 0,
+      memory: 0,
+      both: 0,
+      unknown: 0,
+    };
+
+    for (const ns of cacheInfo.namespaces) {
+      const location = ns.storage_location?.toLowerCase();
+      if (location === "redis") stats.redis++;
+      else if (location === "memory") stats.memory++;
+      else if (location === "both") stats.both++;
+      else stats.unknown++;
+    }
+
+    return stats;
+  });
+
   onMount(() => {
     refreshAll();
   });
@@ -396,7 +418,7 @@
           </p>
         </div>
       {:else if cacheInfo}
-        <div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <div
             class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
           >
@@ -433,6 +455,54 @@
               {cacheInfo.redis_available ? "Yes" : "No"}
             </div>
           </div>
+          {#if storageStats}
+            <div
+              class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+            >
+              <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Storage Locations
+              </div>
+              <div class="mt-2 space-y-1 text-sm">
+                {#if storageStats.redis > 0}
+                  <div class="flex items-center justify-between">
+                    <span class="text-gray-700 dark:text-gray-300">Redis:</span>
+                    <span
+                      class="font-semibold text-purple-600 dark:text-purple-400"
+                      >{storageStats.redis}</span
+                    >
+                  </div>
+                {/if}
+                {#if storageStats.memory > 0}
+                  <div class="flex items-center justify-between">
+                    <span class="text-gray-700 dark:text-gray-300">Memory:</span
+                    >
+                    <span class="font-semibold text-blue-600 dark:text-blue-400"
+                      >{storageStats.memory}</span
+                    >
+                  </div>
+                {/if}
+                {#if storageStats.both > 0}
+                  <div class="flex items-center justify-between">
+                    <span class="text-gray-700 dark:text-gray-300">Both:</span>
+                    <span
+                      class="font-semibold text-green-600 dark:text-green-400"
+                      >{storageStats.both}</span
+                    >
+                  </div>
+                {/if}
+                {#if storageStats.unknown > 0}
+                  <div class="flex items-center justify-between">
+                    <span class="text-gray-700 dark:text-gray-300"
+                      >Unknown:</span
+                    >
+                    <span class="font-semibold text-gray-600 dark:text-gray-400"
+                      >{storageStats.unknown}</span
+                    >
+                  </div>
+                {/if}
+              </div>
+            </div>
+          {/if}
         </div>
 
         {#if cacheInfo.namespaces && cacheInfo.namespaces.length > 0}
@@ -513,14 +583,60 @@
                     <div class="mt-1">
                       {#if namespace.storage_location}
                         <span
-                          class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium {namespace.storage_location.toLowerCase() ===
+                          class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium {namespace.storage_location.toLowerCase() ===
                           'redis'
                             ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
                             : namespace.storage_location.toLowerCase() ===
                                 'memory'
                               ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-                              : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'}"
+                              : namespace.storage_location.toLowerCase() ===
+                                  'both'
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                                : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'}"
                         >
+                          {#if namespace.storage_location.toLowerCase() === "redis"}
+                            <svg
+                              class="h-3 w-3"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"
+                              />
+                            </svg>
+                          {:else if namespace.storage_location.toLowerCase() === "memory"}
+                            <svg
+                              class="h-3 w-3"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
+                              />
+                            </svg>
+                          {:else if namespace.storage_location.toLowerCase() === "both"}
+                            <svg
+                              class="h-3 w-3"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                              />
+                            </svg>
+                          {/if}
                           {namespace.storage_location}
                         </span>
                       {:else}

@@ -23,6 +23,7 @@
   let lastUpdated = $state<string>("");
   let copiedNamespaceId = $state<string | null>(null);
   let invalidatingNamespaceId = $state<string | null>(null);
+  let copiedCacheConfig = $state(false);
 
   async function fetchCacheConfig() {
     try {
@@ -157,6 +158,35 @@ TTL Info: ${namespace.ttl_info || "TTL info NOT FOUND"}`;
     }
   }
 
+  async function copyCacheConfig() {
+    try {
+      const info = `Cache Configuration
+Instance ID: ${cacheConfig.instance_id || "N/A"}
+Environment: ${cacheConfig.environment || "N/A"}
+Global Prefix: ${cacheConfig.global_prefix || "N/A"}
+
+Redis Status:
+  Available: ${cacheConfig.redis_status?.available ? "Yes" : "No"}
+  URL: ${cacheConfig.redis_status?.url || "N/A"}
+  Port: ${cacheConfig.redis_status?.port ?? "N/A"}
+  Use SSL: ${cacheConfig.redis_status?.use_ssl !== undefined ? (cacheConfig.redis_status.use_ssl ? "Yes" : "No") : "N/A"}
+
+In-Memory Status:
+  Available: ${cacheConfig.in_memory_status?.available ? "Yes" : "No"}
+  Current Size: ${cacheConfig.in_memory_status?.current_size ?? "N/A"}`;
+
+      await navigator.clipboard.writeText(info);
+      copiedCacheConfig = true;
+
+      // Reset after 2 seconds
+      setTimeout(() => {
+        copiedCacheConfig = false;
+      }, 2000);
+    } catch (err) {
+      console.error("Failed to copy cache config:", err);
+    }
+  }
+
   // Compute storage location statistics
   let storageStats = $derived.by(() => {
     if (!cacheInfo?.namespaces) return null;
@@ -215,9 +245,58 @@ TTL Info: ${namespace.ttl_info || "TTL info NOT FOUND"}`;
 
     <!-- Cache Configuration Section -->
     <div class="mb-8">
-      <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">
-        Cache Configuration
-      </h2>
+      <div class="mb-4 flex items-center justify-between">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+          Cache Configuration
+        </h2>
+        <button
+          onclick={copyCacheConfig}
+          class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+          title="Copy cache configuration"
+          aria-label="Copy cache configuration"
+        >
+          {#if copiedCacheConfig}
+            <svg
+              class="h-5 w-5 text-green-600 dark:text-green-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <polyline
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                points="20 6 9 17 4 12"
+              />
+            </svg>
+          {:else}
+            <svg
+              class="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <rect
+                x="9"
+                y="9"
+                width="13"
+                height="13"
+                rx="2"
+                ry="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+              />
+              <path
+                d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+              />
+            </svg>
+          {/if}
+        </button>
+      </div>
       {#if errorConfig}
         <div
           class="rounded-lg border border-red-200 bg-red-50 p-4 text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-200"
@@ -240,96 +319,154 @@ TTL Info: ${namespace.ttl_info || "TTL info NOT FOUND"}`;
         <div
           class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
         >
-          <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div class="space-y-6">
+            <!-- Instance Information -->
             <div>
-              <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Enabled
-              </div>
-              <div
-                class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"
+              <h3
+                class="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300"
               >
-                {cacheConfig.enabled ? "Yes" : "No"}
-              </div>
-            </div>
-            <div>
-              <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Provider
-              </div>
-              <div
-                class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"
-              >
-                {cacheConfig.provider || "N/A"}
-              </div>
-            </div>
-            <div>
-              <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Instance ID
-              </div>
-              <div
-                class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"
-              >
-                {cacheConfig.instance_id || "N/A"}
-              </div>
-            </div>
-            <div>
-              <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Environment
-              </div>
-              <div
-                class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"
-              >
-                {cacheConfig.environment || "N/A"}
-              </div>
-            </div>
-            <div>
-              <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Global Prefix
-              </div>
-              <div
-                class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"
-              >
-                {cacheConfig.global_prefix || "N/A"}
-              </div>
-            </div>
-            {#if cacheConfig.url}
-              <div>
-                <div
-                  class="text-sm font-medium text-gray-600 dark:text-gray-400"
-                >
-                  Redis URL
+                Instance Information
+              </h3>
+              <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div>
+                  <div
+                    class="text-sm font-medium text-gray-600 dark:text-gray-400"
+                  >
+                    Instance ID
+                  </div>
+                  <div
+                    class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"
+                  >
+                    {cacheConfig.instance_id || "N/A"}
+                  </div>
                 </div>
-                <div
-                  class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"
+                <div>
+                  <div
+                    class="text-sm font-medium text-gray-600 dark:text-gray-400"
+                  >
+                    Environment
+                  </div>
+                  <div
+                    class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"
+                  >
+                    {cacheConfig.environment || "N/A"}
+                  </div>
+                </div>
+                <div>
+                  <div
+                    class="text-sm font-medium text-gray-600 dark:text-gray-400"
+                  >
+                    Global Prefix
+                  </div>
+                  <div
+                    class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"
+                  >
+                    {cacheConfig.global_prefix || "N/A"}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Redis Status -->
+            {#if cacheConfig.redis_status}
+              <div>
+                <h3
+                  class="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300"
                 >
-                  {cacheConfig.url}
+                  Redis Status
+                </h3>
+                <div
+                  class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4"
+                >
+                  <div>
+                    <div
+                      class="text-sm font-medium text-gray-600 dark:text-gray-400"
+                    >
+                      Available
+                    </div>
+                    <div
+                      class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"
+                    >
+                      {cacheConfig.redis_status.available ? "Yes" : "No"}
+                    </div>
+                  </div>
+                  <div>
+                    <div
+                      class="text-sm font-medium text-gray-600 dark:text-gray-400"
+                    >
+                      URL
+                    </div>
+                    <div
+                      class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"
+                    >
+                      {cacheConfig.redis_status.url || "N/A"}
+                    </div>
+                  </div>
+                  <div>
+                    <div
+                      class="text-sm font-medium text-gray-600 dark:text-gray-400"
+                    >
+                      Port
+                    </div>
+                    <div
+                      class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"
+                    >
+                      {cacheConfig.redis_status.port ?? "N/A"}
+                    </div>
+                  </div>
+                  <div>
+                    <div
+                      class="text-sm font-medium text-gray-600 dark:text-gray-400"
+                    >
+                      Use SSL
+                    </div>
+                    <div
+                      class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"
+                    >
+                      {cacheConfig.redis_status.use_ssl !== undefined
+                        ? cacheConfig.redis_status.use_ssl
+                          ? "Yes"
+                          : "No"
+                        : "N/A"}
+                    </div>
+                  </div>
                 </div>
               </div>
             {/if}
-            {#if cacheConfig.port}
+
+            <!-- In-Memory Status -->
+            {#if cacheConfig.in_memory_status}
               <div>
-                <div
-                  class="text-sm font-medium text-gray-600 dark:text-gray-400"
+                <h3
+                  class="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300"
                 >
-                  Port
-                </div>
-                <div
-                  class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"
-                >
-                  {cacheConfig.port}
-                </div>
-              </div>
-            {/if}
-            {#if cacheConfig.use_ssl !== undefined}
-              <div>
-                <div
-                  class="text-sm font-medium text-gray-600 dark:text-gray-400"
-                >
-                  Use SSL
-                </div>
-                <div
-                  class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"
-                >
-                  {cacheConfig.use_ssl ? "Yes" : "No"}
+                  In-Memory Status
+                </h3>
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div>
+                    <div
+                      class="text-sm font-medium text-gray-600 dark:text-gray-400"
+                    >
+                      Available
+                    </div>
+                    <div
+                      class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"
+                    >
+                      {cacheConfig.in_memory_status.available ? "Yes" : "No"}
+                    </div>
+                  </div>
+                  <div>
+                    <div
+                      class="text-sm font-medium text-gray-600 dark:text-gray-400"
+                    >
+                      Current Size
+                    </div>
+                    <div
+                      class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"
+                    >
+                      {cacheConfig.in_memory_status.current_size ?? "N/A"}
+                    </div>
+                  </div>
                 </div>
               </div>
             {/if}
@@ -445,38 +582,38 @@ TTL Info: ${namespace.ttl_info || "TTL info NOT FOUND"}`;
               <div class="mt-2 space-y-1 text-sm">
                 {#if storageStats.redis > 0}
                   <div class="flex items-center justify-between">
-                    <span class="text-gray-700 dark:text-gray-300">Redis:</span>
-                    <span
-                      class="font-semibold text-purple-600 dark:text-purple-400"
-                      >{storageStats.redis}</span
+                    <span class="text-gray-700 dark:text-gray-300"
+                      >{storageStats.redis} Namespace{storageStats.redis !== 1
+                        ? "s"
+                        : ""} in Redis</span
                     >
                   </div>
                 {/if}
                 {#if storageStats.memory > 0}
                   <div class="flex items-center justify-between">
-                    <span class="text-gray-700 dark:text-gray-300">Memory:</span
-                    >
-                    <span class="font-semibold text-blue-600 dark:text-blue-400"
-                      >{storageStats.memory}</span
+                    <span class="text-gray-700 dark:text-gray-300"
+                      >{storageStats.memory} Namespace{storageStats.memory !== 1
+                        ? "s"
+                        : ""} in Memory</span
                     >
                   </div>
                 {/if}
                 {#if storageStats.both > 0}
                   <div class="flex items-center justify-between">
-                    <span class="text-gray-700 dark:text-gray-300">Both:</span>
-                    <span
-                      class="font-semibold text-green-600 dark:text-green-400"
-                      >{storageStats.both}</span
+                    <span class="text-gray-700 dark:text-gray-300"
+                      >{storageStats.both} Namespace{storageStats.both !== 1
+                        ? "s"
+                        : ""} in Both</span
                     >
                   </div>
                 {/if}
                 {#if storageStats.unknown > 0}
                   <div class="flex items-center justify-between">
                     <span class="text-gray-700 dark:text-gray-300"
-                      >Unknown:</span
-                    >
-                    <span class="font-semibold text-gray-600 dark:text-gray-400"
-                      >{storageStats.unknown}</span
+                      >{storageStats.unknown} Namespace{storageStats.unknown !==
+                      1
+                        ? "s"
+                        : ""} with Unknown Location</span
                     >
                   </div>
                 {/if}

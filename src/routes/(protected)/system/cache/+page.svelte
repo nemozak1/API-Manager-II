@@ -20,9 +20,9 @@
   let errorInfo = $state<string | null>(null);
   let errorInvalidate = $state<string | null>(null);
   let successMessage = $state<string | null>(null);
-  let selectedNamespace = $state<string>("");
   let lastUpdated = $state<string>("");
   let copiedNamespaceId = $state<string | null>(null);
+  let invalidatingNamespaceId = $state<string | null>(null);
 
   async function fetchCacheConfig() {
     try {
@@ -90,14 +90,9 @@
     }
   }
 
-  async function invalidateCache() {
-    if (!selectedNamespace) {
-      errorInvalidate = "Please select a namespace to invalidate";
-      return;
-    }
-
+  async function invalidateCache(namespaceId: string) {
     try {
-      isInvalidating = true;
+      invalidatingNamespaceId = namespaceId;
       errorInvalidate = null;
       successMessage = null;
 
@@ -106,7 +101,7 @@
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ namespace_id: selectedNamespace }),
+        body: JSON.stringify({ namespace_id: namespaceId }),
       });
 
       if (!response.ok) {
@@ -123,8 +118,7 @@
         throw new Error(data.error);
       }
 
-      successMessage = `Successfully invalidated namespace: ${selectedNamespace} (version ${data.old_version} → ${data.new_version})`;
-      selectedNamespace = "";
+      successMessage = `Successfully invalidated namespace: ${namespaceId} (version ${data.old_version} → ${data.new_version})`;
 
       // Refresh cache info after invalidation
       await fetchCacheInfo();
@@ -132,7 +126,7 @@
       errorInvalidate =
         err instanceof Error ? err.message : "Failed to invalidate cache";
     } finally {
-      isInvalidating = false;
+      invalidatingNamespaceId = null;
     }
   }
 
@@ -148,7 +142,8 @@ Key Count: ${namespace.key_count?.toLocaleString() ?? "N/A"}
 Prefix: ${namespace.prefix || "N/A"}
 Current Version: ${namespace.current_version ?? "N/A"}
 Category: ${namespace.category || "N/A"}
-Storage Location: ${namespace.storage_location || "N/A"}`;
+Storage Location: ${namespace.storage_location || "N/A"}
+TTL Info: ${namespace.ttl_info || "TTL info NOT FOUND"}`;
 
       await navigator.clipboard.writeText(info);
       copiedNamespaceId = namespace.namespace_id;
@@ -343,12 +338,8 @@ Storage Location: ${namespace.storage_location || "N/A"}`;
       {/if}
     </div>
 
-    <!-- Cache Invalidation Section -->
+    <!-- Status Messages -->
     <div class="mb-8">
-      <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">
-        Invalidate Cache Namespace
-      </h2>
-
       {#if successMessage}
         <div
           class="mb-4 rounded-lg border border-green-200 bg-green-50 p-4 text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-200"
@@ -365,61 +356,27 @@ Storage Location: ${namespace.storage_location || "N/A"}`;
           {errorInvalidate}
         </div>
       {/if}
-
-      <div
-        class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
-      >
-        <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-          Invalidate a cache namespace by incrementing its version counter. This
-          provides instant cache invalidation without deleting individual keys.
-        </p>
-        <div class="flex gap-4">
-          <div class="flex-1">
-            <label
-              for="namespace"
-              class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Select Namespace
-            </label>
-            <select
-              id="namespace"
-              bind:value={selectedNamespace}
-              class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-            >
-              <option value="">-- Select a namespace --</option>
-              {#if cacheInfo?.namespaces}
-                {#each cacheInfo.namespaces as namespace}
-                  <option value={namespace.namespace_id}>
-                    {namespace.namespace_id} ({namespace.key_count} keys)
-                  </option>
-                {/each}
-              {/if}
-            </select>
-          </div>
-          <div class="flex items-end">
-            <button
-              onclick={invalidateCache}
-              disabled={isInvalidating || !selectedNamespace}
-              class="rounded-lg bg-red-600 px-6 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-500 dark:hover:bg-red-600"
-            >
-              {isInvalidating ? "Invalidating..." : "Invalidate"}
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- Cache Information Section -->
     <div>
-      <div class="mb-4 flex items-center justify-between">
-        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
-          Cache Information
-        </h2>
-        {#if lastUpdated}
-          <div class="text-sm text-gray-600 dark:text-gray-400">
-            Last updated: <span class="font-medium">{lastUpdated}</span>
-          </div>
-        {/if}
+      <div class="mb-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+            Cache Information
+          </h2>
+          {#if lastUpdated}
+            <div class="text-sm text-gray-600 dark:text-gray-400">
+              Last updated: <span class="font-medium">{lastUpdated}</span>
+            </div>
+          {/if}
+        </div>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          <strong>Note:</strong> Invalidating a cache namespace increments its version
+          counter. This makes all existing keys with the old version unreachable,
+          providing instant cache invalidation without deleting individual keys.
+          Key counts shown below reflect only the latest version of each namespace.
+        </p>
       </div>
 
       {#if errorInfo}
@@ -547,7 +504,7 @@ Storage Location: ${namespace.storage_location || "N/A"}`;
                       </p>
                     {/if}
                   </div>
-                  <div class="flex items-start gap-3">
+                  <div class="flex items-start gap-2">
                     <button
                       onclick={() => copyNamespaceInfo(namespace)}
                       class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
@@ -608,7 +565,7 @@ Storage Location: ${namespace.storage_location || "N/A"}`;
                   </div>
                 </div>
                 <div
-                  class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4"
+                  class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5"
                 >
                   <div>
                     <div
@@ -718,6 +675,32 @@ Storage Location: ${namespace.storage_location || "N/A"}`;
                       {/if}
                     </div>
                   </div>
+                  <div>
+                    <div
+                      class="text-sm font-medium text-gray-600 dark:text-gray-400"
+                    >
+                      TTL Info
+                    </div>
+                    <div
+                      class="mt-1 font-mono text-sm text-gray-900 dark:text-gray-100"
+                    >
+                      {namespace.ttl_info || "TTL info NOT FOUND"}
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-4 flex justify-end">
+                  <button
+                    onclick={() => invalidateCache(namespace.namespace_id)}
+                    disabled={invalidatingNamespaceId ===
+                      namespace.namespace_id}
+                    class="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-500 dark:hover:bg-red-600"
+                    title="Invalidate namespace cache"
+                    aria-label="Invalidate namespace cache"
+                  >
+                    {invalidatingNamespaceId === namespace.namespace_id
+                      ? "Invalidating..."
+                      : "Invalidate"}
+                  </button>
                 </div>
               </div>
             {/each}

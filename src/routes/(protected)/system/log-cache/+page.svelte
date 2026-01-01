@@ -1,4 +1,15 @@
 <script lang="ts">
+  import PageRoleCheck from "$lib/components/PageRoleCheck.svelte";
+  import type { PageData } from "./$types";
+  import type { RoleRequirement } from "$lib/utils/roleChecker";
+
+  interface LogCachePageData extends PageData {
+    userEntitlements: any[];
+    requiredRoles: RoleRequirement[];
+  }
+
+  let { data }: { data: LogCachePageData } = $props();
+
   let logs = $state<any[]>([]);
   let logLevel = $state<string>("");
   let isLoading = $state(false);
@@ -181,153 +192,158 @@
 </script>
 
 <svelte:head>
-  <title>LogCache - API Manager II</title>
+  <title>Log Cache - API Manager II</title>
 </svelte:head>
 
-<div class="container mx-auto px-4 py-8">
-  <div class="panel">
-    <div class="panel-header">
-      <div class="header-content">
-        <div>
-          <h1 class="panel-title">LogCache</h1>
-          <div class="panel-subtitle">
-            View and monitor cached logs from the OBP API
-          </div>
-        </div>
-        <div class="header-controls">
-          <div class="filter-group">
-            <label for="logLevel" class="filter-label">Log Level:</label>
-            <select
-              id="logLevel"
-              value={logLevel}
-              onchange={handleLogLevelChange}
-              class="filter-select"
-            >
-              {#each logLevels as level}
-                <option value={level.value}>{level.label}</option>
-              {/each}
-            </select>
-          </div>
-          {#if lastUpdated}
-            <div class="last-updated">
-              Last updated: <span class="timestamp">{lastUpdated}</span>
+<PageRoleCheck
+  userEntitlements={data.userEntitlements}
+  requiredRoles={data.requiredRoles}
+>
+  <div class="container mx-auto px-4 py-8">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="header-content">
+          <div>
+            <h1 class="panel-title">LogCache</h1>
+            <div class="panel-subtitle">
+              View and monitor cached logs from the OBP API
             </div>
-          {/if}
+          </div>
+          <div class="header-controls">
+            <div class="filter-group">
+              <label for="logLevel" class="filter-label">Log Level:</label>
+              <select
+                id="logLevel"
+                value={logLevel}
+                onchange={handleLogLevelChange}
+                class="filter-select"
+              >
+                {#each logLevels as level}
+                  <option value={level.value}>{level.label}</option>
+                {/each}
+              </select>
+            </div>
+            {#if lastUpdated}
+              <div class="last-updated">
+                Last updated: <span class="timestamp">{lastUpdated}</span>
+              </div>
+            {/if}
+          </div>
         </div>
       </div>
-    </div>
-    <div class="panel-content">
-      {#if error}
-        <div class="alert alert-error">
-          <strong>Error:</strong>
-          {error}
-        </div>
-      {/if}
-
-      {#if isLoading && logs.length === 0}
-        <div class="loading-state">
-          <div class="spinner"></div>
-          <p>Loading logs...</p>
-        </div>
-      {:else if logs.length > 0}
-        <div class="logs-container">
-          <div class="table-wrapper">
-            <table class="logs-table">
-              <thead>
-                <tr>
-                  <th style="width: 40px;"></th>
-                  <th>Timestamp</th>
-                  <th>Level</th>
-                  <th>Message</th>
-                  <th>Source</th>
-                </tr>
-              </thead>
-              <tbody>
-                {#each logs as log}
-                  {@const parsed = parseLogMessage(log.message || "")}
-                  <tr>
-                    <td class="copy-cell">
-                      <button
-                        class="copy-btn"
-                        onclick={() => copyMessage(log, logs.indexOf(log))}
-                        title="Copy row"
-                        aria-label="Copy row"
-                      >
-                        {#if copiedMessageIndex === logs.indexOf(log)}
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          >
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                          </svg>
-                        {:else}
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          >
-                            <rect
-                              x="9"
-                              y="9"
-                              width="13"
-                              height="13"
-                              rx="2"
-                              ry="2"
-                            ></rect>
-                            <path
-                              d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
-                            ></path>
-                          </svg>
-                        {/if}
-                      </button>
-                    </td>
-                    <td class="timestamp-cell">
-                      {formatTimestamp(parsed.timestamp)}
-                    </td>
-                    <td>
-                      <span
-                        class="log-level-badge {getLogLevelClass(
-                          log.level || log.log_level,
-                        )}"
-                      >
-                        {log.level || log.log_level || "N/A"}
-                      </span>
-                    </td>
-                    <td class="message-cell">
-                      {parsed.cleanMessage || "N/A"}
-                    </td>
-                    <td class="source-cell">{parsed.source || "N/A"}</td>
-                  </tr>
-                {/each}
-              </tbody>
-            </table>
+      <div class="panel-content">
+        {#if error}
+          <div class="alert alert-error">
+            <strong>Error:</strong>
+            {error}
           </div>
-          <div class="logs-count">Showing {logs.length} log entries</div>
-        </div>
-      {:else}
-        <div class="empty-state">
-          <p>No logs found</p>
-          {#if logLevel}
-            <p class="text-sm">Try selecting a different log level</p>
-          {/if}
-        </div>
-      {/if}
+        {/if}
+
+        {#if isLoading && logs.length === 0}
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading logs...</p>
+          </div>
+        {:else if logs.length > 0}
+          <div class="logs-container">
+            <div class="table-wrapper">
+              <table class="logs-table">
+                <thead>
+                  <tr>
+                    <th style="width: 40px;"></th>
+                    <th>Timestamp</th>
+                    <th>Level</th>
+                    <th>Message</th>
+                    <th>Source</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {#each logs as log}
+                    {@const parsed = parseLogMessage(log.message || "")}
+                    <tr>
+                      <td class="copy-cell">
+                        <button
+                          class="copy-btn"
+                          onclick={() => copyMessage(log, logs.indexOf(log))}
+                          title="Copy row"
+                          aria-label="Copy row"
+                        >
+                          {#if copiedMessageIndex === logs.indexOf(log)}
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            >
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          {:else}
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            >
+                              <rect
+                                x="9"
+                                y="9"
+                                width="13"
+                                height="13"
+                                rx="2"
+                                ry="2"
+                              ></rect>
+                              <path
+                                d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                              ></path>
+                            </svg>
+                          {/if}
+                        </button>
+                      </td>
+                      <td class="timestamp-cell">
+                        {formatTimestamp(parsed.timestamp)}
+                      </td>
+                      <td>
+                        <span
+                          class="log-level-badge {getLogLevelClass(
+                            log.level || log.log_level,
+                          )}"
+                        >
+                          {log.level || log.log_level || "N/A"}
+                        </span>
+                      </td>
+                      <td class="message-cell">
+                        {parsed.cleanMessage || "N/A"}
+                      </td>
+                      <td class="source-cell">{parsed.source || "N/A"}</td>
+                    </tr>
+                  {/each}
+                </tbody>
+              </table>
+            </div>
+            <div class="logs-count">Showing {logs.length} log entries</div>
+          </div>
+        {:else}
+          <div class="empty-state">
+            <p>No logs found</p>
+            {#if logLevel}
+              <p class="text-sm">Try selecting a different log level</p>
+            {/if}
+          </div>
+        {/if}
+      </div>
     </div>
   </div>
-</div>
+</PageRoleCheck>
 
 <style>
   .container {

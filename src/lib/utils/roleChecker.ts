@@ -268,6 +268,48 @@ export const ROLE_REQUIREMENTS = {
     },
   ],
 
+  // System Management
+  getLogCache: [
+    {
+      role: "CanGetLogCache",
+      description: "View system log cache",
+      action: "view log cache",
+    },
+  ],
+
+  getMigrations: [
+    {
+      role: "CanGetMigrations",
+      description: "View database migrations",
+      action: "view migrations",
+    },
+  ],
+
+  // Cache Management
+  getCacheConfig: [
+    {
+      role: "CanGetCacheConfig",
+      description: "View cache configuration",
+      action: "view cache configuration",
+    },
+  ],
+
+  getCacheInfo: [
+    {
+      role: "CanGetCacheInfo",
+      description: "View cache information and statistics",
+      action: "view cache information",
+    },
+  ],
+
+  invalidateCache: [
+    {
+      role: "CanInvalidateCacheNamespace",
+      description: "Invalidate cache namespaces",
+      action: "invalidate cache",
+    },
+  ],
+
   // Rate Limiting
   createRateLimit: [
     {
@@ -444,4 +486,50 @@ export function getDeleteRateLimitRoles(): RoleRequirement[] {
  */
 export function getViewRateLimitRoles(): RoleRequirement[] {
   return [...ROLE_REQUIREMENTS.viewRateLimit];
+}
+
+/**
+ * Get roles required to view cache configuration
+ */
+export function getViewCacheConfigRoles(): RoleRequirement[] {
+  return [...ROLE_REQUIREMENTS.getCacheConfig];
+}
+
+/**
+ * Get roles required to view cache information
+ */
+export function getViewCacheInfoRoles(): RoleRequirement[] {
+  return [...ROLE_REQUIREMENTS.getCacheInfo];
+}
+
+/**
+ * Get roles required to invalidate cache
+ */
+export function getInvalidateCacheRoles(): RoleRequirement[] {
+  return [...ROLE_REQUIREMENTS.invalidateCache];
+}
+
+/**
+ * Get combined roles required for cache page
+ */
+export function getCachePageRoles(): RoleRequirement[] {
+  return [
+    ...ROLE_REQUIREMENTS.getCacheConfig,
+    ...ROLE_REQUIREMENTS.getCacheInfo,
+    ...ROLE_REQUIREMENTS.invalidateCache,
+  ];
+}
+
+/**
+ * Get roles required to view log cache
+ */
+export function getLogCacheRoles(): RoleRequirement[] {
+  return [...ROLE_REQUIREMENTS.getLogCache];
+}
+
+/**
+ * Get roles required to view migrations
+ */
+export function getMigrationsRoles(): RoleRequirement[] {
+  return [...ROLE_REQUIREMENTS.getMigrations];
 }

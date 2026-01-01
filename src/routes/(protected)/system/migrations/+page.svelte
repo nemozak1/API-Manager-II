@@ -1,4 +1,15 @@
 <script lang="ts">
+  import PageRoleCheck from "$lib/components/PageRoleCheck.svelte";
+  import type { PageData } from "./$types";
+  import type { RoleRequirement } from "$lib/utils/roleChecker";
+
+  interface MigrationsPageData extends PageData {
+    userEntitlements: any[];
+    requiredRoles: RoleRequirement[];
+  }
+
+  let { data }: { data: MigrationsPageData } = $props();
+
   let migrations = $state<any[]>([]);
   let isLoading = $state(false);
   let error = $state<string | null>(null);
@@ -192,128 +203,133 @@
   <title>Migrations - API Manager II</title>
 </svelte:head>
 
-<div class="container mx-auto px-4 py-8">
-  <div class="panel">
-    <div class="panel-header">
-      <div class="header-content">
-        <div>
-          <h1 class="panel-title">Migrations</h1>
-          <div class="panel-subtitle">
-            Monitor database migrations and schema updates
+<PageRoleCheck
+  userEntitlements={data.userEntitlements}
+  requiredRoles={data.requiredRoles}
+>
+  <div class="container mx-auto px-4 py-8">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="header-content">
+          <div>
+            <h1 class="panel-title">Migrations</h1>
+            <div class="panel-subtitle">
+              Monitor database migrations and schema updates
+            </div>
           </div>
-        </div>
-        <div class="header-controls">
-          <button
-            class="refresh-button"
-            onclick={handleManualRefresh}
-            disabled={isLoading}
-            aria-label="Refresh migrations now"
-          >
-            <svg
-              class="refresh-icon"
-              class:spinning={isLoading}
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+          <div class="header-controls">
+            <button
+              class="refresh-button"
+              onclick={handleManualRefresh}
+              disabled={isLoading}
+              aria-label="Refresh migrations now"
             >
-              <path
-                d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"
-              />
-            </svg>
-            Refresh Now
-          </button>
-          <div class="refresh-info">
-            {#if lastUpdated}
-              <div class="last-updated">
-                Last updated: <span class="timestamp">{lastUpdated}</span>
-              </div>
-            {/if}
-            <div class="next-refresh">
-              Next refresh in: <span class="countdown"
-                >{formatCountdown(secondsUntilRefresh)}</span
+              <svg
+                class="refresh-icon"
+                class:spinning={isLoading}
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
               >
+                <path
+                  d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"
+                />
+              </svg>
+              Refresh Now
+            </button>
+            <div class="refresh-info">
+              {#if lastUpdated}
+                <div class="last-updated">
+                  Last updated: <span class="timestamp">{lastUpdated}</span>
+                </div>
+              {/if}
+              <div class="next-refresh">
+                Next refresh in: <span class="countdown"
+                  >{formatCountdown(secondsUntilRefresh)}</span
+                >
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-    <div class="panel-content">
-      {#if error}
-        <div class="alert alert-error">
-          <strong>Error:</strong>
-          {error}
-        </div>
-      {/if}
+      <div class="panel-content">
+        {#if error}
+          <div class="alert alert-error">
+            <strong>Error:</strong>
+            {error}
+          </div>
+        {/if}
 
-      {#if isLoading && migrations.length === 0}
-        <div class="loading-state">
-          <div class="spinner"></div>
-          <p>Loading migrations...</p>
-        </div>
-      {:else if migrations.length > 0}
-        <div class="migrations-container">
-          <div class="table-wrapper">
-            <table class="migrations-table">
-              <thead>
-                <tr>
-                  <th>Migration ID</th>
-                  <th>Name</th>
-                  <th>Status</th>
-                  <th>Timestamp</th>
-                  <th>Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                {#each migrations as migration}
+        {#if isLoading && migrations.length === 0}
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading migrations...</p>
+          </div>
+        {:else if migrations.length > 0}
+          <div class="migrations-container">
+            <div class="table-wrapper">
+              <table class="migrations-table">
+                <thead>
                   <tr>
-                    <td class="id-cell">
-                      {migration.migration_script_log_id ||
-                        migration.id ||
-                        "N/A"}
-                    </td>
-                    <td class="name-cell">
-                      {migration.name || "N/A"}
-                    </td>
-                    <td>
-                      <span
-                        class="status-badge {getStatusClass(
-                          migration.is_successful ? 'SUCCESS' : 'FAILED',
-                        )}"
-                      >
-                        {migration.is_successful ? "SUCCESS" : "FAILED"}
-                      </span>
-                    </td>
-                    <td class="timestamp-cell">
-                      {formatTimestamp(
-                        migration.created_at || migration.start_date,
-                      )}
-                    </td>
-                    <td class="description-cell">
-                      {migration.remark || migration.description || "N/A"}
-                    </td>
+                    <th>Migration ID</th>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Timestamp</th>
+                    <th>Description</th>
                   </tr>
-                {/each}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {#each migrations as migration}
+                    <tr>
+                      <td class="id-cell">
+                        {migration.migration_script_log_id ||
+                          migration.id ||
+                          "N/A"}
+                      </td>
+                      <td class="name-cell">
+                        {migration.name || "N/A"}
+                      </td>
+                      <td>
+                        <span
+                          class="status-badge {getStatusClass(
+                            migration.is_successful ? 'SUCCESS' : 'FAILED',
+                          )}"
+                        >
+                          {migration.is_successful ? "SUCCESS" : "FAILED"}
+                        </span>
+                      </td>
+                      <td class="timestamp-cell">
+                        {formatTimestamp(
+                          migration.created_at || migration.start_date,
+                        )}
+                      </td>
+                      <td class="description-cell">
+                        {migration.remark || migration.description || "N/A"}
+                      </td>
+                    </tr>
+                  {/each}
+                </tbody>
+              </table>
+            </div>
+            <div class="migrations-count">
+              Showing {migrations.length} migration{migrations.length !== 1
+                ? "s"
+                : ""}
+            </div>
           </div>
-          <div class="migrations-count">
-            Showing {migrations.length} migration{migrations.length !== 1
-              ? "s"
-              : ""}
+        {:else}
+          <div class="empty-state">
+            <p>No migrations found</p>
           </div>
-        </div>
-      {:else}
-        <div class="empty-state">
-          <p>No migrations found</p>
-        </div>
-      {/if}
+        {/if}
+      </div>
     </div>
   </div>
-</div>
+</PageRoleCheck>
 
 <style>
   .container {

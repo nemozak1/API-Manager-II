@@ -1,5 +1,15 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import PageRoleCheck from "$lib/components/PageRoleCheck.svelte";
+  import type { PageData } from "./$types";
+  import type { RoleRequirement } from "$lib/utils/roleChecker";
+
+  interface CachePageData extends PageData {
+    userEntitlements: any[];
+    requiredRoles: RoleRequirement[];
+  }
+
+  let { data }: { data: CachePageData } = $props();
 
   let cacheConfig = $state<any>(null);
   let cacheInfo = $state<any>(null);
@@ -138,346 +148,400 @@
   <title>Cache - API Manager II</title>
 </svelte:head>
 
-<div class="container mx-auto px-4 py-8">
-  <div class="mb-6">
-    <div class="mb-4 flex items-center justify-between">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
-          Cache Management
-        </h1>
-        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-          Monitor cache configuration and manage cache namespaces
-        </p>
+<PageRoleCheck
+  userEntitlements={data.userEntitlements}
+  requiredRoles={data.requiredRoles}
+>
+  <div class="container mx-auto px-4 py-8">
+    <div class="mb-6">
+      <div class="mb-4 flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            Cache Management
+          </h1>
+          <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            Monitor cache configuration and manage cache namespaces
+          </p>
+        </div>
+        <button
+          onclick={refreshAll}
+          disabled={isLoadingConfig || isLoadingInfo}
+          class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-blue-500 dark:hover:bg-blue-600"
+        >
+          {isLoadingConfig || isLoadingInfo ? "Refreshing..." : "Refresh All"}
+        </button>
       </div>
-      <button
-        onclick={refreshAll}
-        disabled={isLoadingConfig || isLoadingInfo}
-        class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-blue-500 dark:hover:bg-blue-600"
-      >
-        {isLoadingConfig || isLoadingInfo ? "Refreshing..." : "Refresh All"}
-      </button>
     </div>
-  </div>
 
-  <!-- Cache Configuration Section -->
-  <div class="mb-8">
-    <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">
-      Cache Configuration
-    </h2>
-    {#if errorConfig}
-      <div
-        class="rounded-lg border border-red-200 bg-red-50 p-4 text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-200"
-      >
-        <strong>Error:</strong>
-        {errorConfig}
-      </div>
-    {:else if isLoadingConfig}
-      <div
-        class="flex items-center justify-center rounded-lg bg-gray-100 p-8 dark:bg-gray-800"
-      >
+    <!-- Cache Configuration Section -->
+    <div class="mb-8">
+      <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">
+        Cache Configuration
+      </h2>
+      {#if errorConfig}
         <div
-          class="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"
-        ></div>
-        <p class="ml-3 text-gray-700 dark:text-gray-300">
-          Loading configuration...
-        </p>
-      </div>
-    {:else if cacheConfig}
+          class="rounded-lg border border-red-200 bg-red-50 p-4 text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-200"
+        >
+          <strong>Error:</strong>
+          {errorConfig}
+        </div>
+      {:else if isLoadingConfig}
+        <div
+          class="flex items-center justify-center rounded-lg bg-gray-100 p-8 dark:bg-gray-800"
+        >
+          <div
+            class="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"
+          ></div>
+          <p class="ml-3 text-gray-700 dark:text-gray-300">
+            Loading configuration...
+          </p>
+        </div>
+      {:else if cacheConfig}
+        <div
+          class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+        >
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div>
+              <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Enabled
+              </div>
+              <div
+                class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"
+              >
+                {cacheConfig.enabled ? "Yes" : "No"}
+              </div>
+            </div>
+            <div>
+              <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Provider
+              </div>
+              <div
+                class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"
+              >
+                {cacheConfig.provider || "N/A"}
+              </div>
+            </div>
+            <div>
+              <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Instance ID
+              </div>
+              <div
+                class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"
+              >
+                {cacheConfig.instance_id || "N/A"}
+              </div>
+            </div>
+            <div>
+              <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Environment
+              </div>
+              <div
+                class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"
+              >
+                {cacheConfig.environment || "N/A"}
+              </div>
+            </div>
+            <div>
+              <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Global Prefix
+              </div>
+              <div
+                class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"
+              >
+                {cacheConfig.global_prefix || "N/A"}
+              </div>
+            </div>
+            {#if cacheConfig.url}
+              <div>
+                <div
+                  class="text-sm font-medium text-gray-600 dark:text-gray-400"
+                >
+                  Redis URL
+                </div>
+                <div
+                  class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"
+                >
+                  {cacheConfig.url}
+                </div>
+              </div>
+            {/if}
+            {#if cacheConfig.port}
+              <div>
+                <div
+                  class="text-sm font-medium text-gray-600 dark:text-gray-400"
+                >
+                  Port
+                </div>
+                <div
+                  class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"
+                >
+                  {cacheConfig.port}
+                </div>
+              </div>
+            {/if}
+            {#if cacheConfig.use_ssl !== undefined}
+              <div>
+                <div
+                  class="text-sm font-medium text-gray-600 dark:text-gray-400"
+                >
+                  Use SSL
+                </div>
+                <div
+                  class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100"
+                >
+                  {cacheConfig.use_ssl ? "Yes" : "No"}
+                </div>
+              </div>
+            {/if}
+          </div>
+        </div>
+      {/if}
+    </div>
+
+    <!-- Cache Invalidation Section -->
+    <div class="mb-8">
+      <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">
+        Invalidate Cache Namespace
+      </h2>
+
+      {#if successMessage}
+        <div
+          class="mb-4 rounded-lg border border-green-200 bg-green-50 p-4 text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-200"
+        >
+          {successMessage}
+        </div>
+      {/if}
+
+      {#if errorInvalidate}
+        <div
+          class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-200"
+        >
+          <strong>Error:</strong>
+          {errorInvalidate}
+        </div>
+      {/if}
+
       <div
         class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
       >
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <div>
-            <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
-              Enabled
-            </div>
-            <div class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
-              {cacheConfig.enabled ? "Yes" : "No"}
-            </div>
-          </div>
-          <div>
-            <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
-              Provider
-            </div>
-            <div class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
-              {cacheConfig.provider || "N/A"}
-            </div>
-          </div>
-          <div>
-            <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
-              Instance ID
-            </div>
-            <div class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
-              {cacheConfig.instance_id || "N/A"}
-            </div>
-          </div>
-          <div>
-            <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
-              Environment
-            </div>
-            <div class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
-              {cacheConfig.environment || "N/A"}
-            </div>
-          </div>
-          <div>
-            <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
-              Global Prefix
-            </div>
-            <div class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
-              {cacheConfig.global_prefix || "N/A"}
-            </div>
-          </div>
-          {#if cacheConfig.url}
-            <div>
-              <div
-                class="text-sm font-medium text-gray-600 dark:text-gray-400"
-              >
-                Redis URL
-              </div>
-              <div class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
-                {cacheConfig.url}
-              </div>
-            </div>
-          {/if}
-          {#if cacheConfig.port}
-            <div>
-              <div
-                class="text-sm font-medium text-gray-600 dark:text-gray-400"
-              >
-                Port
-              </div>
-              <div class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
-                {cacheConfig.port}
-              </div>
-            </div>
-          {/if}
-          {#if cacheConfig.use_ssl !== undefined}
-            <div>
-              <div
-                class="text-sm font-medium text-gray-600 dark:text-gray-400"
-              >
-                Use SSL
-              </div>
-              <div class="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
-                {cacheConfig.use_ssl ? "Yes" : "No"}
-              </div>
-            </div>
-          {/if}
-        </div>
-      </div>
-    {/if}
-  </div>
-
-  <!-- Cache Invalidation Section -->
-  <div class="mb-8">
-    <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">
-      Invalidate Cache Namespace
-    </h2>
-
-    {#if successMessage}
-      <div
-        class="mb-4 rounded-lg border border-green-200 bg-green-50 p-4 text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-200"
-      >
-        {successMessage}
-      </div>
-    {/if}
-
-    {#if errorInvalidate}
-      <div
-        class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-200"
-      >
-        <strong>Error:</strong>
-        {errorInvalidate}
-      </div>
-    {/if}
-
-    <div
-      class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
-    >
-      <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-        Invalidate a cache namespace by incrementing its version counter. This provides instant cache invalidation without deleting individual keys.
-      </p>
-      <div class="flex gap-4">
-        <div class="flex-1">
-          <label
-            for="namespace"
-            class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
-            Select Namespace
-          </label>
-          <select
-            id="namespace"
-            bind:value={selectedNamespace}
-            class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-          >
-            <option value="">-- Select a namespace --</option>
-            {#if cacheInfo?.namespaces}
-              {#each cacheInfo.namespaces as namespace}
-                <option value={namespace.namespace_id}>
-                  {namespace.namespace_id} ({namespace.key_count} keys)
-                </option>
-              {/each}
-            {/if}
-          </select>
-        </div>
-        <div class="flex items-end">
-          <button
-            onclick={invalidateCache}
-            disabled={isInvalidating || !selectedNamespace}
-            class="rounded-lg bg-red-600 px-6 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-500 dark:hover:bg-red-600"
-          >
-            {isInvalidating ? "Invalidating..." : "Invalidate"}
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Cache Information Section -->
-  <div>
-    <div class="mb-4 flex items-center justify-between">
-      <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
-        Cache Information
-      </h2>
-      {#if lastUpdated}
-        <div class="text-sm text-gray-600 dark:text-gray-400">
-          Last updated: <span class="font-medium">{lastUpdated}</span>
-        </div>
-      {/if}
-    </div>
-
-    {#if errorInfo}
-      <div
-        class="rounded-lg border border-red-200 bg-red-50 p-4 text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-200"
-      >
-        <strong>Error:</strong>
-        {errorInfo}
-      </div>
-    {:else if isLoadingInfo}
-      <div
-        class="flex items-center justify-center rounded-lg bg-gray-100 p-8 dark:bg-gray-800"
-      >
-        <div
-          class="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"
-        ></div>
-        <p class="ml-3 text-gray-700 dark:text-gray-300">
-          Loading cache information...
+        <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
+          Invalidate a cache namespace by incrementing its version counter. This
+          provides instant cache invalidation without deleting individual keys.
         </p>
+        <div class="flex gap-4">
+          <div class="flex-1">
+            <label
+              for="namespace"
+              class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              Select Namespace
+            </label>
+            <select
+              id="namespace"
+              bind:value={selectedNamespace}
+              class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+            >
+              <option value="">-- Select a namespace --</option>
+              {#if cacheInfo?.namespaces}
+                {#each cacheInfo.namespaces as namespace}
+                  <option value={namespace.namespace_id}>
+                    {namespace.namespace_id} ({namespace.key_count} keys)
+                  </option>
+                {/each}
+              {/if}
+            </select>
+          </div>
+          <div class="flex items-end">
+            <button
+              onclick={invalidateCache}
+              disabled={isInvalidating || !selectedNamespace}
+              class="rounded-lg bg-red-600 px-6 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-500 dark:hover:bg-red-600"
+            >
+              {isInvalidating ? "Invalidating..." : "Invalidate"}
+            </button>
+          </div>
+        </div>
       </div>
-    {:else if cacheInfo}
-      <div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div
-          class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
-        >
-          <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
-            Total Keys
+    </div>
+
+    <!-- Cache Information Section -->
+    <div>
+      <div class="mb-4 flex items-center justify-between">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+          Cache Information
+        </h2>
+        {#if lastUpdated}
+          <div class="text-sm text-gray-600 dark:text-gray-400">
+            Last updated: <span class="font-medium">{lastUpdated}</span>
           </div>
-          <div class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
-            {cacheInfo.total_keys?.toLocaleString() || 0}
-          </div>
-        </div>
-        <div
-          class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
-        >
-          <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
-            Total Namespaces
-          </div>
-          <div class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
-            {cacheInfo.namespaces?.length || 0}
-          </div>
-        </div>
-        <div
-          class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
-        >
-          <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
-            Redis Available
-          </div>
-          <div class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
-            {cacheInfo.redis_available ? "Yes" : "No"}
-          </div>
-        </div>
+        {/if}
       </div>
 
-      {#if cacheInfo.namespaces && cacheInfo.namespaces.length > 0}
-        <div class="space-y-4">
-          {#each cacheInfo.namespaces as namespace}
-            <div
-              class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
-            >
-              <div class="mb-4 flex items-start justify-between">
-                <div>
-                  <h3
-                    class="text-lg font-semibold text-gray-900 dark:text-gray-100"
-                  >
-                    {namespace.namespace_id}
-                  </h3>
-                  {#if namespace.description}
-                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                      {namespace.description}
-                    </p>
-                  {/if}
-                </div>
-                <div class="text-right">
-                  <div
-                    class="text-2xl font-bold text-blue-600 dark:text-blue-400"
-                  >
-                    {namespace.key_count?.toLocaleString() || 0}
-                  </div>
-                  <div class="text-xs text-gray-600 dark:text-gray-400">
-                    keys
-                  </div>
-                </div>
-              </div>
-              <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div>
-                  <div
-                    class="text-sm font-medium text-gray-600 dark:text-gray-400"
-                  >
-                    Prefix
-                  </div>
-                  <div
-                    class="mt-1 font-mono text-sm text-gray-900 dark:text-gray-100"
-                  >
-                    {namespace.prefix || "N/A"}
-                  </div>
-                </div>
-                <div>
-                  <div
-                    class="text-sm font-medium text-gray-600 dark:text-gray-400"
-                  >
-                    Current Version
-                  </div>
-                  <div
-                    class="mt-1 font-mono text-sm text-gray-900 dark:text-gray-100"
-                  >
-                    {namespace.current_version || "N/A"}
-                  </div>
-                </div>
-                <div>
-                  <div
-                    class="text-sm font-medium text-gray-600 dark:text-gray-400"
-                  >
-                    Category
-                  </div>
-                  <div
-                    class="mt-1 font-mono text-sm text-gray-900 dark:text-gray-100"
-                  >
-                    {namespace.category || "N/A"}
-                  </div>
-                </div>
-              </div>
-            </div>
-          {/each}
-        </div>
-      {:else}
+      {#if errorInfo}
         <div
-          class="rounded-lg bg-gray-100 p-8 text-center dark:bg-gray-800"
+          class="rounded-lg border border-red-200 bg-red-50 p-4 text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-200"
         >
-          <p class="text-lg font-medium text-gray-700 dark:text-gray-300">
-            No cache namespaces found
+          <strong>Error:</strong>
+          {errorInfo}
+        </div>
+      {:else if isLoadingInfo}
+        <div
+          class="flex items-center justify-center rounded-lg bg-gray-100 p-8 dark:bg-gray-800"
+        >
+          <div
+            class="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"
+          ></div>
+          <p class="ml-3 text-gray-700 dark:text-gray-300">
+            Loading cache information...
           </p>
         </div>
+      {:else if cacheInfo}
+        <div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div
+            class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+          >
+            <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
+              Total Keys
+            </div>
+            <div
+              class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100"
+            >
+              {cacheInfo.total_keys?.toLocaleString() || 0}
+            </div>
+          </div>
+          <div
+            class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+          >
+            <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
+              Total Namespaces
+            </div>
+            <div
+              class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100"
+            >
+              {cacheInfo.namespaces?.length || 0}
+            </div>
+          </div>
+          <div
+            class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+          >
+            <div class="text-sm font-medium text-gray-600 dark:text-gray-400">
+              Redis Available
+            </div>
+            <div
+              class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100"
+            >
+              {cacheInfo.redis_available ? "Yes" : "No"}
+            </div>
+          </div>
+        </div>
+
+        {#if cacheInfo.namespaces && cacheInfo.namespaces.length > 0}
+          <div class="space-y-4">
+            {#each cacheInfo.namespaces as namespace}
+              <div
+                class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+              >
+                <div class="mb-4 flex items-start justify-between">
+                  <div>
+                    <h3
+                      class="text-lg font-semibold text-gray-900 dark:text-gray-100"
+                    >
+                      {namespace.namespace_id}
+                    </h3>
+                    {#if namespace.description}
+                      <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                        {namespace.description}
+                      </p>
+                    {/if}
+                  </div>
+                  <div class="text-right">
+                    <div
+                      class="text-2xl font-bold text-blue-600 dark:text-blue-400"
+                    >
+                      {namespace.key_count?.toLocaleString() || 0}
+                    </div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400">
+                      keys
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4"
+                >
+                  <div>
+                    <div
+                      class="text-sm font-medium text-gray-600 dark:text-gray-400"
+                    >
+                      Prefix
+                    </div>
+                    <div
+                      class="mt-1 font-mono text-sm text-gray-900 dark:text-gray-100"
+                    >
+                      {namespace.prefix || "N/A"}
+                    </div>
+                  </div>
+                  <div>
+                    <div
+                      class="text-sm font-medium text-gray-600 dark:text-gray-400"
+                    >
+                      Current Version
+                    </div>
+                    <div
+                      class="mt-1 font-mono text-sm text-gray-900 dark:text-gray-100"
+                    >
+                      {namespace.current_version || "N/A"}
+                    </div>
+                  </div>
+                  <div>
+                    <div
+                      class="text-sm font-medium text-gray-600 dark:text-gray-400"
+                    >
+                      Category
+                    </div>
+                    <div
+                      class="mt-1 font-mono text-sm text-gray-900 dark:text-gray-100"
+                    >
+                      {namespace.category || "N/A"}
+                    </div>
+                  </div>
+                  <div>
+                    <div
+                      class="text-sm font-medium text-gray-600 dark:text-gray-400"
+                    >
+                      Storage Location
+                    </div>
+                    <div class="mt-1">
+                      {#if namespace.storage_location}
+                        <span
+                          class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium {namespace.storage_location.toLowerCase() ===
+                          'redis'
+                            ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
+                            : namespace.storage_location.toLowerCase() ===
+                                'memory'
+                              ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                              : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'}"
+                        >
+                          {namespace.storage_location}
+                        </span>
+                      {:else}
+                        <span class="text-sm text-gray-500 dark:text-gray-400"
+                          >N/A</span
+                        >
+                      {/if}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {/each}
+          </div>
+        {:else}
+          <div class="rounded-lg bg-gray-100 p-8 text-center dark:bg-gray-800">
+            <p class="text-lg font-medium text-gray-700 dark:text-gray-300">
+              No cache namespaces found
+            </p>
+          </div>
+        {/if}
       {/if}
-    {/if}
+    </div>
   </div>
-</div>
+</PageRoleCheck>

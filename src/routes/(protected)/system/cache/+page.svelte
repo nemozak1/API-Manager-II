@@ -22,6 +22,7 @@
   let successMessage = $state<string | null>(null);
   let selectedNamespace = $state<string>("");
   let lastUpdated = $state<string>("");
+  let copiedNamespaceId = $state<string | null>(null);
 
   async function fetchCacheConfig() {
     try {
@@ -137,6 +138,28 @@
 
   async function refreshAll() {
     await Promise.all([fetchCacheConfig(), fetchCacheInfo()]);
+  }
+
+  async function copyNamespaceInfo(namespace: any) {
+    try {
+      const info = `Namespace: ${namespace.namespace_id}
+Description: ${namespace.description || "N/A"}
+Key Count: ${namespace.key_count?.toLocaleString() ?? "N/A"}
+Prefix: ${namespace.prefix || "N/A"}
+Current Version: ${namespace.current_version ?? "N/A"}
+Category: ${namespace.category || "N/A"}
+Storage Location: ${namespace.storage_location || "N/A"}`;
+
+      await navigator.clipboard.writeText(info);
+      copiedNamespaceId = namespace.namespace_id;
+
+      // Reset after 2 seconds
+      setTimeout(() => {
+        copiedNamespaceId = null;
+      }, 2000);
+    } catch (err) {
+      console.error("Failed to copy namespace info:", err);
+    }
   }
 
   // Compute storage location statistics
@@ -428,7 +451,7 @@
             <div
               class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100"
             >
-              {cacheInfo.total_keys?.toLocaleString() || 0}
+              {cacheInfo.total_keys?.toLocaleString() ?? "—"}
             </div>
           </div>
           <div
@@ -440,7 +463,7 @@
             <div
               class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100"
             >
-              {cacheInfo.namespaces?.length || 0}
+              {cacheInfo.namespaces?.length ?? "—"}
             </div>
           </div>
           <div
@@ -512,7 +535,7 @@
                 class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800"
               >
                 <div class="mb-4 flex items-start justify-between">
-                  <div>
+                  <div class="flex-1">
                     <h3
                       class="text-lg font-semibold text-gray-900 dark:text-gray-100"
                     >
@@ -524,14 +547,63 @@
                       </p>
                     {/if}
                   </div>
-                  <div class="text-right">
-                    <div
-                      class="text-2xl font-bold text-blue-600 dark:text-blue-400"
+                  <div class="flex items-start gap-3">
+                    <button
+                      onclick={() => copyNamespaceInfo(namespace)}
+                      class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+                      title="Copy namespace information"
+                      aria-label="Copy namespace information"
                     >
-                      {namespace.key_count?.toLocaleString() || 0}
-                    </div>
-                    <div class="text-xs text-gray-600 dark:text-gray-400">
-                      keys
+                      {#if copiedNamespaceId === namespace.namespace_id}
+                        <svg
+                          class="h-5 w-5 text-green-600 dark:text-green-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <polyline
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            points="20 6 9 17 4 12"
+                          />
+                        </svg>
+                      {:else}
+                        <svg
+                          class="h-5 w-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <rect
+                            x="9"
+                            y="9"
+                            width="13"
+                            height="13"
+                            rx="2"
+                            ry="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                          />
+                          <path
+                            d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                          />
+                        </svg>
+                      {/if}
+                    </button>
+                    <div class="text-right">
+                      <div
+                        class="text-2xl font-bold text-blue-600 dark:text-blue-400"
+                      >
+                        {namespace.key_count?.toLocaleString() ?? "—"}
+                      </div>
+                      <div class="text-xs text-gray-600 dark:text-gray-400">
+                        keys
+                      </div>
                     </div>
                   </div>
                 </div>

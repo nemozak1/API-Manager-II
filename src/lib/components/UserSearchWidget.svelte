@@ -20,6 +20,7 @@
     selectedUserId?: string;
     selectedUsername?: string;
     disabled?: boolean;
+    initialUsername?: string;
   }
 
   let {
@@ -27,14 +28,22 @@
     selectedUserId = $bindable(""),
     selectedUsername = $bindable(""),
     disabled = false,
+    initialUsername = "",
   }: Props = $props();
 
-  let searchQuery = $state("");
+  let searchQuery = $state(initialUsername);
   let isSearching = $state(false);
   let searchResults = $state<UserResult[]>([]);
   let showResults = $state(false);
   let searchError = $state("");
   let debounceTimer: number | null = null;
+
+  // Trigger search on mount if initialUsername is provided
+  $effect(() => {
+    if (initialUsername && !selectedUserId) {
+      searchUsers(initialUsername);
+    }
+  });
 
   async function searchUsers(query: string) {
     if (!query.trim()) {

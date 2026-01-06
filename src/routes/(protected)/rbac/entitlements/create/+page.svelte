@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
+  import { page } from "$app/stores";
   import { User, KeyRound, Building2, Search } from "@lucide/svelte";
   import { toast } from "$lib/utils/toastService";
   import { trackedFetch } from "$lib/utils/trackedFetch";
@@ -20,10 +21,14 @@
   let requiredRoles = $derived(data.requiredRoles || []);
   let roles = $derived(data.roles || []);
 
+  // Read URL parameters
+  const urlUsername = $page.url.searchParams.get("username") || "";
+  const urlRole = $page.url.searchParams.get("role") || "";
+
   // Form state
   let userId = $state("");
-  let username = $state("");
-  let roleName = $state("");
+  let username = $state(urlUsername);
+  let roleName = $state(urlRole);
   let roleScope = $state<"all" | "system" | "bank">("all");
   let bankId = $state("");
   let isSubmitting = $state(false);
@@ -149,6 +154,7 @@
             bind:selectedUserId={userId}
             bind:selectedUsername={username}
             disabled={isSubmitting}
+            initialUsername={urlUsername}
           />
           <div class="form-hint">
             Search for a user by username or email to grant the entitlement to

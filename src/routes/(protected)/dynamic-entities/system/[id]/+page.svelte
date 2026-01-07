@@ -317,6 +317,7 @@
           Manage Data (CRUD)
         </a>
         <!-- Note: By default OBP adds a leading _ to the tags so they don't conflict with tags of OBP static entities -->
+        <!-- Commented out - not working properly
         <a
           href="/dynamic-entities/system/openapi-json?tags=_{entityName}"
           target="_blank"
@@ -361,6 +362,7 @@
           </svg>
           OpenAPI YAML
         </a>
+        -->
       </div>
     </div>
   </div>

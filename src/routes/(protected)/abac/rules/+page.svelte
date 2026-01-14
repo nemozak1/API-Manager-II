@@ -27,6 +27,7 @@
 
   let filteredRules = $derived.by(() => {
     if (!searchQuery.trim()) {
+      console.log("ABAC Rules Data:", abacRules);
       return abacRules;
     }
     const query = searchQuery.toLowerCase();
@@ -175,6 +176,13 @@
                         >
                       </div>
                     {/if}
+
+                    <div class="detail-item">
+                      <span class="detail-label">Policy:</span>
+                      <span class="detail-value"
+                        >{rule.policy || "(not set)"}</span
+                      >
+                    </div>
 
                     {#if rule.is_active !== undefined}
                       <div class="detail-item">

@@ -15,6 +15,7 @@
   let formRuleName = $state("");
   let formRuleCode = $state("");
   let formDescription = $state("");
+  let formPolicy = $state("");
   let formIsActive = $state(true);
   let formError = $state("");
   let isSubmitting = $state(false);
@@ -63,6 +64,11 @@
       return;
     }
 
+    if (!formPolicy.trim()) {
+      formError = "Policy is required";
+      return;
+    }
+
     isSubmitting = true;
     formError = "";
 
@@ -76,6 +82,8 @@
       if (formDescription.trim()) {
         requestBody.description = formDescription;
       }
+
+      requestBody.policy = formPolicy;
 
       const response = await fetch("/api/abac-rules", {
         method: "POST",
@@ -282,6 +290,27 @@
               ></textarea>
               <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 A human-readable description of what this rule does
+              </p>
+            </div>
+
+            <!-- Policy Field -->
+            <div>
+              <label
+                for="policy"
+                class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Policy <span class="text-red-600">*</span>
+              </label>
+              <input
+                id="policy"
+                type="text"
+                bind:value={formPolicy}
+                required
+                placeholder="e.g., account-access"
+                class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-blue-400"
+              />
+              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Policy this Rule supports
               </p>
             </div>
 

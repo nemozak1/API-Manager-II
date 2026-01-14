@@ -23,7 +23,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
   try {
     const body = await request.json();
-    const { rule_name, rule_code, description, is_active } = body;
+    const { rule_name, rule_code, description, is_active, policy } = body;
 
     // Validate required fields
     if (!rule_name || typeof rule_name !== "string") {
@@ -36,6 +36,13 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     if (!rule_code || typeof rule_code !== "string") {
       return json(
         { error: "rule_code is required and must be a string" },
+        { status: 400 },
+      );
+    }
+
+    if (!policy || typeof policy !== "string") {
+      return json(
+        { error: "policy is required and must be a string" },
         { status: 400 },
       );
     }
@@ -54,6 +61,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     if (description) {
       requestBody.description = description;
     }
+
+    requestBody.policy = policy;
 
     const endpoint = `/obp/v6.0.0/management/abac-rules`;
     logger.info(`POST ${endpoint}`);

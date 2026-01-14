@@ -165,6 +165,9 @@
     editingRouting = routing;
     formData = { ...routing };
     showCreateForm = true;
+    if (methodNames.length === 0) {
+      fetchMethodNames();
+    }
   }
 
   function startCreate() {
@@ -198,6 +201,7 @@
 
   onMount(() => {
     fetchMethodRoutings();
+    fetchMethodNames();
   });
 </script>
 

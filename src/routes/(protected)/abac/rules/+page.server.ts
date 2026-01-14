@@ -46,6 +46,15 @@ export const load: PageServerLoad = async ({ locals }) => {
         logger.info(
           `Retrieved ${abacRules.length} ABAC rules from response.abac_rules`,
         );
+        // Log each rule to check for policy field
+        abacRules.forEach((rule, index) => {
+          logger.info(`Rule ${index + 1}:`, {
+            rule_name: rule.rule_name,
+            has_policy: !!rule.policy,
+            policy: rule.policy,
+            all_keys: Object.keys(rule),
+          });
+        });
       } else if (Array.isArray(response.rules)) {
         abacRules = response.rules;
         logger.info(

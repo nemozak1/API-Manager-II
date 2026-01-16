@@ -49,7 +49,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
       data,
     };
 
-    const endpoint = `/obp/v4.0.0/management/system-dynamic-entities`;
+    const endpoint = `/obp/v6.0.0/management/system-dynamic-entities`;
     logger.info(`POST ${endpoint}`);
 
     const response = await obp_requests.post(

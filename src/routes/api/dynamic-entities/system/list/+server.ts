@@ -24,7 +24,7 @@ export const GET: RequestHandler = async ({ locals }) => {
   try {
     logger.info("Fetching system dynamic entities list");
 
-    const endpoint = `/obp/v4.0.0/management/system-dynamic-entities`;
+    const endpoint = `/obp/v6.0.0/management/system-dynamic-entities`;
     const response = await obp_requests.get(endpoint, accessToken);
 
     const entities = response.dynamic_entities || [];

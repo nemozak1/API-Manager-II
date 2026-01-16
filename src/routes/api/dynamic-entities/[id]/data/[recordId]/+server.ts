@@ -13,7 +13,7 @@ async function getEntityName(
 ): Promise<string | null> {
   try {
     const entitiesResponse = await obp_requests.get(
-      "/obp/v4.0.0/management/system-dynamic-entities",
+      "/obp/v6.0.0/management/system-dynamic-entities",
       accessToken,
     );
     const entities = entitiesResponse.dynamic_entities || [];

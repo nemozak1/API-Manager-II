@@ -30,7 +30,7 @@ export const GET: RequestHandler = async ({ params, locals }) => {
 
     logger.info(`Fetching dynamic entity: ${id}`);
 
-    const endpoint = `/obp/v4.0.0/management/system-dynamic-entities/${id}`;
+    const endpoint = `/obp/v6.0.0/management/system-dynamic-entities/${id}`;
     const response = await obp_requests.get(endpoint, accessToken);
 
     logger.info("Dynamic entity retrieved successfully");
@@ -91,7 +91,7 @@ export const PUT: RequestHandler = async ({ params, request, locals }) => {
 
     logger.info(`Updating dynamic entity: ${id}`);
 
-    const endpoint = `/obp/v4.0.0/management/system-dynamic-entities/${id}`;
+    const endpoint = `/obp/v6.0.0/management/system-dynamic-entities/${id}`;
     const response = await obp_requests.put(endpoint, { data }, accessToken);
 
     logger.info("Dynamic entity updated successfully");

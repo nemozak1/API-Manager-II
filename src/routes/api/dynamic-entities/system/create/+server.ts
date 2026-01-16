@@ -34,7 +34,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     logger.info("Creating system dynamic entity");
     logger.info("Payload:", JSON.stringify(body, null, 2));
 
-    const endpoint = `/obp/v4.0.0/management/system-dynamic-entities`;
+    const endpoint = `/obp/v6.0.0/management/system-dynamic-entities`;
     const response = await obp_requests.post(endpoint, body, accessToken);
 
     logger.info("System dynamic entity created successfully");

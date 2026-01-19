@@ -5,7 +5,6 @@ import type { OAuth2Tokens } from "arctic";
 import type { RequestEvent } from "@sveltejs/kit";
 import { error } from "@sveltejs/kit";
 import { env } from "$env/dynamic/public";
-import { OBP_API_URL } from "$lib/config";
 
 export async function GET(event: RequestEvent): Promise<Response> {
   // Check for OAuth error responses first (e.g., invalid credentials)
@@ -176,8 +175,7 @@ export async function GET(event: RequestEvent): Promise<Response> {
 
   const obpAccessToken = tokens.accessToken();
 
-  logger.debug(`OBP_API_URL from config: ${OBP_API_URL}`);
-  const currentUserUrl = `${OBP_API_URL}/users/current`;
+  const currentUserUrl = `${env.PUBLIC_OBP_BASE_URL}/obp/v6.0.0/users/current`;
   logger.info("Fetching current user from OBP:", currentUserUrl);
   const currentUserRequest = new Request(currentUserUrl);
 

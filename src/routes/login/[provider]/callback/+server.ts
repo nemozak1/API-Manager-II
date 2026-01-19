@@ -5,7 +5,6 @@ import type { OAuth2Tokens } from "arctic";
 import type { RequestEvent } from "@sveltejs/kit";
 import { error } from "@sveltejs/kit";
 import { env } from "$env/dynamic/public";
-import { OBP_API_URL } from "$lib/config";
 
 export async function GET(event: RequestEvent): Promise<Response> {
   const { provider: urlProvider } = event.params;

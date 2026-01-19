@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { configHelpers } from "$lib/config";
+  import { env } from "$env/dynamic/public";
 
   // Props
   export let hasApiAccess: boolean = false;
@@ -7,8 +7,17 @@
   export let showDetails: boolean = false;
   export let inline: boolean = false;
 
-  // Configuration
-  $: obpInfo = configHelpers.getObpConnectionInfo();
+  // Configuration - extract display name from URL
+  function getDisplayName(url: string): string {
+    try {
+      const parsed = new URL(url);
+      return `${parsed.hostname}:${parsed.port || (parsed.protocol === 'https:' ? '443' : '80')}`;
+    } catch {
+      return url;
+    }
+  }
+  
+  $: displayName = getDisplayName(env.PUBLIC_OBP_BASE_URL || "http://127.0.0.1:8080");
   $: connectionStatus = hasApiAccess ? "connected" : "disconnected";
   $: statusColor = hasApiAccess ? "#10b981" : "#ef4444";
   $: statusIcon = hasApiAccess ? "🟢" : "🔴";
@@ -46,7 +55,7 @@
 <div
   class="status-indicator {currentSize.container}"
   class:inline={inline}
-  title="OBP Server: {obpInfo.displayName} - {statusText}"
+  title="OBP Server: {displayName} - {statusText}"
 >
   <!-- Status Dot with Animation -->
   <div
@@ -67,7 +76,7 @@
       <div class="status-details {currentSize.details}">
         <div class="detail-row">
           <span class="detail-label">Host:</span>
-          <span class="detail-value">{obpInfo.displayName}</span>
+          <span class="detail-value">{displayName}</span>
         </div>
         <div class="detail-row">
           <span class="detail-label">Status:</span>

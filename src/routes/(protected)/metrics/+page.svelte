@@ -2,7 +2,7 @@
   import { goto } from "$app/navigation";
   import { invalidate } from "$app/navigation";
   import type { PageData } from "./$types";
-  import { configHelpers } from "$lib/config";
+  import { env } from "$env/dynamic/public";
   import MetricsQueryForm from "$lib/components/metrics/MetricsQueryForm.svelte";
 
   let { data } = $props<{ data: PageData }>();
@@ -44,7 +44,20 @@
   let timestampColorIndex = $state(0);
 
   // Configuration information
-  let obpInfo = $derived(configHelpers.getObpConnectionInfo());
+  const obpBaseUrl = env.PUBLIC_OBP_BASE_URL || "http://127.0.0.1:8080";
+  const obpApiUrl = `${obpBaseUrl}/obp/v6.0.0`;
+  const obpOidcUrl = `${obpBaseUrl}/obp-oidc`;
+  
+  function getDisplayName(url: string): string {
+    try {
+      const parsed = new URL(url);
+      return `${parsed.hostname}:${parsed.port || (parsed.protocol === 'https:' ? '443' : '80')}`;
+    } catch {
+      return url;
+    }
+  }
+  
+  const obpDisplayName = getDisplayName(obpBaseUrl);
 
   // Helper function to convert datetime-local format to OBP API format
   function formatDateForAPI(dateString: string): string {
@@ -383,7 +396,7 @@
     <div class="panel-header">
       <h2 class="panel-title">API Metrics Results</h2>
       <div class="panel-subtitle">
-        URL: {obpInfo.baseUrl}/obp/v6.0.0/management/metrics?{currentQueryString}
+        URL: {obpBaseUrl}/obp/v6.0.0/management/metrics?{currentQueryString}
         <br />
         Last updated:
         <span class="timestamp-color-{timestampColorIndex}"
@@ -408,7 +421,7 @@
     <div class="panel-content">
       {#if metrics?.metrics && metrics.metrics.length > 0}
         <div class="metrics-summary">
-          Showing {metrics.count} API calls from {obpInfo.displayName}
+          Showing {metrics.count} API calls from {obpDisplayName}
         </div>
         <div class="table-wrapper">
           {#key data.lastUpdated}
@@ -478,7 +491,7 @@
         </div>
         <div class="metrics-summary">
           Showing {metrics.count} API calls from
-          {obpInfo.displayName}
+          {obpDisplayName}
         </div>
       {:else if hasApiAccess}
         <div class="empty-state">
@@ -494,7 +507,7 @@
           </h4>
           <p style="text-align: center; margin-bottom: 1.5rem;">
             No recent API requests found for <strong
-              >{obpInfo.displayName}</strong
+              >{obpDisplayName}</strong
             >.
           </p>
           <div
@@ -508,9 +521,9 @@
             <div
               style="font-family: monospace; font-size: 0.75rem; color: #4a5568;"
             >
-              <div>• Base URL: {obpInfo.baseUrl}</div>
-              <div>• API URL: {obpInfo.apiUrl}</div>
-              <div>• OIDC URL: {obpInfo.oidcUrl}</div>
+              <div>• Base URL: {obpBaseUrl}</div>
+              <div>• API URL: {obpApiUrl}</div>
+              <div>• OIDC URL: {obpOidcUrl}</div>
             </div>
           </div>
           <button
@@ -535,7 +548,7 @@
           </h4>
           <p style="text-align: center; margin-bottom: 1rem;">
             Cannot connect to OBP server at <strong
-              >{obpInfo.displayName}</strong
+              >{obpDisplayName}</strong
             >
           </p>
           <p style="text-align: center; font-size: 0.875rem; color: #718096;">

@@ -2,7 +2,7 @@ import type { PageServerLoad } from "./$types";
 import { error } from "@sveltejs/kit";
 import { createLogger } from "$lib/utils/logger";
 import { SessionOAuthHelper } from "$lib/oauth/sessionHelper";
-import { OBP_API_URL } from "$lib/config";
+import { env } from "$env/dynamic/public";
 
 const logger = createLogger("OpenAPIYAMLPageServer");
 
@@ -25,7 +25,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
   try {
     logger.info("=== FETCHING DYNAMIC ENTITY OPENAPI YAML ===");
-    let apiUrl = `${OBP_API_URL}/resource-docs/OBPv6.0.0/openapi.yaml?content=dynamic`;
+    let apiUrl = `${env.PUBLIC_OBP_BASE_URL}/obp/v6.0.0/resource-docs/OBPv6.0.0/openapi.yaml?content=dynamic`;
     if (tags) {
       apiUrl += `&tags=${encodeURIComponent(tags)}`;
       logger.info(`Filtering by tags: ${tags}`);

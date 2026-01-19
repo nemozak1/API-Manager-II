@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from "$app/stores";
   import { goto } from "$app/navigation";
-  import { configHelpers } from "$lib/config";
+  import { env } from "$env/dynamic/public";
 
   // Props from layout with better typing
   let {
@@ -21,7 +21,18 @@
   // Reactive statements for better state management
   let isAuthenticated = $derived(!!user && !!authInfo?.authenticated);
   let userDisplayName = $derived(user?.username || user?.email || "User");
-  let obpInfo = $derived(configHelpers.getObpConnectionInfo());
+  
+  // Configuration - extract display name from URL
+  function getDisplayName(url: string): string {
+    try {
+      const parsed = new URL(url);
+      return `${parsed.hostname}:${parsed.port || (parsed.protocol === 'https:' ? '443' : '80')}`;
+    } catch {
+      return url;
+    }
+  }
+  
+  let obpDisplayName = $derived(getDisplayName(env.PUBLIC_OBP_BASE_URL || "http://127.0.0.1:8080"));
 
   let isMobileMenuOpen = $state(false);
   let openDropdown = $state<string | null>(null);
@@ -183,7 +194,7 @@
         <div class="user-info desktop-only">
           <div class="user-details">
             <span class="user-name">{userDisplayName}</span>
-            <span class="obp-host">→ {obpInfo.displayName}</span>
+            <span class="obp-host">→ {obpDisplayName}</span>
           </div>
         </div>
 
@@ -228,7 +239,7 @@
         <!-- User Info in Mobile -->
         <div class="mobile-user-info">
           <div class="mobile-user-name">{userDisplayName}</div>
-          <div class="mobile-obp-host">Connected to: {obpInfo.displayName}</div>
+          <div class="mobile-obp-host">Connected to: {obpDisplayName}</div>
         </div>
 
         <!-- Navigation Links -->

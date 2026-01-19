@@ -10,7 +10,6 @@ import { env } from "$env/dynamic/private";
 import { oauth2ProviderManager } from "$lib/oauth/providerManager";
 import { SessionOAuthHelper } from "$lib/oauth/sessionHelper";
 import { resourceDocsCache } from "$lib/stores/resourceDocsCache";
-
 // Constants
 const DEFAULT_PORT = 3003;
 
@@ -18,7 +17,7 @@ const DEFAULT_PORT = 3003;
 function checkServerPort() {
   // Check common port environment variables
   const envPort =
-    process.env.PORT || process.env.VITE_PORT || process.env.SERVER_PORT;
+    env.PORT || env.VITE_PORT || env.SERVER_PORT;
 
   if (envPort && parseInt(envPort) !== DEFAULT_PORT) {
     logger.warn(

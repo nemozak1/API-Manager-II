@@ -1,4 +1,5 @@
-import { env } from "$env/dynamic/public";
+import { env } from "$env/dynamic/private";
+import { env as publicEnv } from "$env/dynamic/public";
 import { browser } from "$app/environment";
 
 // Application configuration interface
@@ -27,7 +28,7 @@ export interface AppConfiguration {
 }
 
 // Default configuration values
-const DEFAULT_OBP_BASE_URL = "http://127.0.0.1:9000";
+const DEFAULT_OBP_BASE_URL = "http://127.0.0.1:8080";
 const DEFAULT_APP_PORT = 3003;
 
 // Parse URL to extract host and port information
@@ -70,16 +71,18 @@ function getConfiguration(): AppConfiguration {
   const apiUrl = `${obpBaseUrl}/obp/v6.0.0`;
   const oidcUrl = `${obpBaseUrl}/obp-oidc`;
 
-  // App configuration - use safe defaults on client side
+  // App configuration - check both public and private env vars
   const appPort = browser
-    ? DEFAULT_APP_PORT
-    : process.env.PORT
-      ? parseInt(process.env.PORT)
-      : DEFAULT_APP_PORT;
+    ? (publicEnv.PUBLIC_APP_PORT
+        ? parseInt(publicEnv.PUBLIC_APP_PORT)
+        : DEFAULT_APP_PORT)
+    : (env.PORT
+        ? parseInt(env.PORT)
+        : DEFAULT_APP_PORT);
   const appBaseUrl = `http://localhost:${appPort}`;
   const callbackUrl = browser
     ? `${appBaseUrl}/login/obp/callback`
-    : process.env.APP_CALLBACK_URL || `${appBaseUrl}/login/obp/callback`;
+    : env.APP_CALLBACK_URL || `${appBaseUrl}/login/obp/callback`;
 
   return {
     obp: {
@@ -97,7 +100,7 @@ function getConfiguration(): AppConfiguration {
     oauth: {
       clientId: browser
         ? "39fb9d38-cd0e-44e7-9da5-556d0673e40d"
-        : process.env.OBP_OAUTH_CLIENT_ID ||
+        : env.OBP_OAUTH_CLIENT_ID ||
           "39fb9d38-cd0e-44e7-9da5-556d0673e40d",
       scope: ["openid", "profile", "email"],
     },

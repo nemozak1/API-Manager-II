@@ -10,6 +10,7 @@
   let metrics = $derived(data.metrics);
   let hasApiAccess = $derived(data.hasApiAccess);
   let error = $derived(data.error);
+  let obpOidcUrl = $derived(data.obpOidcUrl || 'Not configured');
 
   // Debug reactive statements
   $effect(() => {
@@ -46,7 +47,6 @@
   // Configuration information
   const obpBaseUrl = env.PUBLIC_OBP_BASE_URL || "http://127.0.0.1:8080";
   const obpApiUrl = `${obpBaseUrl}/obp/v6.0.0`;
-  const obpOidcUrl = `${obpBaseUrl}/obp-oidc`;
   
   function getDisplayName(url: string): string {
     try {

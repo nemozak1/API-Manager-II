@@ -1,8 +1,9 @@
 import { createLogger } from "$lib/utils/logger";
-const logger = createLogger("MetricsPageServer");
+const logger = createLogger("AggregateMetricsPageServer");
 import type { PageServerLoad } from "./$types";
 import { obp_requests } from "$lib/obp/requests";
 import { SessionOAuthHelper } from "$lib/oauth/sessionHelper";
+import { oauth2ProviderManager } from "$lib/oauth/providerManager";
 import { error } from "@sveltejs/kit";
 
 interface MetricRecord {
@@ -152,18 +153,28 @@ export const load: PageServerLoad = async ({ locals, url, depends }) => {
       logger.error(`Error: ${metricsData.error}`);
     }
 
+    // Get the OBP OIDC provider URL from the provider manager
+    const obpProvider = oauth2ProviderManager.getAllProviders().find(p => p.provider === 'obp-oidc');
+    const obpOidcUrl = obpProvider?.url || null;
+
     return {
       metrics: metricsData,
       hasApiAccess: true,
       lastUpdated: new Date().toISOString(),
+      obpOidcUrl,
     };
   } catch (err) {
     logger.error("Error loading metrics:", err);
+
+    // Get the OBP OIDC provider URL from the provider manager even on error
+    const obpProvider = oauth2ProviderManager.getAllProviders().find(p => p.provider === 'obp-oidc');
+    const obpOidcUrl = obpProvider?.url || null;
 
     return {
       metrics: null,
       hasApiAccess: false,
       error: err instanceof Error ? err.message : "Failed to load metrics",
+      obpOidcUrl,
     };
   }
 };
